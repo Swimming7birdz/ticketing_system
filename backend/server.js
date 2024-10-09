@@ -12,12 +12,16 @@ const teamRoutes = require("./routes/teamRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const communicationRoutes = require("./routes/communicationRoutes");
 const authRoutes = require("./routes/authRoutes");
+const teamMemberRoutes = require("./routes/teamMemberRoutes"); // Import team member routes
+const ticketAssignmentRoutes = require("./routes/ticketAssignmentRoutes"); // Import ticket assignment routes
 
 app.use("/api/users", userRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/communications", communicationRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/teammembers", teamMemberRoutes); // Use team member routes
+app.use("/api/ticketassignments", ticketAssignmentRoutes); // Use ticket assignment routes
 
 const PORT = process.env.PORT || 3000;
 
