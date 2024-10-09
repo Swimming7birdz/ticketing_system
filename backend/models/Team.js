@@ -11,6 +11,9 @@ const Team = sequelize.define("Team", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+},{
+  tableName: 'teams', // Ensure the table name is lowercase
+  timestamps: false,
 });
 
 module.exports = Team;

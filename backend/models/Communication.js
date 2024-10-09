@@ -23,6 +23,9 @@ const Communication = sequelize.define("Communication", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+},{
+  tableName: 'ticketcommunications', // Ensure the table name is lowercase
+  timestamps: false,
 });
 
 module.exports = Communication;

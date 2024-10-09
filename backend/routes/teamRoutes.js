@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.get("/", teamController.getAllTeams);
 router.get("/:team_id", teamController.getTeamById);
-router.post("/", authMiddleware.isAdmin, teamController.createTeam);
-router.put("/:team_id", authMiddleware.isAdmin, teamController.updateTeam);
-router.delete("/:team_id", authMiddleware.isAdmin, teamController.deleteTeam);
+router.post("/", authMiddleware.verifyToken, authMiddleware.isAdmin, teamController.createTeam);
+router.put("/:team_id", authMiddleware.verifyToken, authMiddleware.isAdmin, teamController.updateTeam);
+router.delete("/:team_id", authMiddleware.verifyToken, authMiddleware.isAdmin, teamController.deleteTeam);
 
 module.exports = router;

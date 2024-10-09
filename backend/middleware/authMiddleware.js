@@ -1,4 +1,22 @@
+const jwt = require("jsonwebtoken");
+
 const authMiddleware = {
+  verifyToken: (req, res, next) => {
+    const token = req.headers["authorization"];
+    if (!token) {
+      return res.status(403).json({ error: "No token provided" });
+    }
+
+    const bearerToken = token.split(" ")[1];
+
+    jwt.verify(bearerToken, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ error: "Failed to authenticate token" });
+      }
+      req.user = decoded;
+      next();
+    });
+  },
   isAdmin: (req, res, next) => {
     if (req.user && req.user.role === "admin") {
       next();

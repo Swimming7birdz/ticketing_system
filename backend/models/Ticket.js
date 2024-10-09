@@ -39,6 +39,9 @@ const Ticket = sequelize.define("Ticket", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+},{
+  tableName: 'tickets', // Ensure the table name is lowercase
+  timestamps: false,
 });
 
 module.exports = Ticket;
