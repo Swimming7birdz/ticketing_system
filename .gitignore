@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+# Environment variables
+.env
+# Logs
+logs/
+*.log
+# npm package lock files
+package-lock.json
+# OS files
+.DS_Store
+Thumbs.db
+# IDE/editor-specific settings
+.vscode/
+.idea/
+# Build output
+/build

@@ -1,17 +1,17 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../../config/db");
+const sequelize = require("../config/db");
 
-const Notification = sequelize.define("Notification", {
-  notification_id: {
+const Communication = sequelize.define("Communication", {
+  communication_id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   },
-  user_id: {
+  ticket_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  ticket_id: {
+  user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
@@ -19,14 +19,10 @@ const Notification = sequelize.define("Notification", {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-  is_read: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
 });
 
-module.exports = Notification;
+module.exports = Communication;
