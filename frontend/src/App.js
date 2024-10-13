@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import AllTickets from './pages/AllTickets';
+import TicketSubmit from './pages/IssueSubmissionForm';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/login" element={<Login />} />
       <Route path="/alltickets" element={<AllTickets />} />
+      <Route path="/ticketsubmit" element={<TicketSubmit />} />
     </Routes>
   );
 }
