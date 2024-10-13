@@ -1,0 +1,17 @@
+.sideBar {
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.sideBar .sidebar-paper {
+    width: 200px; 
+    background-color: #8C1D40;
+    color: white;
+    border-right: none;
+}
+
+.fontStyle {
+    font-family: 'Inter', sans-serif; 
+    font-weight: 600; 
+    font-size: 25px;
+}
