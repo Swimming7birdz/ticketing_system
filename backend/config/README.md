@@ -1,1 +1,1 @@
-This folder contains configuration files, primarily for setting up your database connection (e.g., connection settings, environment configurations).
+This folder contains the configureation for the DB along with the Setup for the server

@@ -1,22 +1,18 @@
-import logo from './logo.svg';
-import Login from './pages/Login/Login'
-import TicketInfo from './pages/TicketInfo/TicketInfo';
 import './App.css';
-import SideBar from './components/SideBar/SideBar';
-import TopBar from './components/TopBar/TopBar';
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import AllTickets from './pages/AllTickets';
 
 function App() {
   return (
-    <div className='App'>
-      <SideBar className="sideBar"/>
-      <div className="appContents">
-        <TopBar className="topBar"/>
-        <TicketInfo/>
-      </div>
-    </div>
-
-    // <Login/>
-
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/alltickets" element={<AllTickets />} />
+    </Routes>
   );
 }
 
