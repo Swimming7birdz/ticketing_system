@@ -1,32 +1,26 @@
-const sequelize = require("../config/db");
-
-// Import models from entities subfolder
-const Role = require("./entities/Role");
-const Ticket = require("./entities/Ticket");
-const Comment = require("./entities/Comment");
-const TicketStudent = require("./entities/TicketStudent");
-const TicketHistory = require("./entities/TicketHistory");
-const Notification = require("./entities/Notification");
+const User = require("./User");
+const Team = require("./Team");
+const Ticket = require("./Ticket");
+const TeamMember = require("./TeamMember");
+const TicketAssignment = require("./TicketAssignment");
 
 // Define associations
-// Example: User has many Tickets
-// Ticket.belongsTo(User, { foreignKey: 'created_by' });
-// Comment.belongsTo(User, { foreignKey: 'user_id' });
-// TicketHistory.belongsTo(User, { foreignKey: 'changed_by' });
-// Notification.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(TeamMember, { foreignKey: 'user_id' });
+TeamMember.belongsTo(User, { foreignKey: 'user_id' });
 
-// Ticket associations
-// Ticket.hasMany(Comment, { foreignKey: 'ticket_id' });
-// TicketHistory.belongsTo(Ticket, { foreignKey: 'ticket_id' });
-// TicketStudent.belongsTo(Ticket, { foreignKey: 'ticket_id' });
-// Notification.belongsTo(Ticket, { foreignKey: 'ticket_id' });
+Team.hasMany(TeamMember, { foreignKey: 'team_id' });
+TeamMember.belongsTo(Team, { foreignKey: 'team_id' });
+
+User.hasMany(TicketAssignment, { foreignKey: 'user_id' });
+TicketAssignment.belongsTo(User, { foreignKey: 'user_id' });
+
+Ticket.hasMany(TicketAssignment, { foreignKey: 'ticket_id' });
+TicketAssignment.belongsTo(Ticket, { foreignKey: 'ticket_id' });
 
 module.exports = {
-  sequelize,
-  Role,
+  User,
+  Team,
   Ticket,
-  Comment,
-  TicketStudent,
-  TicketHistory,
-  Notification,
+  TeamMember,
+  TicketAssignment,
 };
