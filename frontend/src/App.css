@@ -1,16 +1,13 @@
-.App{
+.sideBarLayout{
   display: flex;
   flex-direction: row; 
   height: 100vh; 
 }
 
-.topBar {
-  flex-shrink: 0; 
-}
-
-.appContents {
+.topBarLayout {
   display: flex; 
   flex-direction: column;
+  flex-grow: 1;
 }
 
 .sideBar {
