@@ -7,6 +7,7 @@ import AllTickets from './pages/AllTickets';
 import SideBar from './components/SideBar/SideBar';
 import TopBar from './components/TopBar/TopBar';
 import TicketInfo from './pages/TicketInfo/TicketInfo';
+import AdminDash from './pages/AdminDash';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/alltickets" element={<AllTickets />} />
                   <Route path="/ticketinfo" element={<TicketInfo />} />
+                  <Route path="/admindash" element={<AdminDash />} />
                 </Routes>
               </div>
           </div>
