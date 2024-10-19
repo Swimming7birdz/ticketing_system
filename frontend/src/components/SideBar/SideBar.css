@@ -1,10 +1,10 @@
 .sideBar {
-    width: 200px;
+    width: 240px;
     flex-shrink: 0;
 }
 
 .sideBar .sidebar-paper {
-    width: 200px; 
+    width: 240px; 
     background-color: #8C1D40;
     color: white;
     border-right: none;
@@ -14,4 +14,16 @@
     font-family: 'Inter', sans-serif; 
     font-weight: 600; 
     font-size: 25px;
+}
+
+.buttonStyle {
+    min-height: 70px;
+}
+
+.ticketsNavigation{
+    flex-grow: 1;
+}
+
+.iconStyle{
+    color: white;
 }

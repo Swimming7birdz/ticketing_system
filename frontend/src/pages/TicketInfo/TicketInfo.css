@@ -9,7 +9,6 @@
     background-color: white;
     display: flex;
     flex-direction: column;
-    flex: 1;
     padding-left: 3%;
     padding-top: 3%;
     padding-right: 3%;
@@ -63,4 +62,9 @@
     padding-left: 10px;
     padding-right: 10px;
     margin-bottom: 20px;
+}
+
+.backButton{
+    width: 30px;
+    
 }
