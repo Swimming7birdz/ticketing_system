@@ -1,6 +1,5 @@
 import React from 'react'
-import Paper from '@mui/material/Paper';
-import { Avatar, Chip } from '@mui/material';
+import { Avatar, Button, Chip, Typography } from '@mui/material';
 
 
 function stringAvatar(name) {
@@ -35,32 +34,29 @@ function stringToColor(string) {
 
 const TicketCard = () => {
     return (
-        <div className="ticketcard">
-            <Paper sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 1 }}>
-                <div className="TopHalf" style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', margin: 0, padding: 0 }}>
-                    <Avatar {...stringAvatar('Kent Dodds')} />
-                    <div className="ticketTitle" style={{ textAlign: 'right', justifyContent: 'flex-end', alignItems: 'flex-end', margin: 0, padding: 0 }}>
-                        <p style={{ fontWeight: "bold" }}>CPSTN1-45688</p>
-                        <p style={{ fontWeight: "bold" }}>Sponsor isn't Responding</p>
-                    </div>
+        <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#E0E0E0', padding: 20, borderRadius: 5, flex: 1, gap: 10 }}>
+            {/* HEADER */}
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Avatar {...stringAvatar('Kent Dodds')} />
+                <div style={{ display: 'flex', flexDirection: 'column', }}>
+                    <Typography variant="p" sx={{ fontSize: '1rem', color: '#212121', fontWeight: 'bold', textAlign: 'right' }}>CPSTN1-45688</Typography>
+                    <Typography variant="p" sx={{ fontSize: '0.8rem', color: '#212121', textAlign: 'right' }}>Sponsor isn't Responding</Typography>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', margin: 0, padding: 0 }}>
-                    <div style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', margin: 0, padding: 0 }}>
-                        <p style={{ fontWeight: 'bold', margin: 0, padding: 0 }}>Status:</p>
-                        <Chip label="Ongoing" size="small" sx={{ backgroundColor: '#ADE1BE', color: '#1C741F' }} />
-                        <Chip label="Escalated" color="info" size="small" sx={{ backgroundColor: '#A0C0F0', color: '#1965D8' }} />
-                        <Chip label="Resolved" color="success" size="small" sx={{ backgroundColor: '#F89795', color: '#D00505' }} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', margin: 0, padding: 0 }}>
-                        <p style={{ fontWeight: 'bold' }}>Name:</p>
-                        <p>Kent Dodds</p>
-                    </div>
-                    <div style={{ alignItems: 'flex-end' }} backgroundColor="green">
-                        <Chip label="Open Ticket" size="small" sx={{ backgroundColor: '#8C1D40', color: 'white' }} />
-                    </div>
-                </div>
-            </Paper>
-
+            </div>
+            {/* STATUS */}
+            <div style={{ display: 'flex', flexDirection: 'row', gap: 10 }}>
+                <Typography variant="p" sx={{ fontWeight: 'bold' }}>Status:</Typography>
+                <Chip label="Ongoing" size="small" sx={{ backgroundColor: '#ADE1BE', color: '#1C741F' }} />
+                <Chip label="Escalated" color="info" size="small" sx={{ backgroundColor: '#A0C0F0', color: '#1965D8' }} />
+                <Chip label="Resolved" color="success" size="small" sx={{ backgroundColor: '#F89795', color: '#D00505' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: 10 }}>
+                <Typography variant="p" sx={{ fontWeight: 'bold' }}>Name:</Typography>
+                <Typography variant="p" >Kent Dodds</Typography>
+            </div>
+            <Button variant="contained" disableElevation sx={{ backgroundColor: '#8C1D40', color: 'white', borderRadius: 999, fontSize: '0.75rem', width: "fit-content", alignSelf: "flex-end" }}>
+                Open Ticket
+            </Button>
         </div>
     )
 }

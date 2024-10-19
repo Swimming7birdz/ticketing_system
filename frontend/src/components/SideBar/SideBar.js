@@ -1,10 +1,11 @@
 import React from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Drawer, List, ListItemButton, ListItemText } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import './SideBar.css'
 import ASULogo from '../../assets/ASULogo.png'
 
 const SideBar = () => {
+    const [selectedPage, setSelectedPage] = React.useState(0);
 
     return (
         <Drawer
@@ -15,20 +16,20 @@ const SideBar = () => {
                 paper: 'sidebar-paper',
             }}
         >
-            <img src={ASULogo} alt="Logo"/>
-            <List>
-                <ListItem button>
+            <img src={ASULogo} alt="Logo" />
+            <List component="nav">
+                <ListItemButton onClick={() => setSelectedPage(0)} selected={selectedPage === 0}>
                     <ListItemText className="fontStyle" primary="Dashboard" />
-                </ListItem>
-                <ListItem button>
+                </ListItemButton>
+                <ListItemButton onClick={() => setSelectedPage(1)} selected={selectedPage === 1}>
                     <ListItemText className="fontStyle" primary="My Tickets" />
-                </ListItem>
-                <ListItem button>
+                </ListItemButton>
+                <ListItemButton onClick={() => setSelectedPage(2)} selected={selectedPage === 2}>
                     <ListItemText className="fontStyle" primary="Settings" />
-                </ListItem>
-                <ListItem button>
+                </ListItemButton>
+                <ListItemButton onClick={() => setSelectedPage(3)} selected={selectedPage === 3}>
                     <ListItemText className="fontStyle" primary="Log Out" />
-                </ListItem>
+                </ListItemButton>
             </List>
         </Drawer>
     )

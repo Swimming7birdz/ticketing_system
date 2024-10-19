@@ -15,3 +15,7 @@
     font-weight: 600; 
     font-size: 25px;
 }
+
+.Mui-selected {
+    background-color: #A9234D !important;
+}
