@@ -3,6 +3,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
 import ConfirmDelete from "../../components/ConfirmDelete/ConfirmDelete";
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import './TicketInfo.css';
 
 const students = ["Kevin Tang", "Shabib Huq", "Rhea Mane", "Issac Alemu", "Ryan Radtke"]
@@ -15,6 +16,9 @@ const TicketDescription = "We’re having some communication issues with our pro
 const TicketInfo = () => {
     const [deleteOpen, setDeleteOpen] = React.useState(false);
 
+    const handleBack = () => {
+        console.log("Back Button Clicked")
+    }
 
     const handleEditTicket = () => {
         console.log("Edit Ticket Button Clicked")
@@ -32,6 +36,14 @@ const TicketInfo = () => {
     return(
         <div className="ticketInfoContainer">
             <Stack className="ticketInfo">
+                <Button
+                    variant="text"
+                    className="backButton"
+                    onClick={handleBack}
+                    startIcon={<ArrowBackIosNewIcon />}
+                >
+                Back
+                </Button>
                 <div className="ticketId">{ticketID}</div>
                 <div className="subject">{TicketSubject}</div>
                 <Stack direction="row" className="statusButtons">
