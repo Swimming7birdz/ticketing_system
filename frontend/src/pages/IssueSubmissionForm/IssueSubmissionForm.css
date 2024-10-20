@@ -1,0 +1,42 @@
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: #8C1D40;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    color: white;
+}
+
+.header {
+    text-align: center
+}
+
+.formlabel {
+    display: block;
+    margin: 10px 0 5px;
+    color: white;
+}
+
+.formControl {
+    width: 100%;
+    padding: 30px, center;
+    padding-right: 0px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.submitButton {
+    width: 100%;
+    padding: 10px;
+    background-color: #e4dd0b;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submitButton:hover {
+    background-color: #caba06;
+}
