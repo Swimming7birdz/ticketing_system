@@ -1,5 +1,6 @@
 import React from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { Drawer, List, ListItem, ListItemIcon, ListItemButton, ListItemText } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import './SideBar.css'
 import ASULogo from '../../assets/ASULogo.png'
@@ -11,9 +12,11 @@ import LayersIcon from '@mui/icons-material/Layers';
 
 
 const SideBar = () => {
+    const [selectedPage, setSelectedPage] = React.useState(0);
     let navigate = useNavigate();
 
     const handleLogout = () => {
+        setSelectedPage(4)
         navigate('/login')
     }
 
@@ -26,42 +29,52 @@ const SideBar = () => {
                 paper: 'sidebar-paper',
             }}
         >
-            <img src={ASULogo} alt="Logo"/>
+            <img src={ASULogo} alt="Logo" />
             <List className='ticketsNavigation'>
-                <ListItem button className='buttonStyle' onClick={() => navigate('/dashboard')}>
+                <ListItemButton className='buttonStyle' selected={selectedPage === 0} onClick={() => {
+                    setSelectedPage(0); 
+                    navigate('/admindash');
+                    /* Links to admindash rn for demo purposes*/
+                }}>
                     <ListItemIcon>
                         <DashboardIcon className='iconStyle'/>
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Dashboard" />
-                </ListItem>
-                <ListItem button className='buttonStyle' onClick={() => navigate('/ticketinfo')}> {/* Links to ticketinfo rn for demo purposes*/}
+                </ListItemButton>
+                <ListItemButton className='buttonStyle' selected={selectedPage === 1} onClick={() => {
+                    setSelectedPage(1);
+                    navigate('/ticketinfo');
+                    /* Links to ticketinfo rn for demo purposes*/
+                }}>
                     <ListItemIcon>
                         <LayersIcon className='iconStyle'/>
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="My Tickets" />
-                </ListItem>
-                <ListItem button className='buttonStyle'>
+                </ListItemButton>
+                <ListItemButton className='buttonStyle'  onClick={() => setSelectedPage(2)} selected={selectedPage === 2}>
                     <ListItemIcon>
                         <ListIcon className='iconStyle'/>
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="All Tickets" />
-                </ListItem>
+                </ListItemButton>
             </List>
+
             <List className='settingsAndLogOut'>
-                <ListItem button className='buttonStyle'>
+                <ListItemButton className='buttonStyle' onClick={() => setSelectedPage(3)} selected={selectedPage === 3}>
                     <ListItemIcon>
                         <SettingsIcon className='iconStyle'/>
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Settings" />
-                </ListItem>
-                <ListItem button className='buttonStyle' onClick={handleLogout} >
+                </ListItemButton>
+                <ListItemButton className='buttonStyle' onClick={handleLogout}>
                     <ListItemIcon>
                         <LogoutIcon className='iconStyle'/>
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Log Out" />
-                </ListItem>
+                </ListItemButton>
             </List>
         </Drawer>
+            
     )
 };
 

@@ -6,6 +6,7 @@ import Login from './pages/Login/Login';
 import AllTickets from './pages/AllTickets';
 import TicketSubmit from './pages/IssueSubmissionForm/IssueSubmissionForm';
 import TicketInfo from './pages/TicketInfo/TicketInfo';
+import AdminDash from './pages/AdminDash';
 import NavBarLayout from './components/NavBarLayout/NavBarLayout'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/alltickets" element={<AllTickets />} />
         <Route path="/ticketinfo" element={<TicketInfo />} />
         <Route path="/ticketsubmit" element={<TicketSubmit />} />
+        <Route path="/admindash" element={<AdminDash />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
