@@ -38,47 +38,52 @@ const IssueSubmissionForm = () => {
 
     return (
         <div className="container">
-            <h1>Submit a Ticket For Project Capstone!</h1>
+            <h1 className='header'>Submit a Ticket For Project Capstone!</h1>
             <form onSubmit={handleSubmit}>
-                <label htmlFor="studentName">Student Name:</label>
+                <label className='formLabel' htmlFor="studentName">Student Name:</label>
                 <input
                     type="text"
                     id="studentName"
+                    className='formControl'
                     value={studentName}
                     onChange={(e) => setStudentName(e.target.value)}
                     required
                 />
 
-                <label htmlFor="teamName">Team Name:</label>
+                <label className='formLabel' htmlFor="teamName">Team Name:</label>
                 <input
                     type="text"
                     id="teamName"
+                    className='formControl'
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     required
                 />
 
-                <label htmlFor="sponsorName">Sponsor Name:</label>
+                <label className='formLabel' htmlFor="sponsorName">Sponsor Name:</label>
                 <input
                     type="text"
                     id="sponsorName"
+                    className='formControl'
                     value={sponsorName}
                     onChange={(e) => setSponsorName(e.target.value)}
                     required
                 />
 
-                <label htmlFor="instructorName">Instructor Name:</label>
+                <label className='formLabel' htmlFor="instructorName">Instructor Name:</label>
                 <input
                     type="text"
                     id="instructorName"
+                    className='formControl'
                     value={instructorName}
                     onChange={(e) => setInstructorName(e.target.value)}
                     required
                 />
 
-                <label htmlFor="issueType">Select Issue Type:</label>
+                <label className='formLabel' htmlFor="issueType">Select Issue Type:</label>
                 <select
                     id="issueType"
+                    className='formControl'
                     value={issueType}
                     onChange={(e) => setIssueType(e.target.value)}
                     required
@@ -91,25 +96,27 @@ const IssueSubmissionForm = () => {
                     <option value="other">Other</option>
                 </select>
 
-                <label htmlFor="description">Description:</label>
+                <label className='formLabel' htmlFor="description">Description:</label>
                 <textarea
                     id="description"
+                    className='formControl'
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows="4"
                     required
                 />
 
-                <label htmlFor="teamMembers">Team Members Involved:</label>
+                <label className='formLabel' htmlFor="teamMembers">Team Members Involved:</label>
                 <input
                     type="text"
+                    className='formControl'
                     id="teamMembers"
                     value={teamMembers}
                     onChange={(e) => setTeamMembers(e.target.value)}
                     placeholder="Enter names, separated by commas"
                 />
 
-                <button type="submit">Submit Issue</button>
+                <button className='submitButton' type="submit">Submit Issue</button>
             </form>
         </div>
     );
