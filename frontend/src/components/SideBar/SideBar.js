@@ -32,12 +32,12 @@ const SideBar = () => {
             <img src={ASULogo} alt="Logo" />
             <List className='ticketsNavigation'>
                 <ListItemButton className='buttonStyle' selected={selectedPage === 0} onClick={() => {
-                    setSelectedPage(0); 
+                    setSelectedPage(0);
                     navigate('/admindash');
                     /* Links to admindash rn for demo purposes*/
                 }}>
                     <ListItemIcon>
-                        <DashboardIcon className='iconStyle'/>
+                        <DashboardIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Dashboard" />
                 </ListItemButton>
@@ -47,13 +47,16 @@ const SideBar = () => {
                     /* Links to ticketinfo rn for demo purposes*/
                 }}>
                     <ListItemIcon>
-                        <LayersIcon className='iconStyle'/>
+                        <LayersIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="My Tickets" />
                 </ListItemButton>
-                <ListItemButton className='buttonStyle'  onClick={() => setSelectedPage(2)} selected={selectedPage === 2}>
+                <ListItemButton className='buttonStyle' selected={selectedPage === 2} onClick={() => {
+                    setSelectedPage(2);
+                    navigate('/ticketqueue');
+                }} >
                     <ListItemIcon>
-                        <ListIcon className='iconStyle'/>
+                        <ListIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="All Tickets" />
                 </ListItemButton>
@@ -62,19 +65,19 @@ const SideBar = () => {
             <List className='settingsAndLogOut'>
                 <ListItemButton className='buttonStyle' onClick={() => setSelectedPage(3)} selected={selectedPage === 3}>
                     <ListItemIcon>
-                        <SettingsIcon className='iconStyle'/>
+                        <SettingsIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Settings" />
                 </ListItemButton>
                 <ListItemButton className='buttonStyle' onClick={handleLogout}>
                     <ListItemIcon>
-                        <LogoutIcon className='iconStyle'/>
+                        <LogoutIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Log Out" />
                 </ListItemButton>
             </List>
         </Drawer>
-            
+
     )
 };
 
