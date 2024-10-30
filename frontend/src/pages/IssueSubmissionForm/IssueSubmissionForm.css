@@ -27,6 +27,13 @@
     border-radius: 4px;
 }
 
+.checkbox-container{
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    margin-top: 10px;
+}
+
 .submitButton {
     width: 100%;
     padding: 10px;

@@ -4,11 +4,24 @@ import './IssueSubmissionForm.css';
 const IssueSubmissionForm = () => {
     const [studentName, setStudentName] = useState('');
     const [teamName, setTeamName] = useState('');
+    const [classSection, setClassSection] = useState('');
     const [sponsorName, setSponsorName] = useState('');
     const [instructorName, setInstructorName] = useState('');
+    const [isSmallTeam, setIsSmallTeam] = useState(false);
     const [issueType, setIssueType] = useState('');
     const [description, setDescription] = useState('');
     const [teamMembers, setTeamMembers] = useState('');
+    const [newMembers, setNewMembers] = useState('');
+    const [formData, setFormData] = useState('');
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({...formData, [name]: value });
+    };
+
+    const handleCheckBoxChange = () => {
+        setIsSmallTeam(!isSmallTeam);
+    };
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -16,11 +29,13 @@ const IssueSubmissionForm = () => {
         const submittedData = {
             studentName,
             teamName,
+            classSection,
             sponsorName,
             instructorName,
             issueType,
             description,
-            teamMembers
+            teamMembers,
+            newMembers
         }
         
         console.log(submittedData);
@@ -29,11 +44,14 @@ const IssueSubmissionForm = () => {
         // Resets the form
         setStudentName('');
         setTeamName('');
+        setClassSection('');
         setSponsorName('');
         setInstructorName('');
         setIssueType('');
         setDescription('');
         setTeamMembers('');
+        setNewMembers('');
+        setIsSmallTeam(false);
     };
 
     return (
@@ -57,6 +75,16 @@ const IssueSubmissionForm = () => {
                     className='formControl'
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
+                    required
+                />
+
+                <label className='formLabel' htmlFor="classSection">Class Section Number:</label>
+                <input
+                    type="text"
+                    id="classSection"
+                    className='formControl'
+                    value={classSection}
+                    onChange={(e) => setClassSection(e.target.value)}
                     required
                 />
 
@@ -95,6 +123,31 @@ const IssueSubmissionForm = () => {
                     <option value="sponsorBeingRude">Sponsor Being Unprofessional</option>
                     <option value="other">Other</option>
                 </select>
+
+            <div className="checkbox-container">
+                    <label>
+                        Small Team? Check if you'd like to add new members.
+                    </label>
+                    <input
+                    type="checkbox"
+                    checked={isSmallTeam}
+                    onChange={handleCheckBoxChange}
+                    />
+            </div>
+
+
+                {isSmallTeam && (
+                    <label>
+                        Names of potential new team members:
+                        <input
+                        type="text"
+                        name='newMembers'
+                        value={formData.newMembers}
+                        onChange={handleInputChange}
+                        placeholder="Enter names, separated by commas"
+                        />
+                    </label>
+                )}
 
                 <label className='formLabel' htmlFor="description">Description:</label>
                 <textarea
