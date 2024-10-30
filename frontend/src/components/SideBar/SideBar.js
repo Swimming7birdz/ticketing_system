@@ -9,6 +9,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListIcon from '@mui/icons-material/List';
 import LayersIcon from '@mui/icons-material/Layers';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 
 const SideBar = () => {
@@ -60,10 +61,19 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="All Tickets" />
                 </ListItemButton>
+                <ListItemButton className='buttonStyle' selected={selectedPage === 3} onClick={() => {
+                    setSelectedPage(3);
+                    navigate('ticketsubmit')
+                }}>
+                    <ListItemIcon>
+                        <AddCircleIcon className='iconStyle'/>
+                    </ListItemIcon>
+                    <ListItemText className="fontStyle" primary="Create A Ticket" />
+                </ListItemButton>
             </List>
 
             <List className='settingsAndLogOut'>
-                <ListItemButton className='buttonStyle' onClick={() => setSelectedPage(3)} selected={selectedPage === 3}>
+                <ListItemButton className='buttonStyle' onClick={() => setSelectedPage(4)} selected={selectedPage === 4}>
                     <ListItemIcon>
                         <SettingsIcon className='iconStyle' />
                     </ListItemIcon>
