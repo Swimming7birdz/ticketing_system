@@ -8,6 +8,8 @@ import TicketInfo from './pages/TicketInfo/TicketInfo';
 import AdminDash from './pages/AdminDash';
 import NavBarLayout from './components/NavBarLayout/NavBarLayout'
 import TicketQueue from './pages/TicketQueue';
+import StudentDash from './pages/StudentDash/StudentDash';
+import InstructorDash from './pages/InstructorDash/InstructorDash';
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
         <Route path="/ticketsubmit" element={<TicketSubmit />} />
         <Route path="/admindash" element={<AdminDash />} />
         <Route path="/ticketqueue" element={<TicketQueue />} />
+        <Route path="/studentdash" element={<StudentDash />} />
+        <Route path="/instructordash" element={<InstructorDash />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
