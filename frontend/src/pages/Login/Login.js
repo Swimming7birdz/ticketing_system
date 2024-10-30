@@ -11,9 +11,12 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import ForgotPassword from '../../components/ForgotPassword/ForgotPassword';
+import { useNavigate } from "react-router-dom";
+import Cookies from 'js-cookie';
 import './Login.css'
 
 export default function SignIn(props) {
+  let navigate = useNavigate();
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
@@ -28,16 +31,32 @@ export default function SignIn(props) {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit =  async (event) => {
+    event.preventDefault();
     if (emailError || passwordError) {
-      event.preventDefault();
       return;
     }
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const response = await fetch('http://localhost:3000/api/auth/login', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: data.get('email'), password: data.get('password') })  
+    })
+    if (response.ok == false) {
+      setEmailError(true);
+      setEmailErrorMessage('Incorrect Email or Password');
+      setPasswordError(true);
+      setPasswordErrorMessage('Incorrect Email or Password');
+      return
+    }
+    else {
+      const responseData = await response.json()
+      const token = responseData.token
+      Cookies.set('token', token) // Currently storing auth token in cookies client side, should look into keeping tokens server side for improved security
+      navigate('/admindash')
+    }
   };
 
   const validateInputs = () => {
@@ -55,9 +74,9 @@ export default function SignIn(props) {
       setEmailErrorMessage('');
     }
 
-    if (!password.value || password.value.length < 6) {
+    if (!password.value || password.value.length < 4) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
+      setPasswordErrorMessage('Password must be at least 4 characters long.');
       isValid = false;
     } else {
       setPasswordError(false);
