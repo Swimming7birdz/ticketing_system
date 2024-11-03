@@ -1,6 +1,5 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const os = require("os");
 
 // Load environment variables
 dotenv.config();
@@ -14,9 +13,8 @@ require("./config/setup")(app);
 require("./routes")(app);
 
 const PORT = process.env.PORT || 3000;
-const HOSTNAME = os.hostname();
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://${HOSTNAME}:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
