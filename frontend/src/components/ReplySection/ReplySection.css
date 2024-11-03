@@ -1,0 +1,8 @@
+.postButton{
+    width: 125px;
+    align-self: flex-end;
+}
+
+.replySection{
+    gap: 10px;
+}
