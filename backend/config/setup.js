@@ -1,6 +1,6 @@
 const cors = require("cors");
 const sequelize = require("./db");
-const subdomainCheck = require("../middleware/subdomainCheck");
+const httplogger = require("../middleware/httplogger");
 
 module.exports = (app) => {
   // Setup CORS
@@ -12,13 +12,12 @@ module.exports = (app) => {
     })
   );
 
-  // Set up subdomain check middleware
-  app.use(subdomainCheck);
+  // Set up httplogger
+  app.use(httplogger);
 
   // Setup JSON parsing middleware
   app.use(require("express").json());
-
-  // Setup database connection
+  //Setup database connection
   sequelize
     .authenticate()
     .then(() => {
