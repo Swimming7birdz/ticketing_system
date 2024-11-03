@@ -1,13 +1,14 @@
-import './App.css';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login/Login';
-import TicketSubmit from './pages/IssueSubmissionForm/IssueSubmissionForm';
-import TicketInfo from './pages/TicketInfo/TicketInfo';
-import AdminDash from './pages/AdminDash';
-import NavBarLayout from './components/NavBarLayout/NavBarLayout'
-import TicketQueue from './pages/TicketQueue';
-import StudentDash from './pages/StudentDash/StudentDash';
-import InstructorDash from './pages/InstructorDash/InstructorDash';
+import React from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import "./App.css";
+import NavBarLayout from "./components/NavBarLayout/NavBarLayout";
+import AdminDash from "./pages/AdminDash";
+import InstructorDash from "./pages/InstructorDash/InstructorDash";
+import TicketSubmit from "./pages/IssueSubmissionForm/IssueSubmissionForm";
+import Login from "./pages/Login/Login";
+import StudentDash from "./pages/StudentDash/StudentDash";
+import TicketInfo from "./pages/TicketInfo/TicketInfo";
+import TicketQueue from "./pages/TicketQueue";
 
 function App() {
   return (
