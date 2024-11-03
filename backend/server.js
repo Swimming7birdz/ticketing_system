@@ -12,7 +12,7 @@ require("./config/setup")(app);
 // Load routes
 require("./routes")(app);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 // Start the server
 app.listen(PORT, () => {
