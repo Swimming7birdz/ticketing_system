@@ -1,6 +1,6 @@
 const cors = require("cors");
 const sequelize = require("./db");
-const subdomainCheck = require("./middleware/subdomainCheck");
+const subdomainCheck = require("../middleware/subdomainCheck");
 
 module.exports = (app) => {
   // Setup CORS
