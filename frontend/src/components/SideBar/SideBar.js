@@ -10,14 +10,21 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListIcon from '@mui/icons-material/List';
 import LayersIcon from '@mui/icons-material/Layers';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import Cookies from 'js-cookie';
+import { jwtDecode } from "jwt-decode";
 
 
 const SideBar = () => {
     const [selectedPage, setSelectedPage] = React.useState(0);
     let navigate = useNavigate();
 
+    const token = Cookies.get('token');
+    const decodedToken = jwtDecode(token);
+    const userType = decodedToken.role;
+
     const handleLogout = () => {
         setSelectedPage(4)
+        Cookies.remove('token')
         navigate('/login')
     }
 
@@ -34,8 +41,15 @@ const SideBar = () => {
             <List className='ticketsNavigation'>
                 <ListItemButton className='buttonStyle' selected={selectedPage === 0} onClick={() => {
                     setSelectedPage(0);
-                    navigate('/admindash');
-                    /* Links to admindash rn for demo purposes*/
+                    if (userType == "admin") {
+                        navigate('/admindash');
+                    }
+                    else if (userType == "student") {
+                        navigate('/studentdash')
+                    }
+                    else if (userType == "TA") {
+                        navigate('/instructordash')
+                    }
                 }}>
                     <ListItemIcon>
                         <DashboardIcon className='iconStyle' />
