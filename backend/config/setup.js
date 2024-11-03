@@ -5,7 +5,7 @@ module.exports = (app) => {
   // Setup CORS
   app.use(
     cors({
-      origin: "*", // Can be customized for production
+      origin: "*", // Can be customized for production // THIS DOESNT MATTER
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true, // Enable this for sessions/auth
     })
