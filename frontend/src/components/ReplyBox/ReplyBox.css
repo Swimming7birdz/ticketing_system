@@ -1,0 +1,21 @@
+.replyContents{
+    padding: 15px;
+}
+
+.authorInfo{
+    padding-bottom: 15px;
+}
+
+.MuiTypography-root.replyText{
+    padding-left: 15px;
+}
+
+.MuiTypography-root.authorName{
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.MuiTypography-root.time{
+    font-style: italic;
+    font-size: 16px;
+}
