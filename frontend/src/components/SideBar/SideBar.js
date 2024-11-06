@@ -9,14 +9,22 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListIcon from '@mui/icons-material/List';
 import LayersIcon from '@mui/icons-material/Layers';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import Cookies from 'js-cookie';
+import { jwtDecode } from "jwt-decode";
 
 
 const SideBar = () => {
     const [selectedPage, setSelectedPage] = React.useState(0);
     let navigate = useNavigate();
 
+    const token = Cookies.get('token');
+    const decodedToken = jwtDecode(token);
+    const userType = decodedToken.role;
+
     const handleLogout = () => {
         setSelectedPage(4)
+        Cookies.remove('token')
         navigate('/login')
     }
 
@@ -32,12 +40,19 @@ const SideBar = () => {
             <img src={ASULogo} alt="Logo" />
             <List className='ticketsNavigation'>
                 <ListItemButton className='buttonStyle' selected={selectedPage === 0} onClick={() => {
-                    setSelectedPage(0); 
-                    navigate('/admindash');
-                    /* Links to admindash rn for demo purposes*/
+                    setSelectedPage(0);
+                    if (userType == "admin") {
+                        navigate('/admindash');
+                    }
+                    else if (userType == "student") {
+                        navigate('/studentdash')
+                    }
+                    else if (userType == "TA") {
+                        navigate('/instructordash')
+                    }
                 }}>
                     <ListItemIcon>
-                        <DashboardIcon className='iconStyle'/>
+                        <DashboardIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Dashboard" />
                 </ListItemButton>
@@ -47,34 +62,46 @@ const SideBar = () => {
                     /* Links to ticketinfo rn for demo purposes*/
                 }}>
                     <ListItemIcon>
-                        <LayersIcon className='iconStyle'/>
+                        <LayersIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="My Tickets" />
                 </ListItemButton>
-                <ListItemButton className='buttonStyle'  onClick={() => setSelectedPage(2)} selected={selectedPage === 2}>
+                <ListItemButton className='buttonStyle' selected={selectedPage === 2} onClick={() => {
+                    setSelectedPage(2);
+                    navigate('/ticketqueue');
+                }} >
                     <ListItemIcon>
-                        <ListIcon className='iconStyle'/>
+                        <ListIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="All Tickets" />
+                </ListItemButton>
+                <ListItemButton className='buttonStyle' selected={selectedPage === 3} onClick={() => {
+                    setSelectedPage(3);
+                    navigate('ticketsubmit')
+                }}>
+                    <ListItemIcon>
+                        <AddCircleIcon className='iconStyle'/>
+                    </ListItemIcon>
+                    <ListItemText className="fontStyle" primary="Create A Ticket" />
                 </ListItemButton>
             </List>
 
             <List className='settingsAndLogOut'>
-                <ListItemButton className='buttonStyle' onClick={() => setSelectedPage(3)} selected={selectedPage === 3}>
+                <ListItemButton className='buttonStyle' onClick={() => setSelectedPage(4)} selected={selectedPage === 4}>
                     <ListItemIcon>
-                        <SettingsIcon className='iconStyle'/>
+                        <SettingsIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Settings" />
                 </ListItemButton>
                 <ListItemButton className='buttonStyle' onClick={handleLogout}>
                     <ListItemIcon>
-                        <LogoutIcon className='iconStyle'/>
+                        <LogoutIcon className='iconStyle' />
                     </ListItemIcon>
                     <ListItemText className="fontStyle" primary="Log Out" />
                 </ListItemButton>
             </List>
         </Drawer>
-            
+
     )
 };
 

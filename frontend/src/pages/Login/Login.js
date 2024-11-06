@@ -37,17 +37,20 @@ export default function SignIn(props) {
       return;
     }
     const data = new FormData(event.currentTarget);
-    const response = await fetch("http://localhost:3302/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: data.get("email"),
-        password: data.get("password"),
-      }),
-    });
-    if (response.ok === false) {
+    const response = await fetch(
+      "https://api.helpdesk.asucapstonetools.com:3002/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.get("email"),
+          password: data.get("password"),
+        }),
+      }
+    );
+    if (response.ok == false) {
       setEmailError(true);
       setEmailErrorMessage("Incorrect Email or Password");
       setPasswordError(true);
@@ -60,14 +63,11 @@ export default function SignIn(props) {
 
       const decodedToken = jwtDecode(token);
       const userType = decodedToken.role;
-      if (userType === "admin") {
-        console.log("Navigating to /admindash");
+      if (userType == "admin") {
         navigate("/admindash");
-      } else if (userType === "student") {
-        console.log("Navigating to /studentdash");
+      } else if (userType == "student") {
         navigate("/studentdash");
-      } else if (userType === "TA") {
-        console.log("Navigating to /instructordash");
+      } else if (userType == "TA") {
         navigate("/instructordash");
       }
     }
