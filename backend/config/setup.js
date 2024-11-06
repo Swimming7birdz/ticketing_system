@@ -1,10 +1,9 @@
 const cors = require("cors");
 const sequelize = require("./db");
 const express = require("express");
-
+const path = require("path");
 const httplogger = require("../middleware/httplogger");
 
-const path = require("path");
 const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");
 
 module.exports = (app) => {
@@ -23,13 +22,15 @@ module.exports = (app) => {
   // Setup JSON parsing middleware
   app.use(require("express").json());
 
+  // Load Route here maybe not acutally
+  // SHOULD PULL OUT THE *
+
   // Setup the backend to serve the front end
   app.use(express.static(FRONTEND_BUILD_PATH));
 
   // Fallback route for React Router
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
-  });
+  // THIS IS THE ISSUE NGINX IS FINE
+  // Finishing
 
   //Setup database connection
   sequelize
