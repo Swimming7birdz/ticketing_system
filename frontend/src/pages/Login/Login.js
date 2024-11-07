@@ -10,9 +10,9 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 import "./Login.css";
 
 export default function SignIn(props) {
@@ -38,7 +38,8 @@ export default function SignIn(props) {
     }
     const data = new FormData(event.currentTarget);
     const response = await fetch(
-      "http://localhost:3000/api/auth/login",
+      "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
+      //"http://localhost:3302/api/auth/login", // For Developing
       {
         method: "POST",
         headers: {
@@ -56,22 +57,19 @@ export default function SignIn(props) {
       setPasswordError(true);
       setPasswordErrorMessage("Incorrect Email or Password");
       return;
-    }
-    else {
-      const responseData = await response.json()
-      const token = responseData.token
-      Cookies.set("token", token) // Currently storing auth token in cookies client side, should look into keeping tokens server side for improved security
+    } else {
+      const responseData = await response.json();
+      const token = responseData.token;
+      Cookies.set("token", token); // Currently storing auth token in cookies client side, should look into keeping tokens server side for improved security
 
       const decodedToken = jwtDecode(token);
       const userType = decodedToken.role;
       if (userType == "admin") {
         navigate("/admindash");
-      }
-      else if (userType == "student") {
-          navigate("/studentdash")
-      }
-      else if (userType == "TA") {
-          navigate("/instructordash")
+      } else if (userType == "student") {
+        navigate("/studentdash");
+      } else if (userType == "TA") {
+        navigate("/instructordash");
       }
     }
   };
