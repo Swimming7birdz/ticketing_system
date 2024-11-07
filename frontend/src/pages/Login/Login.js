@@ -38,7 +38,7 @@ export default function SignIn(props) {
     }
     const data = new FormData(event.currentTarget);
     const response = await fetch(
-      "https://api.helpdesk.asucapstonetools.com:3002/api/auth/login",
+      "http://localhost:3000/api/auth/login",
       {
         method: "POST",
         headers: {

@@ -58,7 +58,7 @@ const SideBar = () => {
                 </ListItemButton>
                 <ListItemButton className='buttonStyle' selected={selectedPage === 1} onClick={() => {
                     setSelectedPage(1);
-                    navigate('/ticketinfo');
+                    navigate(`/ticketinfo?ticket=1`);
                     /* Links to ticketinfo rn for demo purposes*/
                 }}>
                     <ListItemIcon>

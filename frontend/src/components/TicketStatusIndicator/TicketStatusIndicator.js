@@ -4,9 +4,13 @@ import './TicketStatusIndicator.css';
 const TicketStatusIndicator = ({status}) => {
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
-            case "open":
+            case "new":
+                return "#FFFFC5";
+            case "ongoing":
                 return "#ADE1BE";
             case "escalated":
+                return "#F89795";
+            case "resolved":
                 return "#A0C0F0";
             default:
                 return "gray"; 

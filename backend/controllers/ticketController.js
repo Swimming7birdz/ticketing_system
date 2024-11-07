@@ -1,4 +1,7 @@
 const Ticket = require("../models/Ticket");
+const User = require("../models/User");
+const Team = require("../models/Team");
+const Communication = require("../models/Communication");
 
 exports.getAllTickets = async (req, res) => {
   try {
@@ -31,6 +34,24 @@ exports.getTicketById = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
     if (ticket) {
+      res.json(ticket);
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAllTicketDataById = async (req, res) => {
+  try {
+    const ticket = await Ticket.findByPk(req.params.ticket_id);
+    if (ticket) {
+      const student = await User.findByPk(ticket.dataValues.student_id); // Grab student and team names before returning
+      const team = await Team.findByPk(ticket.dataValues.team_id);
+      ticket.dataValues.student_name = student.dataValues.name
+      ticket.dataValues.team_name = team.team_name
+
       res.json(ticket);
     } else {
       res.status(404).json({ error: "Ticket not found" });
