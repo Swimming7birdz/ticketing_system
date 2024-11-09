@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const os = require("os");
 const path = require("path");
 
-const FRONTEND_BUILD_PATH = path.join(__dirname, "../frontend/build"); // PUT INTO ENV VARS PLEASE
+// const FRONTEND_BUILD_PATH = path.join(__dirname, "../frontend/build"); // PUT INTO ENV VARS PLEASE
 
 // Load environment variables
 dotenv.config();
