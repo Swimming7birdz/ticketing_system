@@ -8,6 +8,7 @@ router.get("/", authMiddleware.verifyToken, authMiddleware.isAdmin, ticketContro
 router.get("/user/:user_id", authMiddleware.verifyToken, ticketController.getTicketsByUserId);
 router.get("/ta/:ta_id", authMiddleware.verifyToken, authMiddleware.isTAOrAdmin, ticketController.getTicketsByTAId);
 router.get("/:ticket_id", authMiddleware.verifyToken, ticketController.getTicketById);
+router.get("/info/:ticket_id", authMiddleware.verifyToken, ticketController.getAllTicketDataById);
 router.post("/", authMiddleware.verifyToken, authMiddleware.isStudent, ticketController.createTicket);
 router.put("/:ticket_id", authMiddleware.verifyToken, authMiddleware.isStudentOrTAOrAdmin, ticketController.updateTicket);
 router.delete("/:ticket_id", authMiddleware.verifyToken, authMiddleware.isAdmin, ticketController.deleteTicket);
