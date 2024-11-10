@@ -22,6 +22,8 @@ export default function SignIn(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  //const baseURL = "https://helpdesk.asucapstonetools.com";
+  const baseURL = "http://localhost:3302";
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -32,15 +34,14 @@ export default function SignIn(props) {
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (emailError || passwordError) {
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    const response = await fetch(
-      "https://helpdesk.asucapstonetools.com/api/auth/login", // For Production
-      //"http://localhost:3302/api/auth/login", // For Developing
-      {
+    try {
+      event.preventDefault();
+      if (emailError || passwordError) {
+        return;
+      }
+      const data = new FormData(event.currentTarget);
+
+      const response = await fetch(`${baseURL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,28 +50,41 @@ export default function SignIn(props) {
           email: data.get("email"),
           password: data.get("password"),
         }),
+      });
+
+      // Handele Response
+      if (!response.ok) {
+        setEmailError(true);
+        setPasswordError(true);
+        const errorMessage = "Incorrect Email or Password";
+        setEmailErrorMessage(errorMessage);
+        setPasswordErrorMessage(errorMessage);
+        return;
       }
-    );
-    if (response.ok == false) {
-      setEmailError(true);
-      setEmailErrorMessage("Incorrect Email or Password");
-      setPasswordError(true);
-      setPasswordErrorMessage("Incorrect Email or Password");
-      return;
-    } else {
+
+      // Grab Response
       const responseData = await response.json();
       const token = responseData.token;
-      Cookies.set("token", token); // Currently storing auth token in cookies client side, should look into keeping tokens server side for improved security
 
+      // Store Cookie
+      Cookies.set("token", token, { secure: true, sameSite: "Strict" });
+
+      // Get Role
       const decodedToken = jwtDecode(token);
       const userType = decodedToken.role;
-      if (userType == "admin") {
+
+      // Redirect based on role
+      if (userType === "admin") {
         navigate("/admindash");
-      } else if (userType == "student") {
+      } else if (userType === "student") {
+        console.log("Attempting to nav as a student");
         navigate("/studentdash");
-      } else if (userType == "TA") {
+      } else if (userType === "TA") {
         navigate("/instructordash");
       }
+    } catch (error) {
+      console.error("An error occurred while logging in:", error);
+      setEmailErrorMessage("Something went wrong. Please try again.");
     }
   };
 
