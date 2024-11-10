@@ -38,8 +38,8 @@ export default function SignIn(props) {
     }
     const data = new FormData(event.currentTarget);
     const response = await fetch(
-      "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
-      //"http://localhost:3302/api/auth/login", // For Developing
+      // "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
+      "http://localhost:3302/api/auth/login", // For Developing
       {
         method: "POST",
         headers: {
