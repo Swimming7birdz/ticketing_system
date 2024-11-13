@@ -23,7 +23,7 @@ const IssueSubmissionForm = () => {
         setIsSmallTeam(!isSmallTeam);
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         
         const submittedData = {
@@ -37,9 +37,30 @@ const IssueSubmissionForm = () => {
             teamMembers,
             newMembers
         }
+        try {
+            const response = await fetch('http://localhost:/api/tickets',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                body: JSON.stringify(submittedData)
+            });
+        if (response.ok) {
+            const submittedData = await response.json();
+            console.log(submittedData);
+            alert('Ticket submitted successfully!');
+        }
+        else{
+            alert('Failed to submit ticket');
+        }
+    }
+        catch(error){
+            console.error('Error:', error);
+            alert('An error occured while submitting the ticket');
+        }
+    
         
-        console.log(submittedData);
-        alert('Ticket submitted successfully!');
 
         // Resets the form
         setStudentName('');
@@ -124,7 +145,7 @@ const IssueSubmissionForm = () => {
                     <option value="other">Other</option>
                 </select>
 
-            <div className="checkbox-container">
+                <div className="checkbox-container">
                     <label>
                         Small Team? Check if you'd like to add new members.
                     </label>
@@ -134,8 +155,6 @@ const IssueSubmissionForm = () => {
                     onChange={handleCheckBoxChange}
                     />
             </div>
-
-
                 {isSmallTeam && (
                     <label>
                         Names of potential new team members:
