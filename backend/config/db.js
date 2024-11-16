@@ -1,4 +1,6 @@
-// PRODUCTION
+
+// //For Production
+
 // const { Sequelize } = require("sequelize");
 // require("dotenv").config();
 
@@ -16,8 +18,7 @@
 
 // module.exports = sequelize;
 
-// DEVELOPMENT
-
+// For Developing
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
