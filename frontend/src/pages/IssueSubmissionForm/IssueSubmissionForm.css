@@ -1,15 +1,14 @@
 .container {
-    max-width: 600px;
+    width: 75%;
     margin: auto;
-    background: #8C1D40;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    color: white;
+    border-color: black;
 }
 
 .header {
-    text-align: center
+    text-align: center;
+    font-weight: bold;
 }
 
 .formlabel {
@@ -30,13 +29,14 @@
 .submitButton {
     width: 100%;
     padding: 10px;
-    background-color: #e4dd0b;
-    color: black;
+    background-color:#8C1D40;
+    color: white;
+    font-weight: semibold;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 
 .submitButton:hover {
-    background-color: #caba06;
+    background-color: #A9234D;
 }

@@ -34,6 +34,7 @@ export default function SignIn(props) {
   };
 
   const handleSubmit = async (event) => {
+
     try {
       event.preventDefault();
       if (emailError || passwordError) {
@@ -42,6 +43,17 @@ export default function SignIn(props) {
       const data = new FormData(event.currentTarget);
 
       const response = await fetch(`${baseURL}/api/auth/login`, {
+
+//     event.preventDefault();
+//     if (emailError || passwordError) {
+//       return;
+//     }
+//     const data = new FormData(event.currentTarget);
+//     const response = await fetch(
+//       // "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
+//       "http://localhost:3302/api/auth/login", // For Developing
+//       {
+
         method: "POST",
         headers: {
           "Content-Type": "application/json",

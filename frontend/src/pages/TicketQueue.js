@@ -6,27 +6,61 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import Cookies from 'js-cookie';
 
 const TicketQueue = () => {
-    const [data, setData] = useState([]);
+    const [tickets, setTickets] = useState([]);
 
     useEffect(() => {
-        const rows = [];
+        const fetchTickets = async () => {
+            try {
+                // Get the token from cookies
+                const token = Cookies.get("token");
+                // Change base URL for production
+                const response = await fetch(`http://localhost:3302/api/tickets`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
-        const statuses = ["Ongoing", "Escalated", "Resolved"];
-        const assignedTos = ["Adam Smith", "Kent Dodds", "Gina Matthews", "Jane Doe"];
+                if (!response.ok) {
+                    throw new Error("Failed to fetch tickets");
+                }
 
-        for (let index = 0; index < 50; index++) {
-            rows.push({
-                number: `CPSTN-2357${index % 10}`,
-                status: statuses[Math.floor(Math.random() * statuses.length)],
-                assigned_to: assignedTos[Math.floor(Math.random() * assignedTos.length)],
-                description: "This is a description",
-                name: assignedTos[Math.floor(Math.random() * assignedTos.length)],
-            })
-        }
+                const data = await response.json();
 
-        setData(rows);
+
+                const detailedTickets = await Promise.all(
+                    data.map(async (ticket) => {
+                        const detailsResponse = await fetch(`http://localhost:3302/api/tickets/${ticket.ticket_id}`, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                        });
+                        if (detailsResponse.ok) {
+                            const detailedTicket = await detailsResponse.json();
+                            return {
+                                ...ticket,
+                                student_name: detailedTicket.student_name,
+                                team_name: detailedTicket.team_name,
+                            };
+                        } else {
+                            console.error(`Failed to fetch details for ticket ${ticket.ticket_id}`);
+                            return ticket; // fallback to original data if details fetch fails
+                        }
+                    })
+                );
+                setTickets(detailedTickets); // Assuming data is an array of tickets
+            } catch (error) {
+                console.error("Error fetching tickets:", error);
+                //setError("Could not fetch tickets. Please try again later.");
+            }
+        };
+        fetchTickets();
     }, []);
 
     return (
@@ -36,24 +70,26 @@ const TicketQueue = () => {
                     <TableRow>
                         <TableCell>Number</TableCell>
                         <TableCell>Status</TableCell>
-                        <TableCell>Assigned to</TableCell>
+                        {/* <TableCell>Assigned to</TableCell> */}
                         <TableCell>Description</TableCell>
                         <TableCell>Name</TableCell>
+                        <TableCell>Team</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {data.map((row) => (
+                    {tickets.map((ticket) => (
                         <TableRow
-                            key={row.number}
+                            key={ticket.ticket_id}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.number}
+                                {ticket.ticket_id}
                             </TableCell>
-                            <TableCell sx={{ color: row.status === 'Ongoing' ? 'blue' : row.status === 'Escalated' ? 'red' : 'green' }}>{row.status}</TableCell>
-                            <TableCell>{row.assigned_to}</TableCell>
-                            <TableCell>{row.description}</TableCell>
-                            <TableCell>{row.name}</TableCell>
+                            <TableCell sx={{ color: ticket.status === 'ongoing' ? 'blue' : ticket.status === 'escalated' ? 'red' : 'green' }}>{ticket.status}</TableCell>
+                            {/* <TableCell>{row.assigned_to}</TableCell> */}
+                            <TableCell>{ticket.issue_description}</TableCell>
+                            <TableCell>{ticket.student_name}</TableCell>
+                            <TableCell>{ticket.team_name}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
