@@ -9,19 +9,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from "js-cookie";
 import './TicketInfo.css';
 
-const students = ["Kevin Tang", "Shabib Huq", "Rhea Mane", "Issac Alemu", "Ryan Radtke"]
-const TAs = ["Vinayak Sharma"]
-const ProjectName = "Capstone Ticketing System"
-const ticketID = "CPSTN1-2345678"
+const TAs = ["John Smith"]
 const TicketSubject = "Sponsor Isn’t Responding"
-const TicketDescription = "We’re having some communication issues with our project sponsor. Our sponsor missed a scheduled meeting with the team on Monday and has not responded to any email communication all week. We are unable to get our sprint document signed for this week because the sponsor is unresponsive. How should we approach this situation and can we get an extension on the sprint document this week?"
-
-const replyList = [
-    { id: 1, replyText: "Hi team, sorry to hear this. Has this happened before in the past?", author: "Jane Doe", time: "2 November 6:30pm" },
-    { id: 2, replyText: "No the sponsor is typically responsive but has not responded in a week.", author: "Kevin Tang", time: "2 November 7:30pm" },
-    { id: 3, replyText: "Ok I would recommend you to send a follow up. We will extend your deadline for the sprint retrospective this week.", author: "Jane Doe", time: "2 November 8:30pm" }
-]
-
 
 const TicketInfo = () => {
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -38,7 +27,6 @@ const TicketInfo = () => {
     const ticketId = urlParameters.get('ticket')
 
     const token = Cookies.get('token')
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -58,35 +46,12 @@ const TicketInfo = () => {
                 setTicketData(ticketData)
                 console.log(ticketData)
                 
-
-                const repliesDataResponse = await fetch(
-                    `http://localhost:3000/api/communications/${ticketId}/communications`,
-                    {
-                      method: "GET",
-                      headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                      },
-                    }
-                  );
-                
-                const repliesData = await repliesDataResponse.json() // iterate through replies and use user_id to grab names
-
-                repliesData.map((reply) => {  // convert date into a more readable string
-                    const date = new Date(reply.created_at)
-                    const dateString = date.toLocaleString('en-US')
-                    reply.created_at = dateString
-                })
-
-                setRepliesData(repliesData)
-                console.log(repliesData)
             }
             catch (err) {
                 console.log(error)
                 setError(true)
             }
             finally {
-                setLoadingRepliesData(false);
                 setLoadingTicketData(false);
             }
         };
@@ -116,7 +81,7 @@ const TicketInfo = () => {
 
     return(
         <>
-        { !loadingRepliesData && !loadingTicketData ? (
+        { !loadingTicketData ? (
         <div className="ticketInfoContainer">
             <Stack className="ticketInfo">
                 <Button
@@ -153,7 +118,7 @@ const TicketInfo = () => {
                 <h3>Description:</h3>
                 <div className="ticketDescription">{ticketData.issue_description}</div>
                 <h3>Replies:</h3>
-                <ReplySection replies={repliesData}></ReplySection>
+                <ReplySection></ReplySection>
             </Stack>
             <Stack className="ticketUsers">
                 <div>  
