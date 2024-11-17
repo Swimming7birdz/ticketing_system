@@ -4,8 +4,8 @@ import { Avatar, Button, Typography } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-import InstructorCard from "../components/InstructorCard";
-import TicketCard from "../components/TicketCard";
+import InstructorCard from "../../components/InstructorCard";
+import TicketCard from "../../components/TicketCard";
 //const baseURL = "https://helpdesk.asucapstonetools.com";
 const baseURL = "http://localhost:3302";
 
