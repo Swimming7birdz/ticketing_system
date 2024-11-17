@@ -10,7 +10,7 @@ import Login from "./pages/Login/Login";
 import StudentDash from "./pages/StudentDash/StudentDash";
 import TicketInfo from "./pages/TicketInfo/TicketInfo";
 import TicketQueue from "./pages/TicketQueue/TicketQueue";
-// import MyTickets from "./pages/MyTickets/MyTickets";
+import MyTickets from "./pages/MyTickets/MyTickets";
 import TAinfo from "./pages/TAInfo/TAinfo";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
 
@@ -34,7 +34,9 @@ function App() {
         <Route path="/ticketqueue" element={<TicketQueue />} />
 
         {/* Testing Pages */}
-        {/* <Route path="/mytickets" element={<MyTickets />} /> */}
+
+        {/* Change user_id to the user's id */}
+        <Route path="/mytickets" element={<MyTickets user_id={7} />} />
         <Route path="/ta-info" element={<TAinfo />} />
 
         {/*Verify the correct user type for dashboards*/}
