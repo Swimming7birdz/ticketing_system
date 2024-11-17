@@ -22,8 +22,7 @@ export default function SignIn(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
-  //const baseURL = "https://helpdesk.asucapstonetools.com";
-  const baseURL = "http://localhost:3302";
+  const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -34,7 +33,6 @@ export default function SignIn(props) {
   };
 
   const handleSubmit = async (event) => {
-
     try {
       event.preventDefault();
       if (emailError || passwordError) {
@@ -43,16 +41,15 @@ export default function SignIn(props) {
       const data = new FormData(event.currentTarget);
 
       const response = await fetch(`${baseURL}/api/auth/login`, {
-
-//     event.preventDefault();
-//     if (emailError || passwordError) {
-//       return;
-//     }
-//     const data = new FormData(event.currentTarget);
-//     const response = await fetch(
-//       // "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
-//       "http://localhost:3302/api/auth/login", // For Developing
-//       {
+        //     event.preventDefault();
+        //     if (emailError || passwordError) {
+        //       return;
+        //     }
+        //     const data = new FormData(event.currentTarget);
+        //     const response = await fetch(
+        //       // "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
+        //       "http://localhost:3302/api/auth/login", // For Developing
+        //       {
 
         method: "POST",
         headers: {

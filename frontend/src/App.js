@@ -7,11 +7,11 @@ import AdminDash from "./pages/AdminDash/AdminDash";
 import InstructorDash from "./pages/InstructorDash/InstructorDash";
 import TicketSubmit from "./pages/IssueSubmissionForm/IssueSubmissionForm";
 import Login from "./pages/Login/Login";
+import MyTickets from "./pages/MyTickets/MyTickets";
 import StudentDash from "./pages/StudentDash/StudentDash";
+import TAinfo from "./pages/TAInfo/TAinfo";
 import TicketInfo from "./pages/TicketInfo/TicketInfo";
 import TicketQueue from "./pages/TicketQueue/TicketQueue";
-import MyTickets from "./pages/MyTickets/MyTickets";
-import TAinfo from "./pages/TAInfo/TAinfo";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
 
 function App() {

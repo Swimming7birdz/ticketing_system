@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
 
 module.exports = {
   entry: "./src/index.js", // Make sure this points to your main entry point
@@ -36,6 +37,12 @@ module.exports = {
       template: "./public/index.html", // HTML template
       filename: "index.html",
       favicon: "./public/favicon.ico",
+    }),
+    new webpack.DefinePlugin({
+      "process.env": JSON.stringify({
+        REACT_APP_API_BASE_URL:
+          process.env.REACT_APP_API_BASE_URL || "http://localhost:3302",
+      }),
     }),
   ],
   devServer: {
