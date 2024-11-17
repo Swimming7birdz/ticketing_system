@@ -48,11 +48,16 @@ const TicketCard = ({
       style={{
         display: "flex",
         flexDirection: "column",
+        justifyContent: "space-between",
         backgroundColor: "#E0E0E0",
         padding: 20,
         borderRadius: 5,
         flex: 1,
         gap: 10,
+        width: "100%",
+        height: "300px",
+        overflow: "hidden",
+        boxSizing: "border-box",
       }}
     >
       {/* HEADER */}
@@ -64,9 +69,15 @@ const TicketCard = ({
         }}
       >
         <Avatar {...stringAvatar(name)} />
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+          }}
+        >
           <Typography
-            variant="p"
+            variant="body1"
             sx={{
               fontSize: "1rem",
               color: "#212121",
@@ -76,34 +87,53 @@ const TicketCard = ({
           >
             {ticketId}
           </Typography>
-          <Typography
-            variant="p"
-            sx={{ fontSize: "0.8rem", color: "#212121", textAlign: "right" }}
-          >
-            {issueDescription}
-          </Typography>
         </div>
       </div>
+
+      {/* ISSUE DESCRIPTION placed below the header */}
+      <Typography
+        variant="body2"
+        sx={{
+          fontSize: "0.8rem",
+          color: "#212121",
+          textAlign: "left",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          display: "-webkit-box",
+          WebkitLineClamp: 4, // Allow 4 lines before truncating
+          WebkitBoxOrient: "vertical",
+        }}
+      >
+        {issueDescription}
+      </Typography>
+
       {/* STATUS */}
       <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
           Status:
         </Typography>
-        {status === "Ongoing" && (
+        {status === "ongoing" && (
           <Chip
             label="Ongoing"
             size="small"
             sx={{ backgroundColor: "#ADE1BE", color: "#1C741F" }}
           />
         )}
-        {status === "Escalated" && (
+        {status === "escalated" && (
           <Chip
             label="Escalated"
             size="small"
             sx={{ backgroundColor: "#A0C0F0", color: "#1965D8" }}
           />
         )}
-        {status === "Resolved" && (
+        {status === "new" && (
+          <Chip
+            label="New"
+            size="small"
+            sx={{ backgroundColor: "#A9CDEB", color: "#326D94" }}
+          />
+        )}
+        {status === "resolved" && (
           <Chip
             label="Resolved"
             size="small"
@@ -114,11 +144,12 @@ const TicketCard = ({
 
       {/* NAME */}
       <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-        <Typography variant="p" sx={{ fontWeight: "bold" }}>
+        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
           Name:
         </Typography>
-        <Typography variant="p">{name}</Typography>
+        <Typography variant="body2">{name}</Typography>
       </div>
+
       <Button
         variant="contained"
         disableElevation

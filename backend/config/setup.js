@@ -22,15 +22,8 @@ module.exports = (app) => {
   // Setup JSON parsing middleware
   app.use(require("express").json());
 
-  // Load Route here maybe not acutally
-  // SHOULD PULL OUT THE *
-
   // Setup the backend to serve the front end
   app.use(express.static(FRONTEND_BUILD_PATH));
-
-  // Fallback route for React Router
-  // THIS IS THE ISSUE NGINX IS FINE
-  // Finishing
 
   //Setup database connection
   sequelize

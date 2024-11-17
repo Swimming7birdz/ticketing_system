@@ -1,4 +1,6 @@
 const TicketAssignment = require("../models/TicketAssignment");
+const User = require("../models/User");
+const Ticket = require("../models/Ticket");
 
 exports.getAllTicketAssignments = async (req, res) => {
   try {
@@ -11,7 +13,9 @@ exports.getAllTicketAssignments = async (req, res) => {
 
 exports.getTicketAssignmentsByTicketId = async (req, res) => {
   try {
-    const ticketAssignments = await TicketAssignment.findAll({ where: { ticket_id: req.params.ticket_id } });
+    const ticketAssignments = await TicketAssignment.findAll({
+      where: { ticket_id: req.params.ticket_id },
+    });
     res.json(ticketAssignments);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -20,7 +24,10 @@ exports.getTicketAssignmentsByTicketId = async (req, res) => {
 
 exports.assignTicket = async (req, res) => {
   try {
-    const ticketAssignment = await TicketAssignment.create({ ticket_id: req.params.ticket_id, user_id: req.body.user_id });
+    const ticketAssignment = await TicketAssignment.create({
+      ticket_id: req.params.ticket_id,
+      user_id: req.body.user_id,
+    });
     res.status(201).json(ticketAssignment);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -29,7 +36,9 @@ exports.assignTicket = async (req, res) => {
 
 exports.removeTicketAssignment = async (req, res) => {
   try {
-    const ticketAssignment = await TicketAssignment.findOne({ where: { ticket_id: req.params.ticket_id, user_id: req.params.user_id } });
+    const ticketAssignment = await TicketAssignment.findOne({
+      where: { ticket_id: req.params.ticket_id, user_id: req.params.user_id },
+    });
     if (ticketAssignment) {
       await ticketAssignment.destroy();
       res.status(204).json();
@@ -40,3 +49,83 @@ exports.removeTicketAssignment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Added this
+
+exports.getTicketCountsByTA = async (req, res) => {
+  try {
+    // Fetch all users with the role "TA"
+    const TAs = await User.findAll({
+      where: { role: "TA" },
+      attributes: ["user_id", "name", "role"],
+      // include: [
+      //   {
+      //     model: TicketAssignment,
+      //   },
+      // ],
+    });
+
+    // Log the fetched TAs for debugging
+    console.log("Fetched TAs:", TAs);
+
+    // Return the TAs as a JSON response
+    res.json(TAs);
+  } catch (error) {
+    console.error("Detailed error message:", error.message);
+    console.error("Error stack trace:", error.stack);
+    res.status(500).json({ error: "An error occurred while fetching TAs." });
+  }
+};
+
+// exports.getTicketCountsByTA = async (req, res) => {
+//   try {
+//     // Fetch all users with the role "TA"
+//     console.log(User.associations);
+//     const TAs = await User.findAll({
+//       where: { role: "TA" },
+//       attributes: ["user_id", "name", "role"],
+//       include: [
+//         {
+//           model: TicketAssignment,
+//           include: [
+//             {
+//               model: Ticket,
+//               attributes: ["status"], // Only include the status field
+//             },
+//           ],
+//         },
+//       ],
+//     });
+
+//     // Process the data to get ticket counts by status for each TA
+//     const result = TAs.map((TA) => {
+//       // Initialize ticket counts for each status
+//       const ticketCounts = { new: 0, ongoing: 0, resolved: 0, escalated: 0 };
+
+//       // Loop through each ticket assignment for this TA
+//       TA.TicketAssignments.forEach((assignment) => {
+//         const ticketStatus = assignment.Ticket?.status; // Check if ticket exists and get its status
+//         if (ticketStatus) {
+//           // Increment the count for the appropriate status
+//           if (ticketCounts.hasOwnProperty(ticketStatus)) {
+//             ticketCounts[ticketStatus] += 1;
+//           }
+//         }
+//       });
+
+//       // Return a simplified object with TA information and ticket counts
+//       return {
+//         TA_name: TA.name,
+//         TA_id: TA.user_id,
+//         ticketCounts,
+//       };
+//     });
+
+//     console.log("Processed TA ticket counts:", result); // Log processed result
+//     res.json(result); // Send the processed result as response
+//   } catch (error) {
+//     console.error("Detailed error message:", error.message);
+//     console.error("Error stack trace:", error.stack);
+//     res.status(500).json({ error: "An error occurred while fetching TAs." });
+//   }
+// };
