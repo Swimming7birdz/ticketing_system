@@ -44,20 +44,25 @@ exports.getTicketById = async (req, res) => {
 };
 
 exports.getAllTicketDataById = async (req, res) => {
-  try {
-    const ticket = await Ticket.findByPk(req.params.ticket_id);
-    if (ticket) {
-      const student = await User.findByPk(ticket.dataValues.student_id); // Grab student and team names before returning
-      const team = await Team.findByPk(ticket.dataValues.team_id);
-      ticket.dataValues.student_name = student.dataValues.name
-      ticket.dataValues.team_name = team.team_name
+  if ( req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
+    res.status(404).json({error: "user does not have access to this ticket"})
+  }
+  else {
+    try {
+      const ticket = await Ticket.findByPk(req.params.ticket_id);
+      if (ticket) {
+        const student = await User.findByPk(ticket.dataValues.student_id); // Grab student and team names before returning
+        const team = await Team.findByPk(ticket.dataValues.team_id);
+        ticket.dataValues.student_name = student.dataValues.name
+        ticket.dataValues.team_name = team.team_name
 
-      res.json(ticket);
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
+        res.json(ticket);
+      } else {
+        res.status(404).json({ error: "Ticket not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
 };
 
