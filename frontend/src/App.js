@@ -13,12 +13,14 @@ import TAinfo from "./pages/TAInfo/TAinfo";
 import TicketInfo from "./pages/TicketInfo/TicketInfo";
 import TicketQueue from "./pages/TicketQueue/TicketQueue";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
+import Registration from "./pages/Registration/Registration";
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="/registration" element={<Registration />} />
 
       {/*Verify that user is logged in before rendering any of these routes*/}
       <Route
