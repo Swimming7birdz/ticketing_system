@@ -1,39 +1,29 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import MuiCard from "@mui/material/Card";
-import Checkbox from "@mui/material/Checkbox";
 import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import "./Registration.css";
 
-export default function SignIn(props) {
+export default function Registration() {
   let navigate = useNavigate();
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
+  const [nameError, setNameError] = React.useState(false);
+  const [nameErrorMessage, setNameErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
-  const [open, setOpen] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleSignUp = () => {
-    navigate('/registration')
+  const handleLogIn = () => {
+    navigate('/login')
   }
 
   const handleSubmit = async (event) => {
@@ -44,59 +34,40 @@ export default function SignIn(props) {
       }
       const data = new FormData(event.currentTarget);
 
-      const response = await fetch(`${baseURL}/api/auth/login`, {
-        //     event.preventDefault();
-        //     if (emailError || passwordError) {
-        //       return;
-        //     }
-        //     const data = new FormData(event.currentTarget);
-        //     const response = await fetch(
-        //       // "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
-        //       "http://localhost:3302/api/auth/login", // For Developing
-        //       {
-
+      const response = await fetch(`${baseURL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name: data.get("name"),
           email: data.get("email"),
           password: data.get("password"),
+          role: "student"   // Assuming that only students are allowed to register through this portal as we have no way of verifying if someone is an instructor or admin
         }),
       });
 
+      const responseData = await response.json();
+      console.log(responseData)
+
       // Handele Response
       if (!response.ok) {
+        setNameError(true);
         setEmailError(true);
         setPasswordError(true);
-        const errorMessage = "Incorrect Email or Password";
+        const errorMessage = "Account Creation Failed";
+        setNameErrorMessage(errorMessage);
         setEmailErrorMessage(errorMessage);
         setPasswordErrorMessage(errorMessage);
         return;
       }
-
-      // Grab Response
-      const responseData = await response.json();
-      const token = responseData.token;
-
-      // Store Cookie
-      Cookies.set("token", token, { secure: true, sameSite: "Strict" });
-
-      // Get Role
-      const decodedToken = jwtDecode(token);
-      const userType = decodedToken.role;
-
-      // Redirect based on role
-      if (userType === "admin") {
-        navigate("/admindash");
-      } else if (userType === "student") {
-        console.log("Attempting to nav as a student");
-        navigate("/studentdash");
-      } else if (userType === "TA") {
-        navigate("/instructordash");
+      else {
+        navigate('/login')
       }
+
+
     } catch (error) {
-      console.error("An error occurred while logging in:", error);
+      console.error("An error occurred during registration:", error);
       setEmailErrorMessage("Something went wrong. Please try again.");
     }
   };
@@ -104,6 +75,7 @@ export default function SignIn(props) {
   const validateInputs = () => {
     const email = document.getElementById("email");
     const password = document.getElementById("password");
+    const name = document.getElementById("name");
 
     let isValid = true;
 
@@ -125,6 +97,16 @@ export default function SignIn(props) {
       setPasswordErrorMessage("");
     }
 
+    if (!name.value || name.value.length < 1) {
+        setNameError(true);
+        setNameErrorMessage("Please enter your name.");
+        isValid = false;
+      } else {
+        setNameError(false);
+        setNameErrorMessage("");
+      }
+
+
     return isValid;
   };
 
@@ -132,7 +114,7 @@ export default function SignIn(props) {
     <Stack className="signInContainer">
       <MuiCard className="card" variant="outlined">
         <Typography component="h1" variant="h4">
-          Sign in
+          Register
         </Typography>
         <Box
           className="loginForm"
@@ -140,6 +122,25 @@ export default function SignIn(props) {
           onSubmit={handleSubmit}
           noValidate
         >
+         <FormControl>
+            <FormLabel className="nameLabel" htmlFor="name">
+              Full Name
+            </FormLabel>
+            <TextField
+              error={nameError}
+              helperText={nameErrorMessage}
+              id="name"
+              type="name"
+              name="name"
+              placeholder="Your Name"
+              autoComplete="name"
+              autoFocus
+              required
+              fullWidth
+              variant="outlined"
+              color={nameError ? "error" : "primary"}
+            />
+          </FormControl>
           <FormControl>
             <FormLabel className="emailLabel" htmlFor="email">
               Email
@@ -162,14 +163,6 @@ export default function SignIn(props) {
           <FormControl>
             <Box className="passwordControls">
               <FormLabel htmlFor="password">Password</FormLabel>
-              <Link
-                component="button"
-                type="button"
-                onClick={handleClickOpen}
-                variant="body2"
-              >
-                Forgot your password?
-              </Link>
             </Box>
             <TextField
               error={passwordError}
@@ -186,28 +179,23 @@ export default function SignIn(props) {
               color={passwordError ? "error" : "primary"}
             />
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
-          />
-          {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
           <Button
             type="submit"
             fullWidth
             variant="contained"
             onClick={validateInputs}
           >
-            Sign in
+            Register
           </Button>
           <Typography>
-            Don&apos;t have an account?{' '}
+            Already Have an Account?{' '}
             <span>
               <Link
                 href=""
                 variant="body2"
-                onClick={handleSignUp}
+                onClick={handleLogIn}
               >
-                Sign up
+                Log In
               </Link>
             </span>
           </Typography>

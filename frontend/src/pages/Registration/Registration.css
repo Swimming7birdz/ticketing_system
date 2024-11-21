@@ -1,0 +1,63 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-self: center;
+    width: 100%;
+    padding: 16px;
+    gap: 16px;
+    margin: auto;
+    box-shadow: hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px;
+  }
+  
+  @media (min-width: 600px) {
+    .card {
+      max-width: 450px;
+    }
+  }
+  
+  .card.dark {
+    box-shadow: hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px;
+  }
+  
+  .signInContainer {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #D9D9D9;
+  }
+  
+  .signInContainer::before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background-image: radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%));
+    background-repeat: no-repeat;
+  }
+  
+  .signInContainer.dark::before {
+    background-image: radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%));
+  }
+  
+  .loginForm{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
+  
+  .emailLabel {
+    text-align: left;
+  }
+
+  .nameLabel {
+    text-align: left;
+  }
+  
+  .passwordControls {
+    display: flex;
+    justify-content: space-between;
+  }
