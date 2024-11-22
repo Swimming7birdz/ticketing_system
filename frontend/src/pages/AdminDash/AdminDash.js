@@ -4,18 +4,20 @@ import { Avatar, Button, Typography } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
 import TicketCard from "../../components/TicketCard";
-//const baseURL = "https://helpdesk.asucapstonetools.com";
-const baseURL = "http://localhost:3302";
+const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AdminDash = () => {
   const [tickets, setTickets] = useState([]);
   const [TACounts, setTACounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
+  const [totalTAs, setTotalTAs] = useState(0);
   const [statusCounts, setStatusCounts] = useState({});
   const [assignees, setAssignees] = useState([]);
+  let navigate = useNavigate();
 
   useEffect(() => {
     fetchTickets();
@@ -43,6 +45,7 @@ const AdminDash = () => {
 
       const users = await usersResponse.json();
       const tas = users.filter((user) => user.role === "TA"); // Filter TAs
+      setTotalTAs(tas.length);
 
       // Step 2: Fetch all ticket assignments
       const assignmentsResponse = await fetch(
@@ -114,6 +117,7 @@ const AdminDash = () => {
         });
       });
 
+      console.log(ticketCounts);
       setTACounts(ticketCounts); // Update state with counts
     } catch (err) {
       console.error("Error fetching TA ticket counts:", err);
@@ -163,7 +167,7 @@ const AdminDash = () => {
       }
 
       const ticketsData = await response.json();
-      const limitedTickets = ticketsData.slice(0, 54); // Maybe do this to set how may tickets we want to display
+      const limitedTickets = ticketsData.slice(0, 21); // Maybe do this to set how may tickets we want to display
 
       // Grab name from ticket
       const ticketsWithNames = await Promise.all(
@@ -270,6 +274,7 @@ const AdminDash = () => {
               borderRadius: 999,
               fontSize: "0.75rem",
             }}
+            onClick={() => navigate("/alltickets")}
           >
             View All
           </Button>
@@ -283,7 +288,7 @@ const AdminDash = () => {
             justifyContent: "center", // Center-align cards
             padding: "5px", // Add padding around the grid
             maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-            overflowY: "auto",
+            overflowY: "hidden",
           }}
         >
           {tickets.map((ticket) => (
@@ -328,7 +333,7 @@ const AdminDash = () => {
               variant="h1"
               sx={{ fontWeight: "bold", fontSize: "2rem" }}
             >
-              15
+              {totalTAs}
             </Typography>
             <Typography
               variant="p"
@@ -346,6 +351,7 @@ const AdminDash = () => {
               borderRadius: 999,
               fontSize: "0.75rem",
             }}
+            onClick={() => navigate("/allassignees")}
           >
             View All
           </Button>
@@ -359,11 +365,15 @@ const AdminDash = () => {
             justifyContent: "center", // Center-align cards
             padding: "5px", // Add padding around the grid
             maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-            overflowY: "auto",
+            overflowY: "hidden",
           }}
         >
           {Object.entries(TACounts).map(([id, ta]) => (
-            <InstructorCard key={id} name={ta.name} counts={ta.counts} />
+            <InstructorCard
+              key={id}
+              name={ta.name || "Unknown"}
+              counts={ta.counts}
+            />
           ))}
         </div>
       </div>

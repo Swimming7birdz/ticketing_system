@@ -1,5 +1,6 @@
 import { Avatar, Button, Chip, Typography } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
+import TicketView from "./TicketView/TicketView"; // Import your TicketView component
 
 function stringAvatar(name) {
   return {
@@ -22,7 +23,12 @@ function stringToColor(string) {
   let color = "#";
 
   for (i = 0; i < 3; i += 1) {
-    const value = (hash >> (i * 8)) & 0xff;
+    let value = (hash >> (i * 8)) & 0xff;
+
+    // Adjust the value to avoid pure red, green, or blue
+    if (value > 200) value -= 55; // Avoid very high intensities
+    if (value < 55) value += 55; // Avoid very low intensities
+
     color += `00${value.toString(16)}`.slice(-2);
   }
   /* eslint-enable no-bitwise */
@@ -43,128 +49,152 @@ const TicketCard = ({
   status = defaultProps.status,
   name = defaultProps.name,
 }) => {
+  const [showTicketView, setShowTicketView] = useState(false);
+
+  const handleOpenTicket = () => {
+    setShowTicketView(true);
+  };
+
+  const handleCloseTicketView = () => {
+    setShowTicketView(false);
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        backgroundColor: "#E0E0E0",
-        padding: 20,
-        borderRadius: 5,
-        flex: 1,
-        gap: 10,
-        width: "100%",
-        height: "300px",
-        overflow: "hidden",
-        boxSizing: "border-box",
-      }}
-    >
-      {/* HEADER */}
+    <>
       <div
         style={{
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
           justifyContent: "space-between",
+          backgroundColor: "#E0E0E0",
+          padding: 20,
+          borderRadius: 5,
+          flex: 1,
+          gap: 10,
+          width: "100%",
+          height: "300px",
+          overflow: "hidden",
+          boxSizing: "border-box",
         }}
       >
-        <Avatar {...stringAvatar(name)} />
+        {/* HEADER */}
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
+            flexDirection: "row",
+            justifyContent: "space-between",
           }}
         >
-          <Typography
-            variant="body1"
-            sx={{
-              fontSize: "1rem",
-              color: "#212121",
-              fontWeight: "bold",
-              textAlign: "right",
+          <Avatar {...stringAvatar(name)} />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
             }}
           >
-            {ticketId}
-          </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: "1rem",
+                color: "#212121",
+                fontWeight: "bold",
+                textAlign: "right",
+              }}
+            >
+              {ticketId}
+            </Typography>
+          </div>
         </div>
-      </div>
 
-      {/* ISSUE DESCRIPTION placed below the header */}
-      <Typography
-        variant="body2"
-        sx={{
-          fontSize: "0.8rem",
-          color: "#212121",
-          textAlign: "left",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          display: "-webkit-box",
-          WebkitLineClamp: 4, // Allow 4 lines before truncating
-          WebkitBoxOrient: "vertical",
-        }}
-      >
-        {issueDescription}
-      </Typography>
-
-      {/* STATUS */}
-      <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-          Status:
+        {/* ISSUE DESCRIPTION placed below the header */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: "0.8rem",
+            color: "#212121",
+            textAlign: "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 4, // Allow 4 lines before truncating
+            WebkitBoxOrient: "vertical",
+          }}
+        >
+          {issueDescription}
         </Typography>
-        {status === "ongoing" && (
-          <Chip
-            label="Ongoing"
-            size="small"
-            sx={{ backgroundColor: "#ADE1BE", color: "#1C741F" }}
-          />
-        )}
-        {status === "escalated" && (
-          <Chip
-            label="Escalated"
-            size="small"
-            sx={{ backgroundColor: "#A0C0F0", color: "#1965D8" }}
-          />
-        )}
-        {status === "new" && (
-          <Chip
-            label="New"
-            size="small"
-            sx={{ backgroundColor: "#A9CDEB", color: "#326D94" }}
-          />
-        )}
-        {status === "resolved" && (
-          <Chip
-            label="Resolved"
-            size="small"
-            sx={{ backgroundColor: "#F89795", color: "#D00505" }}
-          />
-        )}
+
+        {/* STATUS */}
+        <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
+          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+            Status:
+          </Typography>
+          {status === "ongoing" && (
+            <Chip
+              label="Ongoing"
+              size="small"
+              sx={{ backgroundColor: "#ADE1BE", color: "#1C741F" }}
+            />
+          )}
+          {status === "escalated" && (
+            <Chip
+              label="Escalated"
+              size="small"
+              sx={{ backgroundColor: "#A0C0F0", color: "#1965D8" }}
+            />
+          )}
+          {status === "new" && (
+            <Chip
+              label="New"
+              size="small"
+              sx={{ backgroundColor: "#A9CDEB", color: "#326D94" }}
+            />
+          )}
+          {status === "resolved" && (
+            <Chip
+              label="Resolved"
+              size="small"
+              sx={{ backgroundColor: "#F89795", color: "#D00505" }}
+            />
+          )}
+        </div>
+
+        {/* NAME */}
+        <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
+          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+            Name:
+          </Typography>
+          <Typography variant="body2">{name}</Typography>
+        </div>
+
+        <Button
+          variant="contained"
+          disableElevation
+          onClick={handleOpenTicket}
+          sx={{
+            backgroundColor: "#8C1D40",
+            color: "white",
+            borderRadius: 999,
+            fontSize: "0.75rem",
+            width: "fit-content",
+            alignSelf: "flex-end",
+          }}
+        >
+          Open Ticket
+        </Button>
       </div>
 
-      {/* NAME */}
-      <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-          Name:
-        </Typography>
-        <Typography variant="body2">{name}</Typography>
-      </div>
-
-      <Button
-        variant="contained"
-        disableElevation
-        sx={{
-          backgroundColor: "#8C1D40",
-          color: "white",
-          borderRadius: 999,
-          fontSize: "0.75rem",
-          width: "fit-content",
-          alignSelf: "flex-end",
-        }}
-      >
-        Open Ticket
-      </Button>
-    </div>
+      {/* Render TicketView when the button is clicked */}
+      {showTicketView && (
+        <TicketView
+          ticketId={ticketId}
+          issueDescription={issueDescription}
+          status={status}
+          name={name}
+          onClose={handleCloseTicketView}
+        />
+      )}
+    </>
   );
 };
 

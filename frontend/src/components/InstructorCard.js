@@ -2,11 +2,26 @@ import { Avatar, Button, Typography } from "@mui/material";
 import React from "react";
 
 function stringAvatar(name) {
+  if (!name || typeof name !== "string") {
+    return {
+      sx: {
+        bgcolor: "#000", // Default background color
+      },
+      children: "?", // Default initials
+    };
+  }
+
+  const nameParts = name.split(" ");
+  const initials =
+    nameParts.length > 1
+      ? `${nameParts[0][0]}${nameParts[1][0]}`
+      : `${nameParts[0][0]}`; // Handle single-word names
+
   return {
     sx: {
       bgcolor: stringToColor(name),
     },
-    children: `${name.split(" ")[0][0]}${name.split(" ")[1][0]}`,
+    children: initials.toUpperCase(), // Use uppercase initials
   };
 }
 
@@ -22,13 +37,24 @@ function stringToColor(string) {
   let color = "#";
 
   for (i = 0; i < 3; i += 1) {
-    const value = (hash >> (i * 8)) & 0xff;
+    let value = (hash >> (i * 8)) & 0xff;
+
+    // Adjust the value to avoid pure red, green, or blue
+    if (value > 200) value -= 55; // Avoid very high intensities
+    if (value < 55) value += 55; // Avoid very low intensities
+
+    // Ensure the value isn't too dominant for R, G, or B
+    if (i === 0 && value > 180) value -= 40; // Red
+    if (i === 1 && value > 180) value -= 40; // Green
+    if (i === 2 && value > 180) value -= 40; // Blue
+
     color += `00${value.toString(16)}`.slice(-2);
   }
   /* eslint-enable no-bitwise */
 
   return color;
 }
+
 const defaultProps = {
   name: "Unknown Name",
   counts: {

@@ -81,6 +81,10 @@ export default function SignIn(props) {
       // Get Role
       const decodedToken = jwtDecode(token);
       const userType = decodedToken.role;
+      const userId = decodedToken.id;
+
+      // Store ID
+      Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
 
       // Redirect based on role
       if (userType === "admin") {
