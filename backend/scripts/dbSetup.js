@@ -84,9 +84,19 @@ async function insertTickets() {
     const issueDescription = faker.lorem.sentence();
     const issueType = issueTypes[Math.floor(Math.random() * issueTypes.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const sponsorName = "Sponsor Name";
+    const section = "My Section";
     return pool.query(
-      "INSERT INTO tickets (student_id, team_id, issue_description, issue_type, status) VALUES ($1, $2, $3, $4, $5)",
-      [student.user_id, team.team_id, issueDescription, issueType, status]
+      "INSERT INTO tickets (student_id, team_id, issue_description, sponsor_name, section, issue_type, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [
+        student.user_id,
+        team.team_id,
+        issueDescription,
+        sponsorName,
+        section,
+        issueType,
+        status,
+      ]
     );
   });
 
@@ -144,11 +154,19 @@ async function insertTicketCommunications() {
 // Main function to execute all insertions
 async function generateData() {
   try {
-    //await insertUsers();
-    //await insertTeams();
-    //await insertTeamMembers();
+    // await insertUsers();
+    // await insertTeams();
+    // await insertTeamMembers();
     await insertTickets();
-    //await insertTicketAssignments();
+    await insertTicketAssignments();
+    await insertTickets();
+    await insertTicketAssignments();
+    await insertTickets();
+    await insertTicketAssignments();
+    await insertTickets();
+    await insertTicketAssignments();
+    await insertTickets();
+    await insertTicketAssignments();
     //await insertTicketCommunications();
     console.log("Fake data inserted successfully!");
   } catch (error) {

@@ -2,7 +2,7 @@ import { Button, Stack, TextField } from "@mui/material";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ReplyBox from "../ReplyBox/ReplyBox";
 import "./ReplySection.css";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -13,6 +13,7 @@ const ReplySection = () => {
   const [loadingRepliesData, setLoadingRepliesData] = useState(true);
   const [error, setError] = useState(false);
   const [shouldRefresh, setShouldRefresh] = useState(false);
+  let navigate = useNavigate();
 
   const location = useLocation();
   const urlParameters = new URLSearchParams(location.search);

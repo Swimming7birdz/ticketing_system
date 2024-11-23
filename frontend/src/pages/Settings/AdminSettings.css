@@ -1,0 +1,54 @@
+.settings-container {
+  padding: 40px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
+.settings-title {
+  margin-bottom: 40px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.section-container {
+  margin-bottom: 40px;
+  background-color: white;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.scrollable-list {
+  max-height: 300px; /* Set the max height of the scrollable area */
+  overflow-y: auto; /* Enable vertical scrolling */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.add-form {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.add-form input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.add-form button {
+  background-color: #8c1d40; /* Match your primary theme color */
+  color: white;
+}
