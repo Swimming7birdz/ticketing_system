@@ -63,7 +63,7 @@ const TicketInfo = () => {
   }, [ticketId]);
 
   if (error) {
-    //navigate("/unauthorized");
+    // navigate("/unauthorized");
   }
 
   const handleBack = () => {

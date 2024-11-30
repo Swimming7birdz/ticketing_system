@@ -79,20 +79,6 @@ const SideBar = () => {
           selected={selectedPage === 1}
           onClick={() => {
             setSelectedPage(1);
-            navigate(`/ticketinfo?ticket=1`);
-            /* Links to ticketinfo rn for demo purposes*/
-          }}
-        >
-          <ListItemIcon>
-            <LayersIcon className="iconStyle" />
-          </ListItemIcon>
-          <ListItemText className="fontStyle" primary="My Tickets" />
-        </ListItemButton>
-        <ListItemButton
-          className="buttonStyle"
-          selected={selectedPage === 2}
-          onClick={() => {
-            setSelectedPage(2);
             navigate("/alltickets");
           }}
         >
@@ -104,9 +90,9 @@ const SideBar = () => {
 
         <ListItemButton
           className="buttonStyle"
-          selected={selectedPage === 5} // Assign a unique selectedPage index for "All Assignees"
+          selected={selectedPage === 2} // Assign a unique selectedPage index for "All Assignees"
           onClick={() => {
-            setSelectedPage(5);
+            setSelectedPage(2);
             navigate("/allassignees"); // Navigate to a new route for all assignees
           }}
         >
