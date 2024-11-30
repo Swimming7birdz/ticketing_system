@@ -15,7 +15,8 @@
 /* Modal content container */
 .modal-content {
   background-color: #fff;
-  padding: 30px;
+  padding-left: 30px;
+  padding-right: 30px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 500px;
@@ -46,7 +47,6 @@
 
 /* Modal title */
 .modal-content h1 {
-  margin-bottom: 20px;
   font-size: 1.5rem;
   font-weight: bold;
   color: #333;
@@ -55,7 +55,6 @@
 
 /* Ticket detail text */
 .modal-content p {
-  margin-bottom: 10px;
   font-size: 1rem;
   color: #555;
   line-height: 1.5;
@@ -64,7 +63,7 @@
 /* Styled button */
 .modal-content button {
   display: block;
-  margin: 20px auto 0;
+  margin: 0 auto 0;
   padding: 10px 20px;
   background-color: #8c1d40; /* ASU maroon */
   color: #fff;
@@ -78,4 +77,9 @@
 
 .modal-content button:hover {
   background-color: #6a102f; /* Darker maroon */
+}
+
+.buttons{
+  display: flex;
+  flex-direction: row;
 }

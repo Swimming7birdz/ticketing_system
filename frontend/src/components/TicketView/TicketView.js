@@ -1,15 +1,22 @@
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import "./TicketView.css"; // You can reuse CreateTicket.css or create a new one
+import { useNavigate } from "react-router-dom";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const TicketView = ({ ticketId, onClose }) => {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  let navigate = useNavigate()
+
   useEffect(() => {
     fetchTicketDetails();
   }, [ticketId]);
+
+  const onOpenTicket = () => {
+    navigate(`/ticketinfo?ticket=${ticketId}`)
+  }
 
   const fetchTicketDetails = async () => {
     try {
@@ -98,7 +105,10 @@ const TicketView = ({ ticketId, onClose }) => {
           <strong>Updated At:</strong>{" "}
           {new Date(ticket.updated_at).toLocaleString()}
         </p>
-        <button onClick={onClose}>Close</button>
+        <div className="buttons">
+          <button onClick={onClose}>Close</button>
+          <button onClick={onOpenTicket}>View Ticket Page</button>
+        </div>
       </div>
     </div>
   );
