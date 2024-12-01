@@ -46,14 +46,12 @@ module.exports = {
     }),
   ],
   devServer: {
-    disableHostCheck: true,
+    allowedHosts: 'all',
     historyApiFallback: true, // For React Router support
     static: {
       directory: path.join(__dirname, "public"),
     },
     port: 3000,
-    host: '0.0.0.0',
-    allowedHosts: 'all',
   },
   mode: "development",
 };
