@@ -12,7 +12,7 @@ module.exports = (app) => {
     cors({
       origin: "*", // Can be customized for production 'https://helpdesk.asucapstonetools.com'
       methods: ["GET", "POST", "PUT", "DELETE"],
-      credentials: true, // Enable this for sessions/auth
+      credentials: false, // Enable this for sessions/auth
     })
   );
 
