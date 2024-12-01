@@ -46,6 +46,7 @@ module.exports = {
     }),
   ],
   devServer: {
+    disableHostCheck: true,
     historyApiFallback: true, // For React Router support
     static: {
       directory: path.join(__dirname, "public"),
