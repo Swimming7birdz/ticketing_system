@@ -16,7 +16,7 @@ exports.getTicketsByUserId = async (req, res) => {
   try {
     const tickets = await Ticket.findAll({
       where: { student_id: req.params.user_id },
-      include: [{ model: User, as: "student", attributes: ["name"] }], // ✅ Fetch student name
+      include: [{ model: User, as: "student", attributes: ["name"] }], //  Fetch student name
     });
 
     // Add student_name manually if needed
@@ -56,16 +56,16 @@ exports.getTicketById = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 exports.getAllTicketDataById = async (req, res) => {
-  console.log("🔍 Request from User:", req.user);
-  console.log("🔍 Requested Ticket ID:", req.params.ticket_id);
-=======
+  console.log(" Request from User:", req.user);
+  console.log(" Requested Ticket ID:", req.params.ticket_id);
+/*=======
 exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to let TA view ticket page 2/24/25
-  /*if (req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
+    if (req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
     res.status(404).json({error: "user does not have access to this ticket"})
   }
-  else {*/ 
+  else {
     try {
       const ticket = await Ticket.findByPk(req.params.ticket_id);
       if (ticket) {
@@ -73,21 +73,21 @@ exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to
         const team = await Team.findByPk(ticket.dataValues.team_id);
         ticket.dataValues.student_name = student.dataValues.name
         ticket.dataValues.team_name = team.team_name
->>>>>>> instructor_view
+>>>>>>> instructor_view*/
 
   if (req.user.role !== 'admin') {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
     if (!ticket || ticket.student_id !== req.user.id) {
-      console.log("🚨 Access Denied - User is not allowed to view this ticket.");
+      console.log(" Access Denied - User is not allowed to view this ticket.");
       return res.status(403).json({ error: "Access denied: You can only view your own tickets." });
     }
-<<<<<<< HEAD
+//<<<<<<< HEAD
   }
-=======
+//=======
   //}
 };
->>>>>>> instructor_view
-
+//>>>>>>> instructor_view
+/*
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
     if (ticket) {
@@ -105,32 +105,32 @@ exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to
   }
 };
 
-
+*/
 exports.createTicket = async (req, res) => {
   try {
-    console.log("📌 Request Body:", req.body); // ✅ Debugging input data
+    console.log(" Request Body:", req.body); //  Debugging input data
 
     const { student_id } = req.body;
 
     // Check if student exists
     const student = await User.findByPk(student_id);
     if (!student) {
-      console.error("❌ Student not found in database:", student_id);
+      console.error(" Student not found in database:", student_id);
       return res.status(404).json({ error: "Student not found" });
     }
 
-    console.log("✅ Student found:", student.name); // ✅ Log correct name
+    console.log(" Student found:", student.name); //  Log correct name
 
     // Create ticket
     const ticket = await Ticket.create(req.body);
 
     res.status(201).json({
       ...ticket.dataValues,
-      student_name: student.name, // ✅ Ensure correct name is returned
+      student_name: student.name, // Ensure correct name is returned
     });
 
   } catch (error) {
-    console.error("❌ Error creating ticket:", error);
+    console.error(" Error creating ticket:", error);
     res.status(500).json({ error: error.message });
   }
 };
