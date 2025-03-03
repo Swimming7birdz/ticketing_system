@@ -1,4 +1,6 @@
-import Cookies from "js-cookie";
+import Cookies from "js-cookie"; 
+import { jwtDecode } from "jwt-decode"; 
+ 
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -35,7 +37,13 @@ export const fetchAllTickets = async () => {
 };
 
 // Fetch tickets by user ID
-export const fetchTicketsByUserId = async (userId) => {
+export const fetchTicketsByUserId = async () => {
+  const token = Cookies.get("token");
+  if (!token) throw new Error("No token found");
+
+  const decodedToken = jwtDecode(token);
+  const userId = decodedToken.id; // Extract user ID from JWT
+
   const url = `${baseURL}/api/tickets/user/${userId}`;
   return apiFetch(url);
 };
