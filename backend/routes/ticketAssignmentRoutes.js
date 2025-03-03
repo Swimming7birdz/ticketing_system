@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
   "/",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
+  authMiddleware.isTAOrAdmin,
   ticketAssignmentController.getAllTicketAssignments
 );
 router.get(
@@ -16,10 +16,10 @@ router.get(
   authMiddleware.isTAOrAdmin,
   ticketAssignmentController.getTicketAssignmentsByTicketId
 );
-router.post(
+router.post( // 2/21/25 changed to allow everyone to post in order to stop getting ticket assignment error
   "/ticket/:ticket_id",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
+  authMiddleware.isStudentOrTAOrAdmin,
   ticketAssignmentController.assignTicket
 );
 router.delete(
