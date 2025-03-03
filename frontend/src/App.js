@@ -19,7 +19,8 @@ import TAinfo from "./pages/TAInfo/TAinfo";
 import TicketInfo from "./pages/TicketInfo/TicketInfo";
 import TicketQueue from "./pages/TicketQueue/TicketQueue";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
-import Registration from "./pages/Registration/Registration";
+import Registration from "./pages/Registration/Registration"; 
+import StudentTickets from "./pages/StudentTickets/StudentTickets";
 
 function App() {
   return (
@@ -50,7 +51,7 @@ function App() {
         {/* Testing Pages */}
 
         {/* Change user_id to the user's id */}
-        <Route path="/mytickets" element={<MyTickets user_id={2} />} />
+        <Route path="/mytickets" element={<StudentTickets />} />
         <Route path="/ta-info" element={<TAinfo />} />
 
         {/*Verify the correct user type for dashboards*/}
