@@ -43,11 +43,11 @@ exports.getTicketById = async (req, res) => {
   }
 };
 
-exports.getAllTicketDataById = async (req, res) => {
-  if ( req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
+exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to let TA view ticket page 2/24/25
+  /*if (req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
     res.status(404).json({error: "user does not have access to this ticket"})
   }
-  else {
+  else {*/ 
     try {
       const ticket = await Ticket.findByPk(req.params.ticket_id);
       if (ticket) {
@@ -63,7 +63,7 @@ exports.getAllTicketDataById = async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  }
+  //}
 };
 
 exports.createTicket = async (req, res) => {

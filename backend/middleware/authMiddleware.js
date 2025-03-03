@@ -11,7 +11,7 @@ const authMiddleware = {
 
     jwt.verify(bearerToken, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
-        return res.status(403).json({ error: "Failed to authenticate token" });
+        return res.status(404).json({ error: "Failed to authenticate token" });
       }
       req.user = decoded;
       next();
@@ -21,7 +21,7 @@ const authMiddleware = {
     if (req.user && req.user.role === "admin") {
       next();
     } else {
-      res.status(403).json({ error: "Forbidden" });
+      res.status(405).json({ error: "Forbidden" });
     }
   },
   isStudent: (req, res, next) => {

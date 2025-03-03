@@ -165,7 +165,9 @@ export default function SignIn(props) {
           </FormControl>
           <FormControl>
             <Box className="passwordControls">
-              <FormLabel htmlFor="password">Password</FormLabel>
+              <FormLabel htmlFor="password">
+		Password
+		</FormLabel>
               <Link
                 component="button"
                 type="button"
@@ -183,7 +185,7 @@ export default function SignIn(props) {
               type="password"
               id="password"
               autoComplete="current-password"
-              autoFocus
+              //autoFocus
               required
               fullWidth
               variant="outlined"
