@@ -73,7 +73,7 @@ exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to
         const team = await Team.findByPk(ticket.dataValues.team_id);
         ticket.dataValues.student_name = student.dataValues.name
         ticket.dataValues.team_name = team.team_name
->>>>>>> instructor_view*/
+>>>>>>> instructor_view
 
   if (req.user.role !== 'admin') {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
@@ -81,13 +81,13 @@ exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to
       console.log(" Access Denied - User is not allowed to view this ticket.");
       return res.status(403).json({ error: "Access denied: You can only view your own tickets." });
     }
-//<<<<<<< HEAD
+<<<<<<< HEAD
   }
-//=======
+=======
   //}
 };
-//>>>>>>> instructor_view
-/*
+>>>>>>> instructor_view
+*/
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
     if (ticket) {
@@ -105,7 +105,6 @@ exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to
   }
 };
 
-*/
 exports.createTicket = async (req, res) => {
   try {
     console.log(" Request Body:", req.body); //  Debugging input data
@@ -134,7 +133,6 @@ exports.createTicket = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 
 
