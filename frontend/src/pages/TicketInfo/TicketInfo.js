@@ -12,7 +12,7 @@ import TicketStatusIndicator from "../../components/TicketStatusIndicator/Ticket
 import "./TicketInfo.css";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-const TAs = ["John Smith"];
+const TAs = [];
 const TicketSubject = "Sponsor Isn’t Responding";
 
 const TicketInfo = () => {
@@ -28,6 +28,8 @@ const TicketInfo = () => {
 
   const urlParameters = new URLSearchParams(location.search);
   const ticketId = urlParameters.get("ticket");
+
+  const [TAs, setTAs] = useState([]);
 
   const fetchData = async () => {
     try {
@@ -62,6 +64,41 @@ const TicketInfo = () => {
     fetchData();
   }, [ticketId]);
 
+
+  const getTAs = async () => {
+    try {
+      const token = Cookies.get("token");
+      
+      const getResponse = await fetch(
+        `${baseURL}/api/users/role/TA`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!getResponse.ok) {
+          console.error(`Failed to get TAs. Status: ${getResponse.status}`);
+          console.error(`${getResponse.reason}`);
+        }
+      
+        const list = await getResponse.json();
+        const namesList = list.map(obj => obj.name);
+        setTAs(namesList);
+
+      } catch (err) {
+        console.log("Error: ", error);
+        setError(true);
+      }
+  }
+
+  useEffect(() => {
+    getTAs();
+  }, ["TA"]);
+
+
   if (error) {
     // navigate("/unauthorized");
   }
@@ -81,6 +118,12 @@ const TicketInfo = () => {
 
   const deletePopupClose = () => {
     setDeleteOpen(false);
+  };
+
+  const [selectedTA, setSelectedTA] = useState(''); //current TA
+
+  const handleSelectChange = (event) => {
+    setSelectedTA(event.target.value);
   };
 
   if (loadingTicketData) {
@@ -159,10 +202,23 @@ const TicketInfo = () => {
               <div>{ticketData.student_name}</div>
             </div>
             <div>
-              TA:
-              {TAs.map((TaName) => {
-                return <div key={TaName}>{TaName}</div>;
-              })}
+              TA:&nbsp;
+              <select value={selectedTA} onChange={handleSelectChange}>
+                <option value="" disabled>Select a TA</option>
+                {TAs.map((TaName) => (
+                  <option key={TaName} value={TaName}>{TaName}</option>
+                ))}
+              </select>
+
+              <Button
+                variant="contained"
+                className="reassignButton"
+                style={{ marginTop: '10px' }} // Add margin to the button
+                //add onClick event to reassign ticket to selected TA
+              >
+                Reassign
+              </Button>
+
             </div>
             <div>
               Project:
