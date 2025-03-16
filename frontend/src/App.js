@@ -20,7 +20,7 @@ import TicketInfo from "./pages/TicketInfo/TicketInfo";
 import TicketQueue from "./pages/TicketQueue/TicketQueue";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
 import Registration from "./pages/Registration/Registration";
-
+import Profile from "./pages/Profile/Profile";
 function App() {
   return (
     <Routes>
@@ -81,6 +81,8 @@ function App() {
             />
           }
         />
+
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       {/*Default to login page for unrecognized routes*/}
