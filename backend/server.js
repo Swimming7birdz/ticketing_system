@@ -20,7 +20,7 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3301;
 const HOSTNAME = os.hostname();
 
 // Start the server

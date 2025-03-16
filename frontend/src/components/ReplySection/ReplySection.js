@@ -9,7 +9,7 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const ReplySection = () => {
   const [newReplyText, setNewReplyText] = useState("");
-  const [repliesData, setRepliesData] = useState(null);
+  const [repliesData, setRepliesData] = useState([]);
   const [loadingRepliesData, setLoadingRepliesData] = useState(true);
   const [error, setError] = useState(false);
   const [shouldRefresh, setShouldRefresh] = useState(false);
@@ -25,36 +25,39 @@ const ReplySection = () => {
 
   useEffect(() => {
     const fetchReplies = async () => {
-      try {
-        const repliesDataResponse = await fetch(
-          `${baseURL}/api/communications/${ticketId}/communications`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        try {
+            const repliesDataResponse = await fetch(
+                `${baseURL}/api/communications/${ticketId}/communications`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
-        const repliesData = await repliesDataResponse.json(); // iterate through replies and use user_id to grab names
+            console.log("API Response Status:", repliesDataResponse.status); // ✅ Log response status
 
-        repliesData.map((reply) => {
-          // convert date into a more readable string
-          const date = new Date(reply.created_at);
-          const dateString = date.toLocaleString("en-US");
-          reply.created_at = dateString;
-        });
+            const repliesData = await repliesDataResponse.json();
+            console.log("Replies Data:", repliesData); // ✅ Log API response data
 
-        setRepliesData(repliesData);
-        console.log(repliesData);
-      } catch (err) {
-        console.log(error);
-        setError(true);
-      } finally {
-        setLoadingRepliesData(false);
-      }
+            repliesData.map((reply) => {
+                // Convert date into a more readable string
+                const date = new Date(reply.created_at);
+                const dateString = date.toLocaleString("en-US");
+                reply.created_at = dateString;
+            });
+
+            setRepliesData(repliesData);
+        } catch (err) {
+            console.log("Error fetching replies:", err);
+            setError(true);
+        } finally {
+            setLoadingRepliesData(false);
+        }
     };
+
     fetchReplies();
   }, [ticketId, shouldRefresh]);
 

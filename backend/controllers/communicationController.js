@@ -3,16 +3,31 @@ const User = require("../models/User");
 
 exports.getAllCommunicationsByTicketId = async (req, res) => {
   try {
-    const communications = await Communication.findAll({ where: { ticket_id: req.params.ticket_id } });
-    await Promise.all(communications.map( async(communication) => {
+    const communications = await Communication.findAll({
+      where: { ticket_id: req.params.ticket_id }
+    });
+
+    // ✅ If no communications exist, return an empty array instead of breaking
+    if (!communications || communications.length === 0) {
+      return res.json([]);
+    }
+
+    await Promise.all(communications.map(async (communication) => {
       const user = await User.findByPk(communication.dataValues.user_id);
-      communication.dataValues.user_name = user.dataValues.name
+      if (user) {
+        communication.dataValues.user_name = user.dataValues.name;
+      } else {
+        communication.dataValues.user_name = "Unknown User"; // ✅ Prevents a crash if the user is missing
+      }
     }));
+
     res.json(communications);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Database Query Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 exports.createCommunication = async (req, res) => {
   try {

@@ -6,8 +6,8 @@ require("dotenv").config();
 // Initialize connection pool
 const pool = new Pool({
   connectionString:
-    "postgresql://postgres:am4f54MHtnEv90cj@critically-darling-badger.data-1.use1.tembo.io:5432/postgres",
-  ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
+  	"postgresql://test_user:test_password@127.0.0.1:5432/test_database?sslmode=disable",
+	ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
 });
 
 // Helper function to hash passwords
@@ -16,6 +16,8 @@ async function hashPassword(password) {
   return await bcrypt.hash(password, saltRounds);
 }
 
+faker.seed(123) // so data stays the same even after resetting database
+
 // Generate data for Users table
 async function insertUsers() {
   const roles = ["student", "TA", "admin"];
@@ -23,8 +25,10 @@ async function insertUsers() {
   const hashedPassword = await hashPassword(defaultPassword);
 
   const userPromises = Array.from({ length: 20 }).map(async (_, i) => {
-    const name = faker.name.firstName() + " " + faker.name.lastName(); // Corrected name generation
-    const email = i === 0 ? "admin1@asu.edu" : faker.internet.email(); // Make the first user a specific admin
+    const firstName =  faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const name = firstName + " " + lastName; // Corrected name generation
+    const email = i === 0 ? "admin1@asu.edu" : faker.internet.email({firstName: firstName, lastName: lastName, provider: 'asu.edu'}); // Make the first user a specific admin, the rest will be randomly generated with asu emails
     const role =
       i === 0 ? "admin" : roles[Math.floor(Math.random() * roles.length)];
     return pool.query(
@@ -154,9 +158,9 @@ async function insertTicketCommunications() {
 // Main function to execute all insertions
 async function generateData() {
   try {
-    // await insertUsers();
-    // await insertTeams();
-    // await insertTeamMembers();
+    await insertUsers();
+    await insertTeams();
+    await insertTeamMembers();
     await insertTickets();
     await insertTicketAssignments();
     await insertTickets();
@@ -167,7 +171,7 @@ async function generateData() {
     await insertTicketAssignments();
     await insertTickets();
     await insertTicketAssignments();
-    //await insertTicketCommunications();
+    await insertTicketCommunications();
     console.log("Fake data inserted successfully!");
   } catch (error) {
     console.error("Error inserting data:", error);

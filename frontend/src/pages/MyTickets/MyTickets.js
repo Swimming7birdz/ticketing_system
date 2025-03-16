@@ -1,87 +1,59 @@
-import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-const baseURL = process.env.REACT_APP_API_BASE_URL;
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography } from "@mui/material";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";  // Make sure this import is correct!
+import { fetchTicketsByUserId } from "../../services/ticketServices";
 
-const MyTickets = ({ user_id }) => {
+const MyTickets = () => {
   const [ticketsForUser, setTicketsForUser] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchAssignments = async () => {
+  useEffect(() => {
+    fetchStudentTickets();
+  }, []);
+
+  const fetchStudentTickets = async () => {
     try {
-      // Get the token from cookies
       const token = Cookies.get("token");
-
-      // Fetch ticket assignments
-      const response = await fetch(`${baseURL}/api/ticketassignments`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch ticket assignments");
-      }
-
-      const assignments = await response.json();
-
-      // Filter assignments by user_id and extract ticket_ids
-      const ticketIds = assignments
-        .filter((assignment) => assignment.user_id === user_id)
-        .map((assignment) => assignment.ticket_id);
-
-      if (ticketIds.length === 0) {
-        setTicketsForUser([]); // No tickets for the user
+      if (!token) {
+        console.error("No token found!");
         return;
       }
 
-      // Fetch tickets for the filtered ticketIds
-      const tickets = await Promise.all(
-        ticketIds.map(async (ticketId) => {
-          try {
-            const ticketResponse = await fetch(
-              `${baseURL}/api/tickets/${ticketId}`,
-              {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken.id; // Get logged-in student ID
 
-            if (!ticketResponse.ok) {
-              console.error(`Failed to fetch ticket ${ticketId}`);
-              return null; // Skip invalid tickets
-            }
-
-            return await ticketResponse.json();
-          } catch (err) {
-            console.error(`Error fetching ticket ${ticketId}:`, err);
-            return null; // Skip in case of other errors
-          }
-        })
-      );
-
-      // Filter out null values
-      setTicketsForUser(tickets.filter((ticket) => ticket !== null));
+      const studentTickets = await fetchTicketsByUserId(userId); // Fetch tickets directly
+      setTicketsForUser(studentTickets);
+      setLoading(false);
     } catch (error) {
-      console.error("Error fetching ticket assignments:", error);
-      setError("Could not fetch ticket assignments. Please try again later.");
+      console.error("Error fetching student tickets:", error);
+      setError("Could not fetch tickets. Please try again later.");
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchAssignments();
-  }, [user_id]);
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#f0f0f0",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <CircularProgress size={80} thickness={4} />
+        <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+          Loading, please wait...
+        </Typography>
+      </div>
+    );
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -90,7 +62,6 @@ const MyTickets = ({ user_id }) => {
           <TableRow>
             <TableCell>Number</TableCell>
             <TableCell>Status</TableCell>
-            {/* <TableCell>Assigned to</TableCell> */}
             <TableCell>Description</TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Team</TableCell>
@@ -98,26 +69,13 @@ const MyTickets = ({ user_id }) => {
         </TableHead>
         <TableBody>
           {ticketsForUser.map((ticket) => (
-            <TableRow
-              key={ticket.ticket_id}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              <TableCell component="th" scope="row">
-                {ticket.ticket_id}
-              </TableCell>
-              <TableCell
-                sx={{
-                  color:
-                    ticket.status === "ongoing"
-                      ? "blue"
-                      : ticket.status === "escalated"
-                      ? "red"
-                      : "green",
-                }}
-              >
+            <TableRow key={ticket.ticket_id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+              <TableCell component="th" scope="row">{ticket.ticket_id}</TableCell>
+              <TableCell sx={{
+                color: ticket.status === "ongoing" ? "blue" : ticket.status === "escalated" ? "red" : "green",
+              }}>
                 {ticket.status}
               </TableCell>
-              {/* <TableCell>{row.assigned_to}</TableCell> */}
               <TableCell>{ticket.issue_description}</TableCell>
               <TableCell>{ticket.student_name}</TableCell>
               <TableCell>{ticket.team_name}</TableCell>
@@ -130,3 +88,4 @@ const MyTickets = ({ user_id }) => {
 };
 
 export default MyTickets;
+

@@ -14,12 +14,25 @@ exports.getAllTickets = async (req, res) => {
 
 exports.getTicketsByUserId = async (req, res) => {
   try {
-    const tickets = await Ticket.findAll({ where: { student_id: req.params.user_id } });
-    res.json(tickets);
+    const tickets = await Ticket.findAll({
+      where: { student_id: req.params.user_id },
+      include: [{ model: User, as: "student", attributes: ["name"] }], //  Fetch student name
+    });
+
+    // Add student_name manually if needed
+    const ticketsWithNames = tickets.map(ticket => ({
+      ...ticket.dataValues,
+      student_name: ticket.student ? ticket.student.name : "Unknown Student",
+    }));
+
+    res.json(ticketsWithNames);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
 
 exports.getTicketsByTAId = async (req, res) => {
   try {
@@ -43,8 +56,13 @@ exports.getTicketById = async (req, res) => {
   }
 };
 
+//<<<<<<< HEAD
 exports.getAllTicketDataById = async (req, res) => {
-  if ( req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
+  console.log(" Request from User:", req.user);
+  console.log(" Requested Ticket ID:", req.params.ticket_id);
+/*=======
+exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to let TA view ticket page 2/24/25
+    if (req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
     res.status(404).json({error: "user does not have access to this ticket"})
   }
   else {
@@ -55,25 +73,69 @@ exports.getAllTicketDataById = async (req, res) => {
         const team = await Team.findByPk(ticket.dataValues.team_id);
         ticket.dataValues.student_name = student.dataValues.name
         ticket.dataValues.team_name = team.team_name
+>>>>>>> instructor_view
 
-        res.json(ticket);
-      } else {
-        res.status(404).json({ error: "Ticket not found" });
-      }
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+  if (req.user.role !== 'admin') {
+    const ticket = await Ticket.findByPk(req.params.ticket_id);
+    if (!ticket || ticket.student_id !== req.user.id) {
+      console.log(" Access Denied - User is not allowed to view this ticket.");
+      return res.status(403).json({ error: "Access denied: You can only view your own tickets." });
     }
+<<<<<<< HEAD
+  }
+=======
+  //}
+};
+>>>>>>> instructor_view
+*/
+  try {
+    const ticket = await Ticket.findByPk(req.params.ticket_id);
+    if (ticket) {
+      const student = await User.findByPk(ticket.dataValues.student_id);
+      const team = await Team.findByPk(ticket.dataValues.team_id);
+      ticket.dataValues.student_name = student.dataValues.name;
+      ticket.dataValues.team_name = team.team_name;
+
+      res.json(ticket);
+    } else {
+      res.status(404).json({ error: "Ticket not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
 exports.createTicket = async (req, res) => {
   try {
+    console.log(" Request Body:", req.body); //  Debugging input data
+
+    const { student_id } = req.body;
+
+    // Check if student exists
+    const student = await User.findByPk(student_id);
+    if (!student) {
+      console.error(" Student not found in database:", student_id);
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    console.log(" Student found:", student.name); //  Log correct name
+
+    // Create ticket
     const ticket = await Ticket.create(req.body);
-    res.status(201).json(ticket);
+
+    res.status(201).json({
+      ...ticket.dataValues,
+      student_name: student.name, // Ensure correct name is returned
+    });
+
   } catch (error) {
+    console.error(" Error creating ticket:", error);
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
 
 exports.updateTicket = async (req, res) => {
   try {

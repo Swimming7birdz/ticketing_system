@@ -41,7 +41,7 @@ module.exports = {
     new webpack.DefinePlugin({
       "process.env": JSON.stringify({
         REACT_APP_API_BASE_URL:
-          process.env.REACT_APP_API_BASE_URL || "http://localhost:3302",
+          process.env.REACT_APP_API_BASE_URL || "http://localhost:3301",
       }),
     }),
   ],
@@ -50,7 +50,7 @@ module.exports = {
     static: {
       directory: path.join(__dirname, "public"),
     },
-    port: 3000,
+    port: 3001,
   },
   mode: "development",
 };
