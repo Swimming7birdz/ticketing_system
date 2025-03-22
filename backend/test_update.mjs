@@ -20,8 +20,8 @@ const updateTicket = async () => {
 
     //future update: translate TA name to numeric id
     const ticketId = 2; 
-    const new_id = 50; 
-    const old_user_id = 5; //NOTE: check database for current user_id for given ticketId
+    const new_id = 76; 
+    const old_user_id = 15; //NOTE: check database for current user_id for given ticketId
     
   
     const assignResponse = await fetch(
