@@ -6,11 +6,13 @@ import { Avatar } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import PlaceholderProfilePicture from '../../assets/pfp.png'
 import './TopBar.css'
-
+import { useNavigate } from 'react-router-dom'; 
 const TopBar = () => {
+  const navigate = useNavigate();
 
   const handleProfileClick = () => {
     console.log("Profile Clicked")
+    navigate("/profile");
   }
 
   return (

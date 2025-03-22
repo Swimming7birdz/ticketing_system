@@ -74,3 +74,21 @@ exports.getUsersByRole = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getUserProfile = async (req, res) => {
+  try {
+    const userId = req.user?.user_id || req.user?.id;
+    if (!userId) {
+      return res.status(400).json({ error: "User id not provided" });
+    }
+    const user = await User.findByPk(userId, {
+      attributes: ["user_id", "name", "email", "role"],
+    });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

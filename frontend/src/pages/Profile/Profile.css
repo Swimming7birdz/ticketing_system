@@ -1,0 +1,38 @@
+.profile-container
+{
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+
+.profile-card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 30px 20px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px auto;
+    background-color: #1976d2; /* Fallback color */
+  }
+
+  .profile-details p {
+    font-size: 16px;
+    margin: 10px 0;
+  }
+
+  .redirect-button {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center; 
+  }
+  
