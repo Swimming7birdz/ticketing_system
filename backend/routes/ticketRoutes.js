@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
   "/",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
+  authMiddleware.isTAOrAdmin, //changed 2/20/25 to allow TA to view tickets on instructor dashboard
   ticketController.getAllTickets
 );
 router.get(

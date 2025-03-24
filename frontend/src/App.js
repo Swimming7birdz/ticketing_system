@@ -19,7 +19,8 @@ import TAinfo from "./pages/TAInfo/TAinfo";
 import TicketInfo from "./pages/TicketInfo/TicketInfo";
 import TicketQueue from "./pages/TicketQueue/TicketQueue";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
-import Registration from "./pages/Registration/Registration"; 
+import Registration from "./pages/Registration/Registration";
+import Profile from "./pages/Profile/Profile";
 import StudentTickets from "./pages/StudentTickets/StudentTickets";
 
 function App() {
@@ -82,6 +83,8 @@ function App() {
             />
           }
         />
+
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       {/*Default to login page for unrecognized routes*/}
