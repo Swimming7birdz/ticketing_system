@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
+const User = require("./User"); // Import User model
 
 const Ticket = sequelize.define(
   "Ticket",
@@ -12,7 +13,11 @@ const Ticket = sequelize.define(
     student_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    },
+      references: {
+        model: "users", // Ensure it references the correct table
+        key: "user_id",
+      },
+    }, 
     team_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -51,9 +56,13 @@ const Ticket = sequelize.define(
     },
   },
   {
-    tableName: "tickets", // Ensure the table name is lowercase
+    tableName: "tickets",
     timestamps: false,
   }
 );
 
+// Define Association
+Ticket.belongsTo(User, { foreignKey: "student_id", as: "student" });
+
 module.exports = Ticket;
+
