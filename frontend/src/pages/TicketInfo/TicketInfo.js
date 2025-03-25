@@ -66,8 +66,12 @@ const TicketInfo = () => {
     // navigate("/unauthorized");
   }
 
+  //Robert Naff: Need to have Back button do something
   const handleBack = () => {
+    //Goes back to previous page in history
     console.log("Back Button Clicked");
+    navigate(-1);
+    console.log("Back in Previous Page");
   };
 
   const handleEditTicket = () => {
@@ -106,75 +110,92 @@ const TicketInfo = () => {
   }
 
   return (
-    <>
-      {!loadingTicketData ? (
-        <div className="ticketInfoContainer">
-          <Stack className="ticketInfo">
-            <Button
-              variant="text"
-              className="backButton"
-              onClick={handleBack}
-              startIcon={<ArrowBackIosNewIcon />}
+      <>
+        {!loadingTicketData ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              backgroundColor: "#DBDADA",
+              padding: 50,
+              gap: 50,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 20,
+                backgroundColor: "#FFFFFF",
+                padding: 20,
+                borderRadius: 5,
+                flex: 1,
+              }}
             >
-              Back
-            </Button>
-            <div className="ticketId">Capstone Ticket - {ticketId}</div>
-            <div className="subject">{TicketSubject}</div>
-            <Stack direction="row" className="statusButtons">
-              <TicketStatusIndicator
-                status={ticketData.status.toUpperCase() || "UNKNOWN"}
-              />
-              {ticketData.escalated && (
-                <TicketStatusIndicator status={"ESCALATED"} />
-              )}
-              <Button
-                variant="contained"
-                className="editButton"
-                onClick={handleEditTicket}
-              >
-                Edit Ticket
-              </Button>
-              <Button
-                variant="contained"
-                className="deleteButton"
-                onClick={handleDeleteTicket}
-              >
-                Delete Ticket
-              </Button>
-              <ConfirmDelete
-                handleOpen={deleteOpen}
-                handleClose={deletePopupClose}
-              />
-            </Stack>
-            <h3>Description:</h3>
-            <div className="ticketDescription">
-              {ticketData.issue_description}
+              <Stack className="ticketInfo">
+                <Button
+                  variant="text"
+                  className="backButton"
+                  onClick={handleBack}
+                  startIcon={<ArrowBackIosNewIcon />}
+                >
+                  Back
+                </Button>
+                <div className="ticketId">Capstone Ticket - {ticketId}</div>
+                <div className="subject">{TicketSubject}</div>
+                <Stack direction="row" className="statusButtons">
+                  <TicketStatusIndicator
+                    status={ticketData.status?.toUpperCase() || "UNKNOWN"}
+                  />
+                  {ticketData.escalated && (
+                    <TicketStatusIndicator status={"ESCALATED"} />
+                  )}
+                  <Button
+                    variant="contained"
+                    className="editButton"
+                    onClick={handleEditTicket}
+                  >
+                    Edit Ticket
+                  </Button>
+                  <Button
+                    variant="contained"
+                    className="deleteButton"
+                    onClick={handleDeleteTicket}
+                  >
+                    Delete Ticket
+                  </Button>
+                  <ConfirmDelete
+                    handleOpen={deleteOpen}
+                    handleClose={deletePopupClose}
+                  />
+                </Stack>
+                <h3>Description:</h3>
+                <div className="ticketAsset">
+                  {ticketData.issue_description}
+                </div>
+                <h3>Student:</h3>
+                <div className="ticketAsset">
+                  {ticketData.student_name}
+                </div>
+                <h3>TA:</h3>
+                <div className="ticketAsset">
+                  {TAs.map((TaName) => (
+                    <div key={TaName}>{TaName}</div>
+                  ))}
+                </div>
+                <h3>Project:</h3>
+                <div className="ticketAsset">
+                  {ticketData.team_name}
+                </div>
+                <h3>Replies:</h3>
+                <ReplySection />
+              </Stack>
             </div>
-            <h3>Replies:</h3>
-            <ReplySection></ReplySection>
-          </Stack>
-          <Stack className="ticketUsers">
-            <div>
-              Student:
-              <div>{ticketData.student_name}</div>
-            </div>
-            <div>
-              TA:
-              {TAs.map((TaName) => {
-                return <div key={TaName}>{TaName}</div>;
-              })}
-            </div>
-            <div>
-              Project:
-              <div>{ticketData.team_name}</div>
-            </div>
-          </Stack>
-        </div>
-      ) : (
-        <div>Loading Ticket Info...</div>
-      )}
-    </>
-  );
-};
+          </div>
+        ) : (
+          <div>Loading Ticket Info...</div>
+        )}
+      </>
+    )};
 
 export default TicketInfo;
