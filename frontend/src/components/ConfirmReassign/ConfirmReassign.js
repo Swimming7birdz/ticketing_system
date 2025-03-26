@@ -14,13 +14,21 @@ const ConfirmReassign = ({handleOpen, handleClose, ticketID, oldTAID, idNameMap,
     const [error, setError] = useState(false);
 
     const handleSelectChange = (event) => {
-        setSelectedTA(event.target.value);
+        setSelectedTA(Number(event.target.value));
     };
 
     const taEntries = Object.entries(idNameMap);
 
-    const handleSubmit = async () => {
-        //Improvement: if the oldTAID does match selectedTA, then do not update and add message to choose a different TA
+    const handleSubmit = async (event) => {
+        event.preventDefault(); // Prevent form submission
+        //console.log("Selected TA: ", typeof selectedTA, selectedTA);
+        //console.log("Old TA: ", typeof oldTAID, oldTAID);
+
+        if (selectedTA === oldTAID) {
+            alert("You cannot reassign the ticket to the same TA. Please select a different TA.");
+            return; // Exit without making the PUT request
+        }
+        
         try{
             const token = Cookies.get("token");
 

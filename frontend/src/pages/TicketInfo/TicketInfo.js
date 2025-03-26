@@ -168,7 +168,8 @@ const TicketInfo = () => {
   };
   
   const updateTA = (newTAID) => { //update TA ID from Confirm Reassign popup
-    //console.log("New TA ID: ", newTAID);
+    //console.log("old tA", typeof AssignedID)
+    //console.log("New TA ID: ", typeof newTAID);
     setAssignedID(newTAID);
   };
 
