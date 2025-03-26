@@ -4,6 +4,7 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Stack from "@mui/material/Stack";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ConfirmDelete from "../../components/ConfirmDelete/ConfirmDelete";
@@ -26,6 +27,10 @@ const TicketInfo = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const token = Cookies.get("token");
+  const decodedToken = jwtDecode(token);
+  const userType = decodedToken.role;
 
   const urlParameters = new URLSearchParams(location.search);
   const ticketId = urlParameters.get("ticket");
@@ -250,6 +255,7 @@ const TicketInfo = () => {
             </div>
             <div>
               TA: {idToNameMap[AssignedID]}&nbsp; 
+              {userType === "admin" && (
               <Button
                 variant="contained"
                 className="reassignButton"
@@ -258,6 +264,7 @@ const TicketInfo = () => {
               >
                 Reassign
               </Button>
+              )}
               <ConfirmReassign
                 handleOpen={reassignOpen}
                 handleClose={reassignPopupClose}
@@ -266,7 +273,7 @@ const TicketInfo = () => {
                 idNameMap={idToNameMap}
                 updateTA={updateTA}
               />
-
+              
             </div>
             <div>
               Project:
