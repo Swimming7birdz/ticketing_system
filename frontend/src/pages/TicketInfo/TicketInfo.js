@@ -9,6 +9,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ConfirmDelete from "../../components/ConfirmDelete/ConfirmDelete";
 import ConfirmReassign from "../../components/ConfirmReassign/ConfirmReassign";
+import ConfirmEscalate from "../../components/ConfirmEscalate/ConfirmEscalate";
 import ReplySection from "../../components/ReplySection/ReplySection";
 import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
 import "./TicketInfo.css";
@@ -19,6 +20,7 @@ const TicketSubject = "Sponsor Isn’t Responding";
 const TicketInfo = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
+  const [escalateOpen, setEscalateOpen] = useState(false);
   const [ticketData, setTicketData] = useState(null);
   const [repliesData, setRepliesData] = useState(null);
   const [loadingTicketData, setLoadingTicketData] = useState(true);
@@ -164,12 +166,21 @@ const TicketInfo = () => {
     setReassignOpen(true);
   };
 
+  const handleEscalateTicket = () => {
+    console.log("Escalate Ticket Button Clicked");
+    setEscalateOpen(true);
+  };
+
   const deletePopupClose = () => {
     setDeleteOpen(false);
   };
 
   const reassignPopupClose = () => {
     setReassignOpen(false);
+  };
+
+  const escalatePopupClose = () => {
+    setEscalateOpen(false);
   };
   
   const updateTA = (newTAID) => { //update TA ID from Confirm Reassign popup
@@ -239,6 +250,19 @@ const TicketInfo = () => {
               <ConfirmDelete
                 handleOpen={deleteOpen}
                 handleClose={deletePopupClose}
+              />
+              {userType === "TA" && (
+                <Button
+                  variant="contained"
+                  className="escalateButton"
+                  onClick={handleEscalateTicket} //placeholder
+                >
+                  Escalate Ticket
+                </Button>
+              )}
+              <ConfirmEscalate
+               handleOpen={escalateOpen}
+               handleClose={escalatePopupClose}
               />
             </Stack>
             <h3>Description:</h3>
