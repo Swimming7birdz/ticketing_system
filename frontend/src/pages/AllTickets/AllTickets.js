@@ -9,6 +9,7 @@ import {
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import TicketCard from "../../components/TicketCard";
+import CheckIcon from "@mui/icons-material/Check";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -224,47 +225,93 @@ const AllTickets = () => {
           open={Boolean(filterAnchor)}
           onClose={handleFilterClose}
         >
+          {/* Sort: Newest */}
           <MenuItem
             onClick={() => {
-              setActiveFilters({ ...activeFilters, sort: "newest" });
+              if (activeFilters.sort === "newest") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "newest" });
+              }
               handleFilterClose();
             }}
           >
+            {/* Show a check if "newest" is the active sort */}
+            {activeFilters.sort === "newest" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
             Newest
           </MenuItem>
+
+          {/* Sort: Oldest */}
           <MenuItem
             onClick={() => {
-              setActiveFilters({ ...activeFilters, sort: "oldest" });
+              if (activeFilters.sort === "oldest") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "oldest" });
+              }
               handleFilterClose();
             }}
           >
+            {activeFilters.sort === "oldest" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
             Oldest
           </MenuItem>
+
+          {/* Status: New */}
           <MenuItem
             onClick={() => {
-              setActiveFilters({ ...activeFilters, status: "New" });
+              if (activeFilters.status === "New") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "New" });
+              }
               handleFilterClose();
             }}
           >
+            {activeFilters.status === "New" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
             Status: New
           </MenuItem>
+
+          {/* Status: Ongoing */}
           <MenuItem
             onClick={() => {
-              setActiveFilters({ ...activeFilters, status: "Ongoing" });
+              if (activeFilters.status === "Ongoing") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "Ongoing" });
+              }
               handleFilterClose();
             }}
           >
+            {activeFilters.status === "Ongoing" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
             Status: Ongoing
           </MenuItem>
+
+          {/* Status: Resolved */}
           <MenuItem
             onClick={() => {
-              setActiveFilters({ ...activeFilters, status: "Resolved" });
+              if (activeFilters.status === "Resolved") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "Resolved" });
+              }
               handleFilterClose();
             }}
           >
+            {activeFilters.status === "Resolved" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
             Status: Resolved
           </MenuItem>
         </Menu>
+
 
         {/* Tickets Grid */}
         <div

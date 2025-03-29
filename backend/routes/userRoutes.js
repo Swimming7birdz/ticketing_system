@@ -4,6 +4,13 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+
+router.put(
+  "/change-password",
+  authMiddleware.verifyToken,
+  userController.changePassword
+);
+
 router.get(
   "/profile",
   authMiddleware.verifyToken,
