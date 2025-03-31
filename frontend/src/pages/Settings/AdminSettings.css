@@ -52,3 +52,9 @@
   background-color: #8c1d40; /* Match your primary theme color */
   color: white;
 }
+
+.redirect-button {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center; 
+}

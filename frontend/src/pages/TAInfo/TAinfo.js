@@ -1,14 +1,22 @@
 import React from 'react'
 import { Avatar, Typography, Button } from '@mui/material';
 
+
 function stringAvatar(name) {
+    if (!name || typeof name !== "string") {
+      return {
+        sx: { bgcolor: "#000" },
+        children: "?"
+      };
+    }
+    const nameParts = name.split(" ");
+    const initials =
+      nameParts.length >= 2 ? `${nameParts[0][0]}${nameParts[1][0]}` : nameParts[0][0];
     return {
-        sx: {
-            bgcolor: stringToColor(name),
-        },
-        children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
+      sx: { bgcolor: stringToColor(name) },
+      children: initials.toUpperCase(),
     };
-}
+  }
 
 function stringToColor(string) {
     let hash = 0;

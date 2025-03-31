@@ -30,6 +30,10 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
   const { name, email, password, role } = req.body;
+  // const { name, email, password, role, asu_id } = req.body;
+  // if (!asu_id || !/^\d{10}$/.test(asu_id)) {
+    // return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });
+  // }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -39,6 +43,7 @@ exports.register = async (req, res) => {
       email,
       password: hashedPassword,
       role,
+      // asu_id,
     });
 
     res.status(201).json(user);

@@ -10,6 +10,8 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import "./AdminSettings.css";
 
+import {useNavigate} from "react-router-dom";
+
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
   const [tas, setTAs] = useState([]);
@@ -17,7 +19,7 @@ const AdminSettings = () => {
   const [newTAName, setNewTAName] = useState("");
   const [newTAEmail, setNewTAEmail] = useState("");
   const token = Cookies.get("token");
-
+  const navigate = useNavigate();
   useEffect(() => {
     fetchTeams();
     fetchTAs();
@@ -66,6 +68,12 @@ const AdminSettings = () => {
   };
 
   const addTeam = async () => {
+    if (!newTeamName.trim())           //validation check to prevent adding blank team name
+    {
+      alert("Team name cannot be blank.");
+      return;
+    }
+    
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_BASE_URL}/api/teams`,
@@ -88,6 +96,17 @@ const AdminSettings = () => {
   };
 
   const addTA = async () => {
+    if (!newTAName.trim())           //validation check to prevent adding blank TA name
+    {
+      alert("TA name cannot be blank.");
+      return;
+    }
+    if (!newTAEmail.trim())           //validation check to prevent adding blank TA email
+    {
+      alert("TA Email name cannot be blank.");
+      return;
+    }
+    
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_BASE_URL}/api/users`,
@@ -160,7 +179,6 @@ const AdminSettings = () => {
       <Typography variant="h4" className="settings-title">
         Settings
       </Typography>
-
       {/* Teams Section */}
       <div className="section-container">
         <Typography variant="h5" className="section-title">
@@ -229,6 +247,14 @@ const AdminSettings = () => {
           </Button>
         </div>
       </div>
+      <div className="redirect-button">
+      <button
+        variant="contained"
+        onClick={()=>navigate('/profile')}
+        >
+          Go To Account Settings
+          </button>
+    </div>
     </div>
   );
 };
