@@ -142,7 +142,7 @@ function Profile() {
               <p><strong>Name:</strong> {user.name}</p>
               <p><strong>Email:</strong> {user.email}</p>
               <p><strong>Role:</strong> {user.role}</p>
-              <p><strong>ASU ID:</strong> {user.asu_id}</p>
+              {/* <p><strong>ASU ID:</strong> {user.asu_id}</p> */}
             </div>
             <div className="redirect-button">
               <button onClick={handleEditClick}>

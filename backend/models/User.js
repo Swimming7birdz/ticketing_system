@@ -24,15 +24,15 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  asu_id: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    unique: true,
-    validate:{
-      len: [10,10],
-      isNumeric: true,
-    },
-  },
+  // // asu_id: {
+  // //   type: DataTypes.STRING(10),
+  // //   allowNull: false,
+  // //   unique: true,
+  // //   validate:{
+  // //     len: [10,10],
+  // //     isNumeric: true,
+  // //   },
+  // },
 },{
   tableName: 'users', // Ensure the table name is lowercase
   timestamps: false,
