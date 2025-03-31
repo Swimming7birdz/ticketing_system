@@ -77,6 +77,22 @@ exports.getTicketCountsByTA = async (req, res) => {
   }
 };
 
+exports.reassignTA = async (req, res) => {
+  try {
+    const ticketAssignment = await TicketAssignment.findOne({
+      where: { ticket_id: req.params.ticket_id, user_id: req.params.user_id },
+    });
+    if (ticketAssignment) {
+      const updatedTicketAssignment = await ticketAssignment.update({ user_id: req.body.new_user_id });
+      res.json(updatedTicketAssignment);
+    } else {
+      res.status(404).json({ error: "Ticket Assignment not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // exports.getTicketCountsByTA = async (req, res) => {
 //   try {
 //     // Fetch all users with the role "TA"

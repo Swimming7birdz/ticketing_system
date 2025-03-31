@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env test_update.mjs"
+  }
+}
