@@ -24,10 +24,10 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const {asu_id } = req.body;
-    if(!asu_id || !/^\d{10}$/.test(asu_id)) {
-      return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });
-    }
+    // const {asu_id } = req.body;
+    // if(!asu_id || !/^\d{10}$/.test(asu_id)) {
+    //   return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });
+    // }
     const user = await User.create(req.body);
     res.status(201).json(user);
   } catch (error) {
@@ -37,9 +37,9 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    if (req.body.asu_id && !/^\d{10}$/.test(req.body.asu_id)) {
-      return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });
-    }
+    // if (req.body.asu_id && !/^\d{10}$/.test(req.body.asu_id)) {
+    //   return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });
+    // }
     const user = await User.findByPk(req.params.user_id);
     if (user) {
       await user.update(req.body);
@@ -89,14 +89,15 @@ exports.getUserProfile = async (req, res) => {
       return res.status(400).json({ error: "User id not provided" });
     }
     const user = await User.findByPk(userId, {
-      attributes: ["user_id", "name", "email", "role", "asu_id"],
+      attributes: ["user_id", "name", "email", "role"],
+      // attributes: ["user_id", "name", "email", "role", "asu_id"],
     });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    if (!/^\d{10}$/.test(user.asu_id)) {
-      user.asu_id = "Not set";
-    }
+    // if (!/^\d{10}$/.test(user.asu_id)) {
+    //   user.asu_id = "Not set";
+    // }
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
