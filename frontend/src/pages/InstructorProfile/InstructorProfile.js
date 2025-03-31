@@ -184,10 +184,10 @@ const InstructorProfile = () => {
     const ticketDetailsPromises = ticketIds.map((ticketId) => fetchTicketDetails(ticketId));
 
     const ticketDetails = await Promise.all(ticketDetailsPromises);
-
-    console.log(ticketDetails);
+    const uniqueTickets = [...new Map(ticketDetails.map((ticket) => [ticket.ticket_id, ticket])).values()];
+    console.log("unique tickets:", uniqueTickets);
     const ticketsWithNames = await Promise.all(
-        ticketDetails.map(async (ticket) => {
+        uniqueTickets.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id);
           return { ...ticket, userName };
         })
