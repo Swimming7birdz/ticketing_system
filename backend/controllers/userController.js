@@ -5,7 +5,7 @@ exports.getAllUsers = async (req, res) => {
     const users = await User.findAll();
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(501).json({ error: error.message });
   }
 };
 
@@ -18,7 +18,7 @@ exports.getUserById = async (req, res) => {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(502).json({ error: error.message });
   }
 };
 
@@ -31,7 +31,7 @@ exports.createUser = async (req, res) => {
     const user = await User.create(req.body);
     res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(503).json({ error: error.message });
   }
 };
 
@@ -48,7 +48,7 @@ exports.updateUser = async (req, res) => {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(504).json({ error: error.message });
   }
 };
 
@@ -62,7 +62,7 @@ exports.deleteUser = async (req, res) => {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(505).json({ error: error.message });
   }
 };
 
@@ -78,7 +78,7 @@ exports.getUsersByRole = async (req, res) => {
     const users = await User.findAll({ where: { role } }); // Filter users by role
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(506).json({ error: error.message });
   }
 };
 
