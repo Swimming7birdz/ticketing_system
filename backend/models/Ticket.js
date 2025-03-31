@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
+const User = require("./User");
 
 const Ticket = sequelize.define(
   "Ticket",
@@ -12,6 +13,10 @@ const Ticket = sequelize.define(
     student_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+	references: {
+	model: "users",
+	key: "user_id",
+	},
     },
     team_id: {
       type: DataTypes.INTEGER,
@@ -55,5 +60,7 @@ const Ticket = sequelize.define(
     timestamps: false,
   }
 );
+
+Ticket.belongsTo(User, {foreignKey: "student_id", as: "student"});
 
 module.exports = Ticket;

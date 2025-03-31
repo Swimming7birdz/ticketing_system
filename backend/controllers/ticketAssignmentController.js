@@ -22,6 +22,17 @@ exports.getTicketAssignmentsByTicketId = async (req, res) => {
   }
 };
 
+exports.getTicketAssignmentsByUserId = async (req, res) => {
+  try {
+    const ticketAssignments = await TicketAssignment.findAll({
+      where: { user_id: req.params.user_id },
+    });
+    res.json(ticketAssignments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.assignTicket = async (req, res) => {
   try {
     const ticketAssignment = await TicketAssignment.create({

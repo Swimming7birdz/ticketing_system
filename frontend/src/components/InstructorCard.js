@@ -1,5 +1,11 @@
 import { Avatar, Button, Typography } from "@mui/material";
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Cookies from "js-cookie";
+const baseURL = process.env.REACT_APP_API_BASE_URL;
+
+
 
 function stringAvatar(name) {
   if (!name || typeof name !== "string") {
@@ -62,12 +68,53 @@ const defaultProps = {
     ongoing: -1,
     resolved: -1,
   },
+  userId: "1",
 };
 
 const InstructorCard = ({
   name = defaultProps.name,
   counts = defaultProps.counts,
+  userId = defaultProps.userId,
 }) => {
+
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  let navigate = useNavigate();
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, [userId]);
+
+  const onViewProfile = () => {
+    navigate(`/instructorprofile?user=${userId}`)
+  }
+
+  const fetchUserDetails = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/users/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch TA details");
+      }
+
+      const taData = await response.json();
+      setUser(taData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching TA details:", error);
+      setLoading(false);
+    }
+
+  };
+
   return (
     <div
       style={{
@@ -184,7 +231,8 @@ const InstructorCard = ({
           fontSize: "0.75rem",
           width: "fit-content",
           alignSelf: "flex-end",
-        }}
+        }} 
+	onClick={onViewProfile} //need to grab TA's specific information
       >
         View Profile
       </Button>

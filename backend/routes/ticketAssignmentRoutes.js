@@ -11,6 +11,11 @@ router.get(
   ticketAssignmentController.getAllTicketAssignments
 );
 router.get(
+  "/users/:user_id",
+  authMiddleware.verifyToken,
+  ticketAssignmentController.getTicketAssignmentsByUserId
+);
+router.get(
   "/ticket/:ticket_id",
   authMiddleware.verifyToken,
   authMiddleware.isTAOrAdmin,
