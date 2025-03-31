@@ -4,12 +4,15 @@ import TicketView from "./TicketView/TicketView"; // Import your TicketView comp
 
 function stringAvatar(name) {
   return {
-    sx: {
-      bgcolor: stringToColor(name),
-    },
-    children: `${name.split(" ")[0][0]}${name.split(" ")[1][0]}`,
+    sx: { bgcolor: stringToColor(name) },
+    children: (() => {
+      const nameParts = name.split(" ");
+      const initials = nameParts.length >= 2 ? `${nameParts[0][0]}${nameParts[1][0]}` : nameParts[0][0];
+      return initials.toUpperCase();
+    })(),
   };
 }
+
 
 function stringToColor(string) {
   let hash = 0;
