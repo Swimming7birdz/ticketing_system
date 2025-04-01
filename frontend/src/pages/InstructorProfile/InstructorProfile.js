@@ -9,29 +9,70 @@ import {
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import TicketCard from "../../components/TicketCard";
-import CheckIcon from "@mui/icons-material/Check";
+import ArticleIcon from "@mui/icons-material/Article";
+import PeopleIcon from "@mui/icons-material/People";
+import { Avatar } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import InstructorCard from "../../components/InstructorCard";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-const AllTickets = () => {
+const InstructorProfile = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [filterAnchor, setFilterAnchor] = useState(null); // For dropdown
   const [filteredTickets, setFilteredTickets] = useState([]);
+  const [TA, setTA] = useState(null);
+  const [TATickets, setTATickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState({
     sort: null,
     status: null,
     search: "",
   });
 
+  const location = useLocation();
+
+  const urlParameters = new URLSearchParams(location.search);
+  const userId = urlParameters.get("user");
+
   useEffect(() => {
-    fetchTickets();
+    fetchTicketsAssigned();
   }, []);
 
   useEffect(() => {
     applyFilters();
   }, [tickets, activeFilters]);
+
+  useEffect(() => {
+    fetchTADetails();
+  }, [userId]);
+
+  const fetchTADetails = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/users/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch TA details");
+      }
+
+      const taData = await response.json();
+      setTA(taData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching TA details:", error);
+      setLoading(false);
+    }
+  
+  };
+
 
   const applyFilters = () => {
     let filtered = [...tickets];
@@ -59,7 +100,6 @@ const AllTickets = () => {
           .includes(activeFilters.search.toLowerCase())
       );
     }
-
     setFilteredTickets(filtered);
   };
 
@@ -98,7 +138,70 @@ const AllTickets = () => {
       return "Unknown Name";
     }
   };
+  const fetchTicketDetails = async (ticketId) => {
+  try {
+    const token = Cookies.get("token");
+    const response = await fetch(`${baseURL}/api/tickets/${ticketId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch details for ticket ${ticketId}`);
+    }
+
+    return await response.json(); // Assuming the response returns ticket details
+  } catch (error) {
+    console.error(`Error fetching ticket ${ticketId}:`, error);
+    return null; // Return null for failed requests
+  }
+  };
+
+  const fetchTicketsAssigned = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/ticketassignments/users/${userId}`, {
+        method: "GET",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error("Failed to fetch Ticket Assignment details");
+    }
+
+    const ticketsAssigned = await response.json();
+    setTATickets(ticketsAssigned);
+    // Extract ticket_ids from the ticketsAssigned data
+    const ticketIds = ticketsAssigned.map((assignment) => assignment.ticket_id);
+
+    // Make API requests to fetch details for each ticket concurrently
+    const ticketDetailsPromises = ticketIds.map((ticketId) => fetchTicketDetails(ticketId));
+
+    const ticketDetails = await Promise.all(ticketDetailsPromises);
+    const uniqueTickets = [...new Map(ticketDetails.map((ticket) => [ticket.ticket_id, ticket])).values()];
+    console.log("unique tickets:", uniqueTickets);
+    const ticketsWithNames = await Promise.all(
+        uniqueTickets.map(async (ticket) => {
+          const userName = await fetchNameFromId(ticket.student_id);
+          return { ...ticket, userName };
+        })
+      );
+      setTickets(ticketsWithNames);
+      setTotalTickets(ticketDetails.length);
+    
+    setLoading(false);
+  } catch (error) {
+      console.error("Error fetching Ticket Assignment details:", error);
+      setLoading(false);
+    }
+  };
+/*
   const fetchTickets = async () => {
     try {
       const token = Cookies.get("token");
@@ -123,7 +226,6 @@ const AllTickets = () => {
           return { ...ticket, userName };
         })
       );
-
       setTickets(ticketsWithNames);
       setTotalTickets(ticketsData.length);
       setLoading(false);
@@ -132,7 +234,7 @@ const AllTickets = () => {
       setLoading(false);
     }
   };
-
+*/
   if (loading) {
     return (
       <div
@@ -153,7 +255,6 @@ const AllTickets = () => {
       </div>
     );
   }
-
   return (
     <div
       style={{
@@ -168,7 +269,7 @@ const AllTickets = () => {
         variant="h1"
         sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
       >
-        All Tickets
+        {TA.name} Profile
       </Typography>
       <div
         style={{
@@ -191,7 +292,7 @@ const AllTickets = () => {
           }}
         >
           <TextField
-            label="Search by Name"
+            label="Search by Student Name"
             variant="outlined"
             value={activeFilters.search}
             onChange={(e) =>
@@ -225,89 +326,44 @@ const AllTickets = () => {
           open={Boolean(filterAnchor)}
           onClose={handleFilterClose}
         >
-          {/* Sort: Newest */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.sort === "newest") {
-                setActiveFilters({ ...activeFilters, sort: null });
-              } else {
-                setActiveFilters({ ...activeFilters, sort: "newest" });
-              }
+              setActiveFilters({ ...activeFilters, sort: "newest" });
               handleFilterClose();
             }}
           >
-            {/* Show a check if "newest" is the active sort */}
-            {activeFilters.sort === "newest" && (
-              <span style={{ marginRight: 8 }}>✔</span>
-            )}
             Newest
           </MenuItem>
-
-          {/* Sort: Oldest */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.sort === "oldest") {
-                setActiveFilters({ ...activeFilters, sort: null });
-              } else {
-                setActiveFilters({ ...activeFilters, sort: "oldest" });
-              }
+              setActiveFilters({ ...activeFilters, sort: "oldest" });
               handleFilterClose();
             }}
           >
-            {activeFilters.sort === "oldest" && (
-              <span style={{ marginRight: 8 }}>✔</span>
-            )}
             Oldest
           </MenuItem>
-
-          {/* Status: New */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status === "New") {
-                setActiveFilters({ ...activeFilters, status: null });
-              } else {
-                setActiveFilters({ ...activeFilters, status: "New" });
-              }
+              setActiveFilters({ ...activeFilters, status: "New" });
               handleFilterClose();
             }}
           >
-            {activeFilters.status === "New" && (
-              <span style={{ marginRight: 8 }}>✔</span>
-            )}
             Status: New
           </MenuItem>
-
-          {/* Status: Ongoing */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status === "Ongoing") {
-                setActiveFilters({ ...activeFilters, status: null });
-              } else {
-                setActiveFilters({ ...activeFilters, status: "Ongoing" });
-              }
+              setActiveFilters({ ...activeFilters, status: "Ongoing" });
               handleFilterClose();
             }}
           >
-            {activeFilters.status === "Ongoing" && (
-              <span style={{ marginRight: 8 }}>✔</span>
-            )}
             Status: Ongoing
           </MenuItem>
-
-          {/* Status: Resolved */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status === "Resolved") {
-                setActiveFilters({ ...activeFilters, status: null });
-              } else {
-                setActiveFilters({ ...activeFilters, status: "Resolved" });
-              }
+              setActiveFilters({ ...activeFilters, status: "Resolved" });
               handleFilterClose();
             }}
           >
-            {activeFilters.status === "Resolved" && (
-              <span style={{ marginRight: 8 }}>✔</span>
-            )}
             Status: Resolved
           </MenuItem>
         </Menu>
@@ -334,8 +390,55 @@ const AllTickets = () => {
           ))}
         </div>
       </div>
+	{/*Schedule section*/}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+          backgroundColor: "#F5F5F5",
+          padding: 20,
+          borderRadius: 5,
+          flex: 1,
+        }}
+      >
+	{/*<Avatar>
+            <ArticleIcon sx={{ fontSize: "2rem" }} />
+          </Avatar>*/}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            <Typography 
+              variant="h1"
+              sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
+            >
+              Schedule
+            </Typography>
+          </div>	
+	<div style={{ display: "flex", flexDirection: "column" }}>
+          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem", textAlign: "center" }}>
+            Monday: 01:00 PM - 02:00 PM
+          </Typography>
+          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" , textAlign: "center"}}>
+            Tuesday: 01:00 PM - 02:00 PM
+          </Typography>
+          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" , textAlign: "center"}}>
+            Wednesday: 01:00 PM - 02:00 PM
+          </Typography>
+          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" , textAlign: "center"}}>
+            Thursday: 01:00 PM - 02:00 PM
+          </Typography>
+          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" , textAlign: "center"}}>
+            Friday: 01:00 PM - 02:00 PM
+          </Typography>
+          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" , textAlign: "center"}}>
+            Saturday: 01:00 PM - 02:00 PM
+          </Typography>
+          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" , textAlign: "center"}}>
+            Sunday: 01:00 PM - 02:00 PM
+          </Typography>
+        </div>
+	</div> 
     </div>
   );
 };
 
-export default AllTickets;
+export default InstructorProfile;

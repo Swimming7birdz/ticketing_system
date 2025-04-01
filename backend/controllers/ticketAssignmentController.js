@@ -22,6 +22,17 @@ exports.getTicketAssignmentsByTicketId = async (req, res) => {
   }
 };
 
+exports.getTicketAssignmentsByUserId = async (req, res) => {
+  try {
+    const ticketAssignments = await TicketAssignment.findAll({
+      where: { user_id: req.params.user_id },
+    });
+    res.json(ticketAssignments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.assignTicket = async (req, res) => {
   try {
     const ticketAssignment = await TicketAssignment.create({
@@ -74,6 +85,22 @@ exports.getTicketCountsByTA = async (req, res) => {
     console.error("Detailed error message:", error.message);
     console.error("Error stack trace:", error.stack);
     res.status(500).json({ error: "An error occurred while fetching TAs." });
+  }
+};
+
+exports.reassignTA = async (req, res) => {
+  try {
+    const ticketAssignment = await TicketAssignment.findOne({
+      where: { ticket_id: req.params.ticket_id, user_id: req.params.user_id },
+    });
+    if (ticketAssignment) {
+      const updatedTicketAssignment = await ticketAssignment.update({ user_id: req.body.new_user_id });
+      res.json(updatedTicketAssignment);
+    } else {
+      res.status(404).json({ error: "Ticket Assignment not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 

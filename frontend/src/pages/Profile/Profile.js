@@ -11,7 +11,11 @@ function Profile() {
   const [error, setError] = useState(null);
   const [isEditing,setIsEditing] = useState(false);
   const [editData,setEditData] = useState({name: '',email: ''});
-  
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+  });
 
   const token = Cookies.get("token"); 
 
@@ -54,6 +58,8 @@ function Profile() {
 
   const handleCancelClick = () => {
     setIsEditing(false);
+    setShowChangePassword(false);
+    setPasswordData({ currentPassword: '', newPassword: '' });
   };
 
   const handleInputChange = (e) => {
@@ -84,8 +90,44 @@ function Profile() {
     }
   };
 
-  const handleChangePasswordClick = async() => {
-    alert("Change pass coming soon");
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdatePassword = async () => {
+    const { currentPassword, newPassword } = passwordData;
+    if (!currentPassword || !newPassword) {
+      alert("Please fill in both fields.");
+      return;
+    }
+    try {
+      const response = await fetch(`${baseURL}/api/users/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to change password. Status ${response.status}`);
+      }
+  
+      alert("Password updated successfully.");
+      setPasswordData({ currentPassword: '', newPassword: '' });
+      setShowChangePassword(false);
+    } catch (err) {
+      console.error("Error updating password:", err);
+      alert(err.message);    }
+
+  };
+  
+
+  const handleChangePasswordClick = () => {
+    setShowChangePassword((prev) => !prev);
   };
 
   return (
@@ -100,6 +142,7 @@ function Profile() {
               <p><strong>Name:</strong> {user.name}</p>
               <p><strong>Email:</strong> {user.email}</p>
               <p><strong>Role:</strong> {user.role}</p>
+              {/* <p><strong>ASU ID:</strong> {user.asu_id}</p> */}
             </div>
             <div className="redirect-button">
               <button onClick={handleEditClick}>
@@ -135,14 +178,42 @@ function Profile() {
                 Cancel
               </Button>
               <Button variant="outlined" onClick={handleChangePasswordClick} style={{ marginLeft: '10px' }}>
-                Change Password
+              {showChangePassword ? "Hide Change Password" : "Change Password"}
               </Button>
             </div>
+            {showChangePassword && (
+              <div className="change-password-form">
+                <TextField
+                  label="Current Password"
+                  name="currentPassword"
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordInputChange}
+                  fullWidth
+                  margin="normal"
+                />
+                <TextField
+                  label="New Password"
+                  name="newPassword"
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordInputChange}
+                  fullWidth
+                  margin="normal"
+                />
+                <div className="password-buttons" style={{ marginTop: '10px' }}>
+                  <Button variant="contained" color="primary" onClick={handleUpdatePassword}>
+                    Update Password
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
     </div>
   );
 }
+
 
 export default Profile;

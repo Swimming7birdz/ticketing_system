@@ -19,6 +19,8 @@ export default function Registration() {
   const [nameErrorMessage, setNameErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
+  // const [asuIdError, setAsuIdError] = React.useState(false);
+  // const [asuIdErrorMessage, setAsuIdErrorMessage] = React.useState("");
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 
@@ -43,7 +45,8 @@ export default function Registration() {
           name: data.get("name"),
           email: data.get("email"),
           password: data.get("password"),
-          role: "student"   // Assuming that only students are allowed to register through this portal as we have no way of verifying if someone is an instructor or admin
+          // asu_id: data.get("asu_id"),
+          role: "student",   // Assuming that only students are allowed to register through this portal as we have no way of verifying if someone is an instructor or admin
         }),
       });
 
@@ -59,6 +62,7 @@ export default function Registration() {
         setNameErrorMessage(errorMessage);
         setEmailErrorMessage(errorMessage);
         setPasswordErrorMessage(errorMessage);
+        // setAsuIdErrorMessage(errorMessage);
         return;
       }
       else {
@@ -76,7 +80,7 @@ export default function Registration() {
     const email = document.getElementById("email");
     const password = document.getElementById("password");
     const name = document.getElementById("name");
-
+    // const asuId = document.getElementById("asu_id");
     let isValid = true;
 
     if (!email.value || !/^\S+@asu\.edu$/.test(email.value)) {
@@ -105,6 +109,15 @@ export default function Registration() {
         setNameError(false);
         setNameErrorMessage("");
       }
+    
+    // if (!asuId.value || !/^\d{10}$/.test(asuId.value)) {
+    //   setAsuIdError(true);
+    //   setAsuIdErrorMessage("ASU ID must be exactly 10 digits.");
+    //   isValid = false;
+    // } else {
+    //   setAsuIdError(false);
+    //   setAsuIdErrorMessage("");
+    // }
 
 
     return isValid;
@@ -179,6 +192,24 @@ export default function Registration() {
               color={passwordError ? "error" : "primary"}
             />
           </FormControl>
+          {/* <FormControl>
+            <FormLabel className="asuIdLabel" htmlFor="asu_id">
+              ASU ID
+            </FormLabel>
+            <TextField
+              error={asuIdError}
+              helperText={asuIdErrorMessage}
+              id="asu_id"
+              type="text"
+              name="asu_id"
+              placeholder="10-digit ASU ID"
+              required
+              fullWidth
+              variant="outlined"
+              inputProps={{ maxLength: 10 }}
+              color={asuIdError ? "error" : "primary"}
+            />
+          </FormControl> */}
           <Button
             type="submit"
             fullWidth

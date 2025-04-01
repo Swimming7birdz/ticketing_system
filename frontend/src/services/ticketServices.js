@@ -49,7 +49,13 @@ export const fetchTicketsByUserId = async () => {
 };
 
 // Fetch tickets by TA ID
-export const fetchTicketsByTAId = async (taId) => {
+export const fetchTicketsByTAId = async () => {
+  const token = Cookies.get("token");
+  if (!token) throw new Error("No token found");
+
+  const decodedToken = jwtDecode(token);
+  const userId = decodedToken.id; // Extract user ID from JWT
+
   const url = `${baseURL}/api/tickets/ta/${taId}`;
   return apiFetch(url);
 };

@@ -11,6 +11,11 @@ router.get(
   ticketAssignmentController.getAllTicketAssignments
 );
 router.get(
+  "/users/:user_id",
+  authMiddleware.verifyToken,
+  ticketAssignmentController.getTicketAssignmentsByUserId
+);
+router.get(
   "/ticket/:ticket_id",
   authMiddleware.verifyToken,
   authMiddleware.isTAOrAdmin,
@@ -34,6 +39,13 @@ router.get(
   //authMiddleware.verifyToken,
   //authMiddleware.isAdmin,
   ticketAssignmentController.getTicketCountsByTA
+);
+// Added This
+router.put(
+  "/ticket/:ticket_id/assignment/:user_id",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  ticketAssignmentController.reassignTA
 );
 
 module.exports = router;
