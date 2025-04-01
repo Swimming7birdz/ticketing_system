@@ -7,6 +7,9 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ConfirmDelete from "../../components/ConfirmDelete/ConfirmDelete";
+//import ConfirmEdit function made
+import ConfirmEdit from "../../components/ConfirmEdit/ConfirmEdit";
+import EditTicket from "../../components/EditTicket/EditTicket";
 import ReplySection from "../../components/ReplySection/ReplySection";
 import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
 import "./TicketInfo.css";
@@ -17,6 +20,10 @@ const TicketSubject = "Sponsor Isn’t Responding";
 
 const TicketInfo = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  //add a editOpen state and a setEditOption function to control edit Ticket confirmation popup
+  const [editOpen, setEditOpen] = useState(false);
+  //add a editFormOpen state and a setEditFormOpen function to control edit form popup
+  const [editFormOpen, setEditFormOpen] = useState(false);
   const [ticketData, setTicketData] = useState(null);
   const [repliesData, setRepliesData] = useState(null);
   const [loadingTicketData, setLoadingTicketData] = useState(true);
@@ -74,8 +81,52 @@ const TicketInfo = () => {
     console.log("Back in Previous Page");
   };
 
+  //Robert: We need to be able te edit a ticket
   const handleEditTicket = () => {
     console.log("Edit Ticket Button Clicked");
+    setEditOpen(true);
+  };
+
+  //handle closure of edit confirmation popup
+  const editPopupClose = () => {
+    setEditOpen(false);
+  }
+
+  const handleConfirmEdit = () => {
+    console.log("Confirm Edit clicked");
+    setEditOpen(false);
+    setEditFormOpen(true);
+  }
+
+  //handle saving the edited ticket
+  const handleSaveEdit = async () => {
+    setEditOpen(false);
+    try {
+      const token = Cookies.get("token");
+      console.log("Editing Ticket: ", ticketId);
+
+      const response = await fetch(`${baseURL}/api/tickets/${ticketId}/edit`, {
+        method: "PUT", 
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: "Updated", 
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to edit ticket");
+      }
+
+      console.log("Ticket successfully updated!");
+
+      setEditFormOpen(false);
+      fetchData(); // Refresh ticket info after edit
+    } catch (error) {
+      console.error("Error editing ticket:", error);
+    }
   };
 
   const handleDeleteTicket = () => {
@@ -157,6 +208,11 @@ const TicketInfo = () => {
                   >
                     Edit Ticket
                   </Button>
+                  <ConfirmEdit
+                    handleOpen={editOpen}
+                    handleClose={editPopupClose}
+                    onConfirmEdit={handleConfirmEdit} //Pass the navigation function
+                  />
                   <Button
                     variant="contained"
                     className="deleteButton"
@@ -191,6 +247,13 @@ const TicketInfo = () => {
                 <ReplySection />
               </Stack>
             </div>
+            {/* Render EditTicket when editFormOpen is true */}
+            {editFormOpen && (
+              <EditTicket
+                ticketId={ticketId}
+                onClose={() => setEditFormOpen(false)} // Close form when user is done
+              />
+            )}
           </div>
         ) : (
           <div>Loading Ticket Info...</div>
