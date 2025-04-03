@@ -20,10 +20,11 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
 });
 
-const PORT = process.env.PORT || 3301;
+const PORT = process.env.PORT || 3302;
 const HOSTNAME = os.hostname();
 
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://${HOSTNAME}:${PORT}`);
 });
+

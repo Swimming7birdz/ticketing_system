@@ -5,12 +5,17 @@ const Communication = require("../models/Communication");
 
 exports.getAllTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.findAll();
+    const tickets = await Ticket.findAll({
+      attributes: ["ticket_id", "issue_description", "status", "student_id"], //  Make sure "status" is included
+      include: [{ model: User, as: "student", attributes: ["name"] }],
+    });
+
     res.json(tickets);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 exports.getTicketsByUserId = async (req, res) => {
   try {
@@ -109,6 +114,7 @@ exports.createTicket = async (req, res) => {
   try {
     console.log(" Request Body:", req.body); //  Debugging input data
 
+
     const { student_id } = req.body;
 
     // Check if student exists
@@ -133,10 +139,6 @@ exports.createTicket = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
-
-
 exports.updateTicket = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
@@ -153,31 +155,44 @@ exports.updateTicket = async (req, res) => {
 
 exports.deleteTicket = async (req, res) => {
   try {
+    console.log("🔹 Attempting to delete ticket:", req.params.ticket_id);
+    console.log("🔹 Requesting User:", req.user); // Log user info
+
     const ticket = await Ticket.findByPk(req.params.ticket_id);
-    if (ticket) {
-      await ticket.destroy();
-      res.status(204).json();
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
+    if (!ticket) {
+      console.log("Ticket not found.");
+      return res.status(404).json({ error: "Ticket not found" });
     }
+
+    console.log("Ticket found:", ticket.dataValues);
+
+    await ticket.destroy();
+    console.log("Ticket deleted successfully.");
+
+    res.status(204).json();
+  } catch (error) {
+    console.error("Error deleting ticket:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.updateTicketStatus = async (req, res) => {
+  try {
+    const ticket = await Ticket.findByPk(req.params.ticket_id);
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    await ticket.update({ status: req.body.status });
+    const updatedTicket = await Ticket.findByPk(req.params.ticket_id); //  Fetch updated ticket
+
+    res.json(updatedTicket);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-exports.updateTicketStatus = async (req, res) => {
-  try {
-    const ticket = await Ticket.findByPk(req.params.ticket_id);
-    if (ticket) {
-      await ticket.update({ status: req.body.status });
-      res.json(ticket);
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
-    }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
 
 exports.escalateTicket = async (req, res) => {
   try {

@@ -62,8 +62,8 @@ TABLES['TicketAssignments'] = (
     ")"
 )
 
-TABLES['TicketCommunications'] = (
-    "CREATE TABLE IF NOT EXISTS TicketCommunications ("
+TABLES['communications'] = (
+    "CREATE TABLE IF NOT EXISTS communications ("
     "  communication_id SERIAL PRIMARY KEY,"
     "  ticket_id INT NOT NULL,"
     "  user_id INT NOT NULL,"
@@ -73,6 +73,7 @@ TABLES['TicketCommunications'] = (
     "  FOREIGN KEY (user_id) REFERENCES Users(user_id)"
     ")"
 )
+
 
 try:
     conn = psycopg2.connect(connection_string)

@@ -126,7 +126,7 @@ const StudentTickets = () => {
     gap: "20px",
     justifyContent: "center",
     padding: "5px",
-    overflowY: "auto", // ✅ Allows scrolling for more tickets
+    overflowY: "auto", //  Allows scrolling for more tickets
   }}
 >
 

@@ -24,9 +24,18 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-},{
-  tableName: 'users', // Ensure the table name is lowercase
+  notifications_enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  dark_mode: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+}, {
+  tableName: 'users',
   timestamps: false,
 });
+
 
 module.exports = User;

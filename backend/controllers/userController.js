@@ -35,7 +35,20 @@ exports.updateUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.user_id);
     if (user) {
-      await user.update(req.body);
+      const {
+        name,
+        email,
+        notifications_enabled,
+        dark_mode,
+      } = req.body;
+
+      await user.update({
+        name,
+        email,
+        notifications_enabled,
+        dark_mode,
+      });
+
       res.json(user);
     } else {
       res.status(404).json({ error: "User not found" });
@@ -61,14 +74,14 @@ exports.deleteUser = async (req, res) => {
 
 exports.getUsersByRole = async (req, res) => {
   try {
-    const { role } = req.params; // Get the role from route parameter
-    const validRoles = ["student", "TA", "admin"]; // Define valid roles
+    const { role } = req.params;
+    const validRoles = ["student", "TA", "admin"];
 
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: "Invalid role specified" });
     }
 
-    const users = await User.findAll({ where: { role } }); // Filter users by role
+    const users = await User.findAll({ where: { role } });
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -81,12 +94,22 @@ exports.getUserProfile = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ error: "User id not provided" });
     }
+
     const user = await User.findByPk(userId, {
-      attributes: ["user_id", "name", "email", "role"],
+      attributes: [
+        "user_id",
+        "name",
+        "email",
+        "role",
+        "notifications_enabled",
+        "dark_mode",
+      ],
     });
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });

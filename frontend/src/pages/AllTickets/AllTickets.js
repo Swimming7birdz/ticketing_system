@@ -24,13 +24,28 @@ const AllTickets = () => {
     search: "",
   });
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
+// In AllTickets.js
+useEffect(() => {
+  fetchTickets(); // Initial fetch on page load
+
+  const handleTicketUpdate = () => {
+    console.log("🔄 Refreshing tickets after update...");
+    fetchTickets(); // Fetch latest tickets after status change
+  };
+
+  window.addEventListener("ticketUpdated", handleTicketUpdate);
+
+  return () => {
+    window.removeEventListener("ticketUpdated", handleTicketUpdate);
+  };
+}, []);
+
+
+
 
   useEffect(() => {
     applyFilters();
-  }, [tickets, activeFilters]);
+  }, [tickets, activeFilters]); 
 
   const applyFilters = () => {
     let filtered = [...tickets];
@@ -101,7 +116,7 @@ const AllTickets = () => {
   const fetchTickets = async () => {
     try {
       const token = Cookies.get("token");
-
+  
       const response = await fetch(`${baseURL}/api/tickets`, {
         method: "GET",
         headers: {
@@ -109,20 +124,23 @@ const AllTickets = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to fetch tickets");
       }
-
+  
       const ticketsData = await response.json();
-
+      console.log("🎯 API Response (All Tickets):", ticketsData); // ✅ Debug the API response
+  
       const ticketsWithNames = await Promise.all(
         ticketsData.map(async (ticket) => {
-          const userName = await fetchNameFromId(ticket.student_id);
+          const userName = ticket.student ? ticket.student.name : "Unknown Name";
           return { ...ticket, userName };
         })
       );
-
+  
+      console.log("✅ Processed Tickets:", ticketsWithNames); // ✅ Check if status is included
+  
       setTickets(ticketsWithNames);
       setTotalTickets(ticketsData.length);
       setLoading(false);
@@ -131,6 +149,8 @@ const AllTickets = () => {
       setLoading(false);
     }
   };
+  
+  
 
   if (loading) {
     return (
@@ -288,7 +308,9 @@ const AllTickets = () => {
         </div>
       </div>
     </div>
-  );
-};
+  ); 
+
+          };
+
 
 export default AllTickets;

@@ -1,6 +1,6 @@
 import { Avatar, Button, Chip, Typography } from "@mui/material";
 import React, { useState } from "react";
-import TicketView from "./TicketView/TicketView"; // Import your TicketView component
+import TicketView from "./TicketView/TicketView"; // Import TicketView component
 
 function stringAvatar(name) {
   return {
@@ -25,9 +25,9 @@ function stringToColor(string) {
   for (i = 0; i < 3; i += 1) {
     let value = (hash >> (i * 8)) & 0xff;
 
-    // Adjust the value to avoid pure red, green, or blue
-    if (value > 200) value -= 55; // Avoid very high intensities
-    if (value < 55) value += 55; // Avoid very low intensities
+    // Adjust the value
+    if (value > 200) value -= 55; 
+    if (value < 55) value += 55; 
 
     color += `00${value.toString(16)}`.slice(-2);
   }
@@ -57,7 +57,10 @@ const TicketCard = ({
 
   const handleCloseTicketView = () => {
     setShowTicketView(false);
-  };
+  }; 
+
+  const normalizedStatus = status ? status.toLowerCase() : "unknown";
+
 
   return (
     <>
@@ -125,39 +128,29 @@ const TicketCard = ({
         </Typography>
 
         {/* STATUS */}
-        <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-            Status:
-          </Typography>
-          {status === "ongoing" && (
-            <Chip
-              label="Ongoing"
-              size="small"
-              sx={{ backgroundColor: "#ADE1BE", color: "#1C741F" }}
-            />
-          )}
-          {status === "escalated" && (
-            <Chip
-              label="Escalated"
-              size="small"
-              sx={{ backgroundColor: "#A0C0F0", color: "#1965D8" }}
-            />
-          )}
-          {status === "new" && (
-            <Chip
-              label="New"
-              size="small"
-              sx={{ backgroundColor: "#A9CDEB", color: "#326D94" }}
-            />
-          )}
-          {status === "resolved" && (
-            <Chip
-              label="Resolved"
-              size="small"
-              sx={{ backgroundColor: "#F89795", color: "#D00505" }}
-            />
-          )}
-        </div>
+        {/* STATUS */}
+<div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
+  <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+    Status:
+  </Typography>
+  {(normalizedStatus === "in progress" || normalizedStatus === "ongoing") && (
+  <Chip label="In Progress" size="small" sx={{ backgroundColor: "#ADE1BE", color: "#1C741F" }} />
+)}
+{normalizedStatus === "escalated" && (
+  <Chip label="Escalated" size="small" sx={{ backgroundColor: "#A0C0F0", color: "#1965D8" }} />
+)}
+{normalizedStatus === "new" && (
+  <Chip label="New" size="small" sx={{ backgroundColor: "#A9CDEB", color: "#326D94" }} />
+)}
+{normalizedStatus === "resolved" && (
+  <Chip label="Resolved" size="small" sx={{ backgroundColor: "#F89795", color: "#D00505" }} />
+)}
+{normalizedStatus === "unknown" && (
+  <Chip label="Unknown" size="small" sx={{ backgroundColor: "#D3D3D3", color: "#000000" }} />
+)}
+
+</div>
+
 
         {/* NAME */}
         <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
