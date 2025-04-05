@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-
+// minor change for git tracking
 const authMiddleware = {
   verifyToken: (req, res, next) => {
     const token = req.headers["authorization"];

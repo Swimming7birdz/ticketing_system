@@ -1,4 +1,5 @@
 const User = require("../models/User");
+// minor change for git tracking
 
 exports.getAllUsers = async (req, res) => {
   try {

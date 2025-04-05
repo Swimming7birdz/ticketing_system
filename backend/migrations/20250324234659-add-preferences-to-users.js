@@ -16,5 +16,6 @@ module.exports = {
     await queryInterface.removeColumn('users', 'notifications_enabled');
     await queryInterface.removeColumn('users', 'dark_mode');
   }
-};
+}; 
+// minor change for git tracking
 

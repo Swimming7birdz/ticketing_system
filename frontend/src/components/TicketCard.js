@@ -1,7 +1,7 @@
 import { Avatar, Button, Chip, Typography } from "@mui/material";
 import React, { useState } from "react";
 import TicketView from "./TicketView/TicketView"; // Import TicketView component
-
+// minor change for git tracking
 function stringAvatar(name) {
   return {
     sx: {

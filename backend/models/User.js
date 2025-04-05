@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
+// minor change for git tracking
 
 const User = sequelize.define("User", {
   user_id: {
