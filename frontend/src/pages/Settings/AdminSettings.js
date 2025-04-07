@@ -9,8 +9,8 @@ import {
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import "./AdminSettings.css";
-
 import {useNavigate} from "react-router-dom";
+import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
 
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
@@ -18,6 +18,9 @@ const AdminSettings = () => {
   const [newTeamName, setNewTeamName] = useState("");
   const [newTAName, setNewTAName] = useState("");
   const [newTAEmail, setNewTAEmail] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedTA, setSelectedTA] = useState(null); // To track which TA is being deleted
+  const [idNameMap, setIdToNameMap] = useState({});
   const token = Cookies.get("token");
   const navigate = useNavigate();
   useEffect(() => {
@@ -46,6 +49,13 @@ const AdminSettings = () => {
     }
   };
 
+  const convertToMap = (list) => {
+    return list.reduce((acc, obj) => { //map ID to name
+      acc[obj.user_id] = obj.name;
+      return acc;
+    }, {});
+  };
+
   const fetchTAs = async () => {
     try {
       const response = await fetch(
@@ -62,6 +72,9 @@ const AdminSettings = () => {
       if (!response.ok) throw new Error("Failed to fetch TAs.");
       const data = await response.json();
       setTAs(data);
+
+      const idToNameMap = convertToMap(data);
+      setIdToNameMap(idToNameMap);
     } catch (error) {
       console.error(error);
     }
@@ -174,6 +187,18 @@ const AdminSettings = () => {
     }
   };
 
+  const handleDelete = (ta) => {
+    console.log("Delete TA Button Clicked");
+    setSelectedTA(ta);
+    setDeleteOpen(true);
+  }
+
+  const deletePopupClose = () => {
+    setDeleteOpen(false);
+    setSelectedTA(null); // Clear the selected TA
+  };
+
+
   return (
     <div className="settings-container">
       <Typography variant="h4" className="settings-title">
@@ -222,13 +247,21 @@ const AdminSettings = () => {
             <ListItem key={ta.user_id}>
               <ListItemText primary={`${ta.name} (${ta.email})`} />
               <ListItemSecondaryAction>
-                <Button color="secondary" onClick={() => deleteTA(ta.user_id)}>
+                <Button color="secondary" onClick={() => handleDelete(ta)}> {/* reassign tickets, then deleteTA */}
                   Delete
                 </Button>
               </ListItemSecondaryAction>
             </ListItem>
           ))}
         </List>
+        {deleteOpen && (
+            <ConfirmTADelete
+              handleOpen={deleteOpen}
+              handleClose={deletePopupClose}
+              ta={selectedTA}
+              idNameMap={idNameMap}
+            />
+        )}
         <div className="add-form">
           <input
             type="text"

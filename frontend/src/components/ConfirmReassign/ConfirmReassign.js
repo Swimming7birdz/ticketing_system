@@ -17,8 +17,8 @@ const ConfirmReassign = ({handleOpen, handleClose, ticketID, oldTAID, idNameMap,
         setSelectedTA(Number(event.target.value));
     };
 
-    const taEntries = Object.entries(idNameMap);
 
+    //UPDATE: can multiple TAs be assigned at once?
     const handleSubmit = async (event) => {
         event.preventDefault(); // Prevent form submission
         //console.log("Selected TA: ", typeof selectedTA, selectedTA);
@@ -75,12 +75,12 @@ const ConfirmReassign = ({handleOpen, handleClose, ticketID, oldTAID, idNameMap,
         >
             <DialogContent>
                 <DialogContentText> 
-                Pick a new TA to reassign this ticket 
+                Pick a new TA to reassign ticket {ticketID} to.
                 </DialogContentText>
                 <DialogActions classname="dropdown">
                     <select value={selectedTA} onChange={handleSelectChange}>
                         <option value="" disabled>Select a TA</option>
-                        {taEntries.map(([user_id, name]) => (
+                        {Object.entries(idNameMap).map(([user_id, name]) => (
                         <option key={user_id} value={user_id}>{name}</option> //TA name is displayed but actual value for 'selectedTA' is user_id
                         ))}
                     </select>

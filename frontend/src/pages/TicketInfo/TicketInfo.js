@@ -37,7 +37,7 @@ const TicketInfo = () => {
   const urlParameters = new URLSearchParams(location.search);
   const ticketId = urlParameters.get("ticket");
 
-  const [AssignedID, setAssignedID] = useState([]);
+  const [AssignedID, setAssignedID] = useState([]); 
   const [idToNameMap, setIdToNameMap] = useState({});
 
   const fetchData = async () => {
@@ -74,7 +74,7 @@ const TicketInfo = () => {
   }, [ticketId]);
 
   //TICKET ASSIGNMENTS: from ticket_id get user_id (database has multiple users assigned to same ticket?)
-  const getAssignedTAID = async () => {
+  const fetchAssignedTaID = async () => {
     try {
       const token = Cookies.get("token");
       
@@ -94,9 +94,10 @@ const TicketInfo = () => {
         }
       
         const list = await getResponse.json();
+        //console.log("all ID per Ticket: ", list);
         const TA_id = list.map(obj => obj.user_id)[0]; //if tickets have multiple TAs, only get the first one
         setAssignedID(TA_id);
-        
+        //console.log("TA_id: ", TA_id);
         //console.log("Assigned ID: ", AssignedID);
 
       } catch (err) {
@@ -105,7 +106,14 @@ const TicketInfo = () => {
       }
   }
 
-  const getTAs = async () => {
+  const convertToMap = (list) => {
+    return list.reduce((acc, obj) => { //map ID to name
+      acc[obj.user_id] = obj.name;
+      return acc;
+    }, {});
+  };
+
+  const fetchTaMap = async () => {
     try {
       const token = Cookies.get("token");
       
@@ -125,13 +133,9 @@ const TicketInfo = () => {
         }
       
         const list = await getResponse.json();
-        
-        const idToNameMap = list.reduce((acc, obj) => { //map ID to name
-          acc[obj.user_id] = obj.name;
-          return acc;
-        }, {});
+        //console.log("all ID: ", list);
+        const idToNameMap = convertToMap(list);
         setIdToNameMap(idToNameMap);
-
 
       } catch (err) {
         console.log("Error: ", error);
@@ -140,9 +144,15 @@ const TicketInfo = () => {
   }
 
   useEffect(() => {
-    getTAs();
-    getAssignedTAID();    
+    fetchTaMap();
+    fetchAssignedTaID();    
   }, []);
+
+  // useEffect(() => {
+  //   console.log("Assigned ID updated: ", AssignedID);
+  //   console.log("ID to Name Map: ", idToNameMap);
+  //   console.log("Assigned TA updated: ", idToNameMap[AssignedID]);
+  // }, [AssignedID, idToNameMap]);
 
   if (error) {
     // navigate("/unauthorized");
@@ -298,16 +308,19 @@ const TicketInfo = () => {
                 </div>
                 <h3>TA:</h3>
                 <div className="ticketAsset">
-                {idToNameMap[AssignedID]}&nbsp; 
+                  <span>{idToNameMap[AssignedID] || "Unknown"}</span>
+
                   {userType === "admin" && (
-                  <Button
-                    variant="contained"
-                    className="reassignButton"
-                    style={{ marginTop: '10px' }} 
-                    onClick={handleReassignTicket}
-                  >
-                    Reassign
-                  </Button>
+                  <div>
+                    <Button
+                      variant="contained"
+                      className="reassignButton"
+                      style={{ marginTop: '10px' }} 
+                      onClick={handleReassignTicket}
+                    >
+                      Reassign
+                    </Button>
+                  </div>
                   )}
                   <ConfirmReassign
                     handleOpen={reassignOpen}
