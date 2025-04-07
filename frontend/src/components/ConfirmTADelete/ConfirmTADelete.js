@@ -46,7 +46,7 @@ const ConfirmTADelete = memo(({handleOpen, handleClose, ta, idNameMap}) => {
         try{
             const token = Cookies.get("token");
             const response = await fetch(
-            `${process.env.REACT_APP_API_BASE_URL}/api/ticketassignments/users/${userId}`,
+            `${baseURL}/api/ticketassignments/users/${userId}`,
             {
               method: "GET",
               headers: {
@@ -61,7 +61,7 @@ const ConfirmTADelete = memo(({handleOpen, handleClose, ta, idNameMap}) => {
           const sortedData = sortTicketsById(data);
           setData(sortedData);
         } catch (error) {
-          console.error(error);
+          console.log(error);
         }
     };
 
@@ -74,7 +74,6 @@ const ConfirmTADelete = memo(({handleOpen, handleClose, ta, idNameMap}) => {
 
     // FOR TESTING
     useEffect(() => {
-      console.log(typeof data);
       console.log("idNameMap:", idNameMap);
       data.map((item, index) => {
         console.log(`Index: ${index}, Ticket ID: ${item.ticket_id}, User ID: ${item.user_id}`);

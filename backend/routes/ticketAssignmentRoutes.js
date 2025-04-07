@@ -43,4 +43,11 @@ router.put(
   ticketAssignmentController.reassignTA
 );
 
+router.get(
+  "/users/:user_id",
+  authMiddleware.verifyToken,
+  authMiddleware.isTAOrAdmin,
+  ticketAssignmentController.getTicketAssignmentsById
+);
+
 module.exports = router;

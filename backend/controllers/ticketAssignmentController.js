@@ -93,6 +93,17 @@ exports.reassignTA = async (req, res) => {
   }
 };
 
+exports.getTicketAssignmentsById = async (req, res) => {
+  try {
+    const ticketAssignments = await TicketAssignment.findAll({
+      where: { user_id: req.params.user_id },
+    });
+    res.json(ticketAssignments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // exports.getTicketCountsByTA = async (req, res) => {
 //   try {
 //     // Fetch all users with the role "TA"
