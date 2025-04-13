@@ -21,12 +21,13 @@ const AdminSettings = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedTA, setSelectedTA] = useState(null); // To track which TA is being deleted
   const [idNameMap, setIdToNameMap] = useState({});
+  const [deleteStatus, setDeleteStatus] = useState(false);
   const token = Cookies.get("token");
   const navigate = useNavigate();
   useEffect(() => {
     fetchTeams();
     fetchTAs();
-  }, []);
+  }, [deleteStatus]); // Fetch teams and TAs when the component mounts or when deleteStatus changes
 
   const fetchTeams = async () => {
     try {
@@ -167,25 +168,25 @@ const AdminSettings = () => {
     }
   };
 
-  const deleteTA = async (taId) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/users/${taId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  // const deleteTA = async (taId) => {
+  //   try {
+  //     const response = await fetch(
+  //       `${process.env.REACT_APP_API_BASE_URL}/api/users/${taId}`,
+  //       {
+  //         method: "DELETE",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
 
-      if (!response.ok) throw new Error("Failed to delete TA.");
-      fetchTAs(); // Refresh the list of TAs
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //     if (!response.ok) throw new Error("Failed to delete TA.");
+  //     fetchTAs(); // Refresh the list of TAs
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   const handleDelete = (ta) => {
     console.log("Delete TA Button Clicked");
@@ -198,6 +199,10 @@ const AdminSettings = () => {
     setSelectedTA(null); // Clear the selected TA
   };
 
+  const updateStatus = (status) => {
+    console.log("This is the update status:", status)
+    setDeleteStatus(status);
+  }
 
   return (
     <div className="settings-container">
@@ -247,7 +252,12 @@ const AdminSettings = () => {
             <ListItem key={ta.user_id}>
               <ListItemText primary={`${ta.name} (${ta.email})`} />
               <ListItemSecondaryAction>
-                <Button color="secondary" onClick={() => handleDelete(ta)}> {/* reassign tickets, then deleteTA */}
+                <Button 
+                  color="secondary" 
+                  onClick={() =>  { 
+                    handleDelete(ta);
+                    }
+                  }> 
                   Delete
                 </Button>
               </ListItemSecondaryAction>
@@ -260,6 +270,7 @@ const AdminSettings = () => {
               handleClose={deletePopupClose}
               ta={selectedTA}
               idNameMap={idNameMap}
+              updateStatus={updateStatus}
             />
         )}
         <div className="add-form">
