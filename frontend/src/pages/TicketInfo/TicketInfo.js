@@ -41,6 +41,7 @@ const TicketInfo = () => {
   const urlParameters = new URLSearchParams(location.search);
   const ticketId = urlParameters.get("ticket");
 
+
   const fetchData = async () => {
     try {
       const token = Cookies.get("token");
@@ -121,52 +122,84 @@ const TicketInfo = () => {
     fetchData();
   }, [ticketId]);
 
+  //TICKET ASSIGNMENTS: from ticket_id get user_id (database has multiple users assigned to same ticket?)
+  const fetchAssignedTaID = async () => {
+    try {
+      const token = Cookies.get("token");
+      
+      const getResponse = await fetch(
+        `${baseURL}/api/ticketassignments/ticket/${ticketId}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!getResponse.ok) {
+          console.error(`Failed to get assigned TAs ID. Status: ${getResponse.status}`);
+          console.error(`${getResponse.reason}`);
+        }
+      
+        const list = await getResponse.json();
+        const TA_id = list.map(obj => obj.user_id)[0]; //if tickets have multiple TAs, only get the first one
+        setAssignedID(TA_id);
+
+      } catch (err) {
+        console.log("Error: ", error);
+        setError(true);
+      }
+  }
+
+  const convertToMap = (list) => {
+    return list.reduce((acc, obj) => { //map ID to name
+      acc[obj.user_id] = obj.name;
+      return acc;
+    }, {});
+  };
+
+  const fetchTaMap = async () => {
+    try {
+      const token = Cookies.get("token");
+      
+      const getResponse = await fetch(
+        `${baseURL}/api/users/role/TA`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!getResponse.ok) {
+          console.error(`Failed to get TAs. Status: ${getResponse.status}`);
+          console.error(`${getResponse.reason}`);
+        }
+      
+        const list = await getResponse.json();
+        //console.log("all ID: ", list);
+        const idToNameMap = convertToMap(list);
+        setIdToNameMap(idToNameMap);
+
+      } catch (err) {
+        console.log("Error: ", error);
+        setError(true);
+      }
+  }
+
   useEffect(() => {
-    getTAs();
-    getAssignedTAID();
+    fetchTaMap();
+    fetchAssignedTaID();    
   }, []);
 
-  const getAssignedTAID = async () => {
-    try {
-      const token = Cookies.get("token");
-      const res = await fetch(`${baseURL}/api/ticketassignments/ticket/${ticketId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const list = await res.json();
-      const TA_id = list.map(obj => obj.user_id)[0];
-      setAssignedID(TA_id);
-    } catch (err) {
-      console.log("Error: ", err);
-      setError(true);
-    }
-  };
 
-  const getTAs = async () => {
-    try {
-      const token = Cookies.get("token");
-      const res = await fetch(`${baseURL}/api/users/role/TA`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const list = await res.json();
-      const map = list.reduce((acc, obj) => {
-        acc[obj.user_id] = obj.name;
-        return acc;
-      }, {});
-      setIdToNameMap(map);
-    } catch (err) {
-      console.log("Error: ", err);
-      setError(true);
-    }
-  };
+  if (error) {
+    // navigate("/unauthorized");
+  }
 
+  //Robert Naff: Need to have Back button do something
   const handleBack = () => {
     console.log("Back Button Clicked");
     navigate(-1);
