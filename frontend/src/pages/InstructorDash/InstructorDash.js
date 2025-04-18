@@ -424,6 +424,8 @@ const InstructorDash = () => {
               key={id}
               name={ta.name || "Unknown"}
               counts={ta.counts}
+	      userId={id} //doesn't work when its ta.user_id ????
+
             />
           ))}
 	</div>

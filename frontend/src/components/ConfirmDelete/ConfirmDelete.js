@@ -25,7 +25,7 @@ const ConfirmDelete = ({handleOpen, handleClose}) => {
                 <DialogContentText>
                 Are you sure you want to delete this ticket?
                 </DialogContentText>
-                <DialogActions classname="buttons">
+                <DialogActions className="buttons">
                     <Button onClick={handleClose}>Cancel</Button>
                     <Button variant="contained" type="submit">
                         Delete

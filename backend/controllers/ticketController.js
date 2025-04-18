@@ -6,9 +6,10 @@ const Communication = require("../models/Communication");
 exports.getAllTickets = async (req, res) => {
   try {
     const tickets = await Ticket.findAll();
+	
     res.json(tickets);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(507).json({ error: error.message });
   }
 };
 
@@ -39,7 +40,7 @@ exports.getTicketsByTAId = async (req, res) => {
     const tickets = await Ticket.findAll({ where: { assigned_to: req.params.ta_id } });
     res.json(tickets);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(509).json({ error: error.message });
   }
 };
 
@@ -52,28 +53,13 @@ exports.getTicketById = async (req, res) => {
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(510).json({ error: error.message });
   }
 };
 
-//<<<<<<< HEAD
 exports.getAllTicketDataById = async (req, res) => {
   console.log(" Request from User:", req.user);
   console.log(" Requested Ticket ID:", req.params.ticket_id);
-/*=======
-exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to let TA view ticket page 2/24/25
-    if (req.user.role != 'admin' && req.user.id != req.params.ticket_id ) {
-    res.status(404).json({error: "user does not have access to this ticket"})
-  }
-  else {
-    try {
-      const ticket = await Ticket.findByPk(req.params.ticket_id);
-      if (ticket) {
-        const student = await User.findByPk(ticket.dataValues.student_id); // Grab student and team names before returning
-        const team = await Team.findByPk(ticket.dataValues.team_id);
-        ticket.dataValues.student_name = student.dataValues.name
-        ticket.dataValues.team_name = team.team_name
->>>>>>> instructor_view
 
   if (req.user.role !== 'admin') {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
@@ -81,13 +67,8 @@ exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to
       console.log(" Access Denied - User is not allowed to view this ticket.");
       return res.status(403).json({ error: "Access denied: You can only view your own tickets." });
     }
-<<<<<<< HEAD
   }
-=======
-  //}
-};
->>>>>>> instructor_view
-*/
+
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
     if (ticket) {
@@ -101,7 +82,7 @@ exports.getAllTicketDataById = async (req, res) => { //temporary fix in order to
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(511).json({ error: error.message });
   }
 };
 
@@ -130,7 +111,7 @@ exports.createTicket = async (req, res) => {
 
   } catch (error) {
     console.error(" Error creating ticket:", error);
-    res.status(500).json({ error: error.message });
+    res.status(512).json({ error: error.message });
   }
 };
 
@@ -147,7 +128,7 @@ exports.updateTicket = async (req, res) => {
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(513).json({ error: error.message });
   }
 };
 
@@ -161,7 +142,28 @@ exports.deleteTicket = async (req, res) => {
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(514).json({ error: error.message });
+  }
+};
+
+//Robert: need to have backend controller
+exports.editTicket = async (req, res) => {
+  try {
+    const ticket = await Ticket.findByPk(req.params.ticket_id);
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    //Update ticket with request body data
+    await ticket.update(req.body);
+
+    res.status(200).json({
+      message: "Ticket updated successfully",
+      ticket, //Return updated ticket data
+    });
+  } catch(error) {
+    console.error("Error editing ticket:", error);
+    res.status(500).json({ error: error.message});
   }
 };
 
@@ -175,7 +177,7 @@ exports.updateTicketStatus = async (req, res) => {
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(515).json({ error: error.message });
   }
 };
 
@@ -189,7 +191,7 @@ exports.escalateTicket = async (req, res) => {
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(516).json({ error: error.message });
   }
 };
 
@@ -203,6 +205,6 @@ exports.reassignTicket = async (req, res) => {
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(517).json({ error: error.message });
   }
 };

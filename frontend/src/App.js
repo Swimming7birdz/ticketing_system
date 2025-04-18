@@ -22,6 +22,7 @@ import Unauthorized from "./pages/Unauthorized/Unauthorized";
 import Registration from "./pages/Registration/Registration";
 import Profile from "./pages/Profile/Profile";
 import StudentTickets from "./pages/StudentTickets/StudentTickets";
+import InstructorProfile from "./pages/InstructorProfile/InstructorProfile"; //added 3/22/25 along with creation of instructor profile
 
 function App() {
   return (
@@ -48,7 +49,7 @@ function App() {
         <Route path="/tasettings" element={<TASettings />} />
         <Route path="/studentsettings" element={<StudentSettings />} />
         <Route path="/ticketview" element={<TicketView />} />
-
+	<Route path="/instructorprofile" element={<InstructorProfile />} /> //added 3/22/25 along with creation of instructor profile
         {/* Testing Pages */}
 
         {/* Change user_id to the user's id */}

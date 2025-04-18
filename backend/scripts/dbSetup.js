@@ -154,6 +154,25 @@ async function insertTicketCommunications() {
   await Promise.all(communicationPromises);
   console.log("Inserted ticket communications");
 }
+/*
+async function insertSchedule() {
+  const users = await pool.query("SELECT user_id FROM users WHERE role = 'TA'");
+
+  const schedulePromises = Array.from({ length: 30 }).map(() => {
+    const ticket =
+      tickets.rows[Math.floor(Math.random() * tickets.rows.length)];
+    const user = users.rows[Math.floor(Math.random() * users.rows.length)];
+    const message = faker.lorem.paragraph();
+    return pool.query(
+      "INSERT INTO ticketcommunications (ticket_id, user_id, message) VALUES ($1, $2, $3)",
+      [ticket.ticket_id, user.user_id, message]
+    );
+  });
+
+  await Promise.all(communicationPromises);
+  console.log("Inserted TA schedules");
+}
+*/
 
 // Main function to execute all insertions
 async function generateData() {
