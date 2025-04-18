@@ -188,6 +188,7 @@ const TicketInfo = () => {
   }
 
   return (
+
     <div style={{ display: "flex", flexDirection: "column", backgroundColor: "#DBDADA", padding: 50, gap: 50 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 20, backgroundColor: "#FFFFFF", padding: 20, borderRadius: 5, flex: 1 }}>
         <Stack className="ticketInfo">

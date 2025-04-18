@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
   const { name, email, password, role } = req.body;
   // const { name, email, password, role, asu_id } = req.body;
   // if (!asu_id || !/^\d{10}$/.test(asu_id)) {
-    // return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });
+  //   return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });
   // }
 
   try {
