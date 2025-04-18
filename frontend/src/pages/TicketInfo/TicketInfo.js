@@ -16,6 +16,7 @@ import ConfirmReassign from "../../components/ConfirmReassign/ConfirmReassign";
 import ConfirmEscalate from "../../components/ConfirmEscalate/ConfirmEscalate";
 import ReplySection from "../../components/ReplySection/ReplySection";
 import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
+import { issueTypeDisplay } from "../../constants/IssueTypes";
 import "./TicketInfo.css";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -204,6 +205,7 @@ const TicketInfo = () => {
       }
 
       console.log("Ticket successfully updated!");
+      console.log("This should stay")
 
       setEditFormOpen(false);
       fetchData(); // Refresh ticket info after edit
@@ -300,7 +302,7 @@ const TicketInfo = () => {
                   Back
                 </Button>
                 <div className="ticketId">Capstone Ticket - {ticketId}</div>
-                <div className="subject">{TicketSubject}</div>
+                <div className="subject">{issueTypeDisplay[ticketData.issue_type] || "Unknown issue type"}</div>
                 <Stack direction="row" className="statusButtons">
                   <TicketStatusIndicator
                     status={ticketData.status?.toUpperCase() || "UNKNOWN"}
@@ -349,9 +351,9 @@ const TicketInfo = () => {
                 <div className="ticketAsset">
                   {ticketData.issue_description}
                 </div>
-                <h3>Student:</h3>
+                <h3>Student - ID:</h3>
                 <div className="ticketAsset">
-                  {ticketData.student_name}
+                  {ticketData.student_name} - {ticketData.student_id}
                 </div>
                 <h3>TA:</h3>
                 <div className="ticketAsset">
@@ -375,9 +377,21 @@ const TicketInfo = () => {
                     updateTA={updateTA}
                   />
                 </div>
-                <h3>Project:</h3>
+                <h3>Sponsor:</h3>
                 <div className="ticketAsset">
-                  {ticketData.team_name}
+                  {ticketData.sponsor_name}
+                </div>
+                <h3>Project - ID:</h3>
+                <div className="ticketAsset">
+                  {ticketData.team_name} - {ticketData.team_id}
+                </div>
+                <h3>Created at: </h3>
+                <div className="ticketAsset">
+                  {ticketData.created_at ? new Date(ticketData.created_at).toLocaleString() : "N/A"}
+                </div>
+                <h3>Last Updated: </h3>
+                <div className="ticketAsset">
+                  {ticketData.updated_at ? new Date(ticketData.updated_at).toLocaleString() : "N/A"}
                 </div>
                 <h3>Replies:</h3>
                 <ReplySection />

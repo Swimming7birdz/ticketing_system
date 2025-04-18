@@ -17,6 +17,9 @@ TicketAssignment.belongsTo(User, { foreignKey: "user_id" });
 Ticket.hasMany(TicketAssignment, { foreignKey: "ticket_id" });
 TicketAssignment.belongsTo(Ticket, { foreignKey: "ticket_id" });
 
+//add association for student name
+Ticket.belongsTo(User, { foreignKey: "student_id", as: "student" });
+
 module.exports = {
   User,
   Team,
