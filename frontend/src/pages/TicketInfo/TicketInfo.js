@@ -150,6 +150,9 @@ const TicketInfo = () => {
             <div className="ticketDescription">
               {ticketData.issue_description}
             </div>
+            {/* <p>
+              <strong>ASU ID:</strong> {ticketData.asu_id}
+            </p> */}
             <h3>Replies:</h3>
             <ReplySection></ReplySection>
           </Stack>

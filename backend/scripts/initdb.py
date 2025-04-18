@@ -15,6 +15,7 @@ TABLES['Users'] = (
     "  email VARCHAR(100) UNIQUE NOT NULL,"
     "  role VARCHAR(10) CHECK (role IN ('student', 'TA', 'admin')) NOT NULL,"
     "  password VARCHAR(255) NOT NULL DEFAULT 'test'"
+    # "  asu_id VARCHAR(10) NOT NULL"
     ")"
 )
 
@@ -47,6 +48,7 @@ TABLES['Tickets'] = (
     "  escalated BOOLEAN DEFAULT FALSE,"
     "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
     "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+    "  asu_id VARCHAR(10) NOT NULL,"
     "  FOREIGN KEY (student_id) REFERENCES Users(user_id),"
     "  FOREIGN KEY (team_id) REFERENCES Teams(team_id)"
     ")"
@@ -74,6 +76,15 @@ TABLES['TicketCommunications'] = (
     ")"
 )
 
+TABLES['OfficeHours'] = (
+    "CREATE TABLE IF NOT EXISTS OfficeHours ("
+    "  officehours_id SERIAL PRIMARY KEY,"
+    "  ta_id INT NOT NULL,"
+    "  office_hours JSONB NOT NULL,"
+    "  FOREIGN KEY (ta_id) REFERENCES Users(user_id)"
+    ")"
+)
+
 try:
     conn = psycopg2.connect(connection_string)
     cursor = conn.cursor()
@@ -83,7 +94,14 @@ try:
         try:
             print(f"Creating {table}: ", end='')
             cursor.execute(table_desc)
-            print("Done")
+            print("Done")TABLES['OfficeHours'] = (
+    "CREATE TABLE IF NOT EXISTS OfficeHours ("
+    "  officehours_id SERIAL PRIMARY KEY,"
+    "  ta_id INT NOT NULL,"
+    "  office_hours JSONB NOT NULL,"
+    "  FOREIGN KEY (ta_id) REFERENCES Users(user_id)"
+    ")"
+)
         except Exception as err:
             print(f"Error: {err}")
 

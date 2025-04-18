@@ -6,7 +6,7 @@ require("dotenv").config();
 // Initialize connection pool
 const pool = new Pool({
   connectionString:
-    "postgresql://postgres:am4f54MHtnEv90cj@critically-darling-badger.data-1.use1.tembo.io:5432/postgres",
+    "postgresql://myuser:mypassword@127.0.0.1:5432/test",
   ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
 });
 
@@ -25,11 +25,12 @@ async function insertUsers() {
   const userPromises = Array.from({ length: 20 }).map(async (_, i) => {
     const name = faker.name.firstName() + " " + faker.name.lastName(); // Corrected name generation
     const email = i === 0 ? "admin1@asu.edu" : faker.internet.email(); // Make the first user a specific admin
+    // const asu_id = faker.random.alphaNumeric(10);
     const role =
       i === 0 ? "admin" : roles[Math.floor(Math.random() * roles.length)];
     return pool.query(
       "INSERT INTO users (name, email, role, password) VALUES ($1, $2, $3, $4)",
-      [name, email, role, hashedPassword]
+      [name, email, role, hashedPassword, asu_id]
     );
   });
 
@@ -86,6 +87,7 @@ async function insertTickets() {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     const sponsorName = "Sponsor Name";
     const section = "My Section";
+    const asu_id = faker.random.alphaNumeric(10);
     return pool.query(
       "INSERT INTO tickets (student_id, team_id, issue_description, sponsor_name, section, issue_type, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
       [
@@ -96,6 +98,7 @@ async function insertTickets() {
         section,
         issueType,
         status,
+        asu_id,
       ]
     );
   });
@@ -154,19 +157,19 @@ async function insertTicketCommunications() {
 // Main function to execute all insertions
 async function generateData() {
   try {
-    // await insertUsers();
+    await insertUsers();
     // await insertTeams();
     // await insertTeamMembers();
-    await insertTickets();
-    await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
     //await insertTicketCommunications();
     console.log("Fake data inserted successfully!");
   } catch (error) {

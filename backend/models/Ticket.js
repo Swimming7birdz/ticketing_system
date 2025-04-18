@@ -49,6 +49,14 @@ const Ticket = sequelize.define(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    // asu_id: {
+    //   type: DataTypes.STRING(10),
+    //   allowNull: false,
+    //   validate:{
+    //     len:[10,10],
+    //     isNumeric: true,
+    //   },
+    // },
   },
   {
     tableName: "tickets", // Ensure the table name is lowercase
