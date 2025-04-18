@@ -1,6 +1,11 @@
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import "./CreateTicket.css";
+
+//In order to have the buttons have a ripple effect, this page has to be rebuilt with mui
+//mui by default does the ripple effect
+import { Button } from "@mui/material";
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const CreateTicket = ({ onClose }) => {
@@ -141,13 +146,30 @@ const CreateTicket = ({ onClose }) => {
     }
   };
 
+  //Robert: All buttons below have been updated with '<Button/>' in order to have a ripple effect when the button is clicked
   return (
     <div className="modal-overlay">
       <div className="modal-content">
         {/* Close button */}
-        <button className="close-button" onClick={onClose}>
+        <Button 
+          className="close-button" 
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            minWidth: "32px",
+            minHeight: "32px",
+            borderRadius: "50%",
+            backgroundColor: "#8C1D40",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#5F0E24",
+            },
+          }}
+        >
           &times;
-        </button>
+        </Button>
 
         {/* Form Content */}
         <h1>Create New Ticket</h1>
@@ -244,7 +266,7 @@ const CreateTicket = ({ onClose }) => {
               required
             />
           </label>
-          <button type="submit">Submit Ticket</button>
+          <Button type="submit">Submit Ticket</Button>
         </form>
       </div>
     </div>

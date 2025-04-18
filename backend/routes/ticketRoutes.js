@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
   "/",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
+  authMiddleware.isTAOrAdmin, //changed 2/20/25 to allow TA to view tickets on instructor dashboard
   ticketController.getAllTickets
 );
 router.get(
@@ -65,6 +65,13 @@ router.put(
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
   ticketController.reassignTicket
+);
+//Robert: add backend route
+router.put(
+  "/:ticket_id/edit",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  ticketController.editTicket
 );
 
 module.exports = router;

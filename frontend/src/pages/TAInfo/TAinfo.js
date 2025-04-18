@@ -83,11 +83,11 @@ const TAinfo = () => {
                         <Typography variant="h3" sx={{ fontWeight: 'semibold', fontSize: '1.5rem', color: '#737373', margin: '15px' }}>Working Hours</Typography>
                         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <Typography variant="p" sx={{ fontSize: '1rem' }}>Monday: 01:00 PM - 02:00 PM</Typography>
-                                <Typography variant="p" sx={{ fontSize: '1rem' }}>Tuesday: 01:00 PM - 02:00 PM</Typography>
-                                <Typography variant="p" sx={{ fontSize: '1rem' }}>Wednesday: 01:00 PM - 02:00 PM</Typography>
-                                <Typography variant="p" sx={{ fontSize: '1rem' }}>Thursday: 01:00 PM - 02:00 PM</Typography>
-                                <Typography variant="p" sx={{ fontSize: '1rem' }}>Friday: 01:00 PM - 02:00 PM</Typography>
+                                <Typography variant="p" sx={{ fontSize: '1rem' }}>Monday-Friday: 01:00 PM - 02:00 PM</Typography>
+                                //<Typography variant="p" sx={{ fontSize: '1rem' }}>Tuesday: 01:00 PM - 02:00 PM</Typography>
+                                //<Typography variant="p" sx={{ fontSize: '1rem' }}>Wednesday: 01:00 PM - 02:00 PM</Typography>
+                                //<Typography variant="p" sx={{ fontSize: '1rem' }}>Thursday: 01:00 PM - 02:00 PM</Typography>
+                                //<Typography variant="p" sx={{ fontSize: '1rem' }}>Friday: 01:00 PM - 02:00 PM</Typography>
                             </div>
                         </div>
                     </div>

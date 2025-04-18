@@ -12,6 +12,7 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 const AdminDash = () => {
   const [tickets, setTickets] = useState([]);
   const [TACounts, setTACounts] = useState([]);
+  const [TAs, setTAs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [totalTAs, setTotalTAs] = useState(0);
@@ -46,6 +47,7 @@ const AdminDash = () => {
       const users = await usersResponse.json();
       const tas = users.filter((user) => user.role === "TA"); // Filter TAs
       setTotalTAs(tas.length);
+      setTAs(TAs);
 
       // Step 2: Fetch all ticket assignments
       const assignmentsResponse = await fetch(
@@ -92,6 +94,7 @@ const AdminDash = () => {
         ticketCounts[ta.user_id] = {
           name: ta.name, // Store the TA's name
           counts: { new: 0, ongoing: 0, resolved: 0 },
+	  //userId: ta.user_id,
         };
 
         // Filter assignments for this TA
@@ -368,11 +371,12 @@ const AdminDash = () => {
             overflowY: "hidden",
           }}
         >
-          {Object.entries(TACounts).map(([id, ta]) => (
+          {Object.entries(TACounts).map(([id,ta]) => (
             <InstructorCard
               key={id}
               name={ta.name || "Unknown"}
               counts={ta.counts}
+	      userId={id} //doesn't work when its ta.user_id ????
             />
           ))}
         </div>

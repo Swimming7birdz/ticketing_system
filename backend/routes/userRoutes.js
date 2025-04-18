@@ -20,7 +20,7 @@ router.get(
 router.get(
   "/",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
+  authMiddleware.isTAOrAdmin,
   userController.getAllUsers
 );
 router.get("/:user_id", authMiddleware.verifyToken, userController.getUserById);

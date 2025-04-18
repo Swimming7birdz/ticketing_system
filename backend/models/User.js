@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
+// minor change for git tracking
 
 const User = sequelize.define("User", {
   user_id: {
@@ -35,7 +36,20 @@ const User = sequelize.define("User", {
   // },
 },{
   tableName: 'users', // Ensure the table name is lowercase
+
+  notifications_enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  dark_mode: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+}, {
+  tableName: 'users',
+
   timestamps: false,
 });
+
 
 module.exports = User;

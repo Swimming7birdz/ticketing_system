@@ -1,7 +1,13 @@
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-import "./TicketView.css"; // You can reuse CreateTicket.css or create a new one
+//import "./TicketView.css"; // You can reuse CreateTicket.css or create a new one
 import { useNavigate } from "react-router-dom";
+
+//In order to have the buttons have a ripple effect, this page has to be rebuilt with mui
+//mui by default does the ripple effect
+import { Button } from "@mui/material";
+import "./TicketView.css"; // Adjust if necessary
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const TicketView = ({ ticketId, onClose }) => {
@@ -57,18 +63,35 @@ const TicketView = ({ ticketId, onClose }) => {
       <div className="modal-overlay">
         <div className="modal-content">
           <p>Failed to load ticket details.</p>
-          <button onClick={onClose}>Close</button>
+          <Button onClick={onClose}>Close</Button>
         </div>
       </div>
     );
   }
 
+  //Robert: All buttons below have been updated with '<Button/>' in order to have a ripple effect when the button is clicked
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <button className="close-button" onClick={onClose}>
+        <Button 
+          className="close-button" 
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            minWidth: "32px",
+            minHeight: "32px",
+            borderRadius: "50%",
+            backgroundColor: "#8C1D40",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#5F0E24",
+            },
+          }}
+        >
           &times;
-        </button>
+        </Button>
         <h1>Ticket Details</h1>
         <p>
           <strong>Ticket ID:</strong> {ticket.ticket_id}
@@ -108,10 +131,7 @@ const TicketView = ({ ticketId, onClose }) => {
           <strong>Updated At:</strong>{" "}
           {new Date(ticket.updated_at).toLocaleString()}
         </p>
-        <div className="buttons">
-          <button onClick={onClose}>Close</button>
-          <button onClick={onOpenTicket}>View Ticket Page</button>
-        </div>
+        <Button onClick={onOpenTicket}>View Ticket Page</Button>
       </div>
     </div>
   );

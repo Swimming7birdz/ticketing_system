@@ -55,7 +55,7 @@ const SideBar = () => {
     >
       <img src={ASULogo} alt="Logo" />
       <List className="ticketsNavigation">
-        <ListItemButton
+        <ListItemButton 
           className="buttonStyle"
           selected={selectedPage === 0}
           onClick={() => {
@@ -69,24 +69,30 @@ const SideBar = () => {
             }
           }}
         >
-          <ListItemIcon>
-            <DashboardIcon className="iconStyle" />
-          </ListItemIcon>
-          <ListItemText className="fontStyle" primary="Dashboard" />
-        </ListItemButton>
-        <ListItemButton
-          className="buttonStyle"
-          selected={selectedPage === 1}
-          onClick={() => {
-            setSelectedPage(1);
-            navigate("/alltickets");
-          }}
-        >
-          <ListItemIcon>
-            <ListIcon className="iconStyle" />
-          </ListItemIcon>
-          <ListItemText className="fontStyle" primary="All Tickets" />
-        </ListItemButton>
+              <ListItemIcon>
+                <DashboardIcon className="iconStyle" />
+              </ListItemIcon>
+              <ListItemText className="fontStyle" primary="Dashboard" />
+            </ListItemButton>
+            <ListItemButton
+      className="buttonStyle"
+      selected={selectedPage === 1}
+      onClick={() => {
+        setSelectedPage(1);
+        if (userType === "admin") {
+          navigate("/alltickets"); // Admins see all tickets
+        } else if (userType === "student") {
+          navigate("/mytickets"); // Students only see their own tickets
+        } else {
+          navigate("/alltickets"); // Default case (for TAs or unknown roles)
+        }
+  }}
+>
+        <ListItemIcon>
+          <ListIcon className="iconStyle" />
+        </ListItemIcon>
+        <ListItemText className="fontStyle" primary="All Tickets" />
+      </ListItemButton> 
 
         <ListItemButton
           className="buttonStyle"

@@ -5,15 +5,13 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
 import TicketCard from "../../components/TicketCard";
 import { fetchTicketsByUserId } from "../../services/ticketServices";
-import { useNavigate } from "react-router-dom"; // ✅ Import navigation
+import { useNavigate } from "react-router-dom";
 
-const baseURL = process.env.REACT_APP_API_BASE_URL;
-
-const StudentDash = () => {
+const StudentTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
-  const navigate = useNavigate(); // ✅ Initialize navigation function
+  let navigate = useNavigate();
 
   useEffect(() => {
     loadTickets();
@@ -66,10 +64,9 @@ const StudentDash = () => {
         variant="h1"
         sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
       >
-        Student Dashboard
+        My Tickets
       </Typography>
 
-      {/* TICKET SECTION CONTAINER */}
       <div
         style={{
           display: "flex",
@@ -81,7 +78,6 @@ const StudentDash = () => {
           flex: 1,
         }}
       >
-        {/* SECTION HEADER */}
         <div
           style={{
             display: "flex",
@@ -117,24 +113,23 @@ const StudentDash = () => {
               borderRadius: 999,
               fontSize: "0.75rem",
             }}
-            onClick={() => navigate("/mytickets")} // ✅ Navigate to all student tickets
+            onClick={() => navigate("/studentdash")}
           >
-            View All
+            Back to Dashboard
           </Button>
         </div>
 
-        {/* TICKETS */}
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "20px",
-            justifyContent: "center",
-            padding: "5px",
-            maxHeight: "950px",
-            overflowY: "hidden",
-          }}
-        >
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+    gap: "20px",
+    justifyContent: "center",
+    padding: "5px",
+    overflowY: "auto", //  Allows scrolling for more tickets
+  }}
+>
+
           {tickets.map((ticket) => (
             <TicketCard
               key={ticket.ticket_id}
@@ -150,6 +145,4 @@ const StudentDash = () => {
   );
 };
 
-export default StudentDash;
-
-
+export default StudentTickets;
