@@ -66,7 +66,10 @@ const Ticket = sequelize.define(
   },
   {
     tableName: "tickets",
-    timestamps: false,
+    //Need to update ticket everytime it is edited
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   }
 );
 
