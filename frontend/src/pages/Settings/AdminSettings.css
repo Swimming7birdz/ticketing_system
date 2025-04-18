@@ -58,3 +58,9 @@
   display: flex;
   justify-content: center; 
 }
+
+.ta-table-container {
+  margin-top: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}

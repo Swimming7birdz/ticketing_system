@@ -1,3 +1,11 @@
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+
 import {
   Button,
   List,
@@ -247,7 +255,34 @@ const AdminSettings = () => {
         <Typography variant="h5" className="section-title">
           Teaching Assistants (TAs)
         </Typography>
-        <List className="scrollable-list">
+        <TableContainer component={Paper} className="ta-table-container">
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell align="right">Action</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {tas.map((ta) => (
+            <TableRow key={ta.user_id}>
+              <TableCell>{ta.name}</TableCell>
+              <TableCell>{ta.email}</TableCell>
+              <TableCell align="right">
+                <Button color="secondary" onClick={() => deleteTA(ta.user_id)}>
+                  Delete
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+
+
+
+        {/* <List className="scrollable-list">
           {tas.map((ta) => (
             <ListItem key={ta.user_id}>
               <ListItemText primary={`${ta.name} (${ta.email})`} />
@@ -263,16 +298,7 @@ const AdminSettings = () => {
               </ListItemSecondaryAction>
             </ListItem>
           ))}
-        </List>
-        {deleteOpen && (
-            <ConfirmTADelete
-              handleOpen={deleteOpen}
-              handleClose={deletePopupClose}
-              ta={selectedTA}
-              idNameMap={idNameMap}
-              updateStatus={updateStatus}
-            />
-        )}
+        </List> */}
         <div className="add-form">
           <input
             type="text"
@@ -292,12 +318,10 @@ const AdminSettings = () => {
         </div>
       </div>
       <div className="redirect-button">
-      <button
-        variant="contained"
-        onClick={()=>navigate('/profile')}
-        >
-          Go To Account Settings
-          </button>
+      <Button variant="contained" onClick={() => navigate("/profile")}>
+        Go To Account Settings
+      </Button>
+
     </div>
     </div>
   );
