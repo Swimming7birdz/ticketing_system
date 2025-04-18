@@ -38,7 +38,8 @@ async function insertUsers() {
       i === 0 ? "admin" : roles[Math.floor(Math.random() * roles.length)];
     return pool.query(
       "INSERT INTO users (name, email, role, password) VALUES ($1, $2, $3, $4)",
-      [name, email, role, hashedPassword, asu_id]
+	[name, email, role, hashedPassword]
+      //[name, email, role, hashedPassword, asu_id]
     );
   });
 
