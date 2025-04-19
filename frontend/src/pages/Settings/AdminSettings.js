@@ -1,3 +1,11 @@
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+
 import {
   Button,
   List,
@@ -9,8 +17,8 @@ import {
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import "./AdminSettings.css";
-
 import {useNavigate} from "react-router-dom";
+import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
 
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
@@ -18,12 +26,16 @@ const AdminSettings = () => {
   const [newTeamName, setNewTeamName] = useState("");
   const [newTAName, setNewTAName] = useState("");
   const [newTAEmail, setNewTAEmail] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedTA, setSelectedTA] = useState(null); // To track which TA is being deleted
+  const [idNameMap, setIdToNameMap] = useState({});
+  const [deleteStatus, setDeleteStatus] = useState(false);
   const token = Cookies.get("token");
   const navigate = useNavigate();
   useEffect(() => {
     fetchTeams();
     fetchTAs();
-  }, []);
+  }, [deleteStatus]); // Fetch teams and TAs when the component mounts or when deleteStatus changes
 
   const fetchTeams = async () => {
     try {
@@ -46,6 +58,13 @@ const AdminSettings = () => {
     }
   };
 
+  const convertToMap = (list) => {
+    return list.reduce((acc, obj) => { //map ID to name
+      acc[obj.user_id] = obj.name;
+      return acc;
+    }, {});
+  };
+
   const fetchTAs = async () => {
     try {
       const response = await fetch(
@@ -62,6 +81,9 @@ const AdminSettings = () => {
       if (!response.ok) throw new Error("Failed to fetch TAs.");
       const data = await response.json();
       setTAs(data);
+
+      const idToNameMap = convertToMap(data);
+      setIdToNameMap(idToNameMap);
     } catch (error) {
       console.error(error);
     }
@@ -154,25 +176,41 @@ const AdminSettings = () => {
     }
   };
 
-  const deleteTA = async (taId) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/users/${taId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  // const deleteTA = async (taId) => {
+  //   try {
+  //     const response = await fetch(
+  //       `${process.env.REACT_APP_API_BASE_URL}/api/users/${taId}`,
+  //       {
+  //         method: "DELETE",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
 
-      if (!response.ok) throw new Error("Failed to delete TA.");
-      fetchTAs(); // Refresh the list of TAs
-    } catch (error) {
-      console.error(error);
-    }
+  //     if (!response.ok) throw new Error("Failed to delete TA.");
+  //     fetchTAs(); // Refresh the list of TAs
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
+  const handleDelete = (ta) => {
+    console.log("Delete TA Button Clicked");
+    setSelectedTA(ta);
+    setDeleteOpen(true);
+  }
+
+  const deletePopupClose = () => {
+    setDeleteOpen(false);
+    setSelectedTA(null); // Clear the selected TA
   };
+
+  const updateStatus = (status) => {
+    console.log("This is the update status:", status)
+    setDeleteStatus(status);
+  }
 
   return (
     <div className="settings-container">
@@ -217,18 +255,50 @@ const AdminSettings = () => {
         <Typography variant="h5" className="section-title">
           Teaching Assistants (TAs)
         </Typography>
-        <List className="scrollable-list">
+        <TableContainer component={Paper} className="ta-table-container">
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell align="right">Action</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {tas.map((ta) => (
+            <TableRow key={ta.user_id}>
+              <TableCell>{ta.name}</TableCell>
+              <TableCell>{ta.email}</TableCell>
+              <TableCell align="right">
+                <Button color="secondary" onClick={() => deleteTA(ta.user_id)}>
+                  Delete
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+
+
+
+        {/* <List className="scrollable-list">
           {tas.map((ta) => (
             <ListItem key={ta.user_id}>
               <ListItemText primary={`${ta.name} (${ta.email})`} />
               <ListItemSecondaryAction>
-                <Button color="secondary" onClick={() => deleteTA(ta.user_id)}>
+                <Button 
+                  color="secondary" 
+                  onClick={() =>  { 
+                    handleDelete(ta);
+                    }
+                  }> 
                   Delete
                 </Button>
               </ListItemSecondaryAction>
             </ListItem>
           ))}
-        </List>
+        </List> */}
         <div className="add-form">
           <input
             type="text"
@@ -248,12 +318,10 @@ const AdminSettings = () => {
         </div>
       </div>
       <div className="redirect-button">
-      <button
-        variant="contained"
-        onClick={()=>navigate('/profile')}
-        >
-          Go To Account Settings
-          </button>
+      <Button variant="contained" onClick={() => navigate("/profile")}>
+        Go To Account Settings
+      </Button>
+
     </div>
     </div>
   );

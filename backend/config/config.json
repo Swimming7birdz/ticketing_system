@@ -1,0 +1,15 @@
+
+{
+    "development": {
+      "username": "postgres",
+      "password": null,
+      "database": "ticketing_system_db",
+      "host": "127.0.0.1",
+      "dialect": "postgres", 
+      "_comment": "This is a comment and will be ignored by code",
+      "port": 5432
+    }
+  }
+  
+
+  

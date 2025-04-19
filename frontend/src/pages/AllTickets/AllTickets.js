@@ -25,6 +25,8 @@ const AllTickets = () => {
     search: "",
   });
 
+  const [hideResolved, setHideResolved] = useState(true);
+
   useEffect(() => {
     fetchTickets();
   }, []);
@@ -32,6 +34,11 @@ const AllTickets = () => {
   useEffect(() => {
     applyFilters();
   }, [tickets, activeFilters]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [tickets, activeFilters, hideResolved]);
+
 
   const applyFilters = () => {
     let filtered = [...tickets];
@@ -57,6 +64,12 @@ const AllTickets = () => {
         ticket.userName
           .toLowerCase()
           .includes(activeFilters.search.toLowerCase())
+      );
+    }
+
+    if (hideResolved) {
+      filtered = filtered.filter(
+        (ticket) => ticket.status.toLowerCase() !== "resolved"
       );
     }
 
@@ -131,6 +144,10 @@ const AllTickets = () => {
       console.error("Error fetching tickets:", error);
       setLoading(false);
     }
+  };
+
+  const toggleHideResolved = () => {
+    setHideResolved((prev) => !prev);
   };
 
   if (loading) {
@@ -217,6 +234,14 @@ const AllTickets = () => {
           >
             Clear Filters
           </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setHideResolved(prev => !prev)}
+            sx={{ borderColor: "#8C1D40", color: "#8C1D40" }}
+          >
+            {hideResolved ? "Show Resolved Tickets" : "Hide Resolved Tickets"}
+          </Button>
+
         </div>
 
         {/* Filter Dropdown */}

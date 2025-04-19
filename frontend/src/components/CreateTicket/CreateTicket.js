@@ -18,7 +18,7 @@ const CreateTicket = ({ onClose }) => {
   const [description, setDescription] = useState("");
   const [taList, setTaList] = useState([]); // Initialize as empty array
   const [teamList, setTeamList] = useState([]); // Initialize as empty array for teams
-
+  // const [asuId, setAsuId] = useState(""); 
   useEffect(() => {
     fetchTAs();
     fetchTeams();
@@ -73,6 +73,7 @@ const CreateTicket = ({ onClose }) => {
       instructorName,
       issueType,
       description,
+      // asuId,
     };
 
     try {
@@ -93,6 +94,8 @@ const CreateTicket = ({ onClose }) => {
           section: submittedData.section,
           issue_type: submittedData.issueType,
           issue_description: submittedData.description,
+          // asu_id: submittedData.asuId,
+
         }),
       });
 
@@ -134,6 +137,7 @@ const CreateTicket = ({ onClose }) => {
       setInstructorName("");
       setIssueType("");
       setDescription("");
+      // setAsuId("");
 
       if (onClose) onClose(); // Close modal if `onClose` is provided
       window.location.reload();
@@ -181,6 +185,15 @@ const CreateTicket = ({ onClose }) => {
               required
             />
           </label>
+          {/* <label>ASU ID:</label>
+          <input
+            type="text"
+            placeholder="10-digit ASU ID"
+            value={asuId}
+            onChange={(e) => setAsuId(e.target.value)}
+            required
+            maxLength={10}
+          /> */}
           <label>
             Section:
             <input

@@ -105,6 +105,9 @@ const TicketView = ({ ticketId, onClose }) => {
         <p>
           <strong>Team ID:</strong> {ticket.team_id}
         </p>
+        {/* <p> */}
+          {/* <strong>ASU ID:</strong> {ticket.asu_id} */}
+        {/* </p> */}
         <p>
           <strong>Issue Description:</strong> {ticket.issue_description}
         </p>

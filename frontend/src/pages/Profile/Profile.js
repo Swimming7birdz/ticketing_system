@@ -132,7 +132,10 @@ function Profile() {
 
   return (
     <div className="profile-container">
-      <div className='profile-card'>
+      <div className="profile-card">
+        <Typography variant="h5" sx={{ marginBottom: 2 }}>
+          My Profile
+        </Typography>
         <Avatar className="profile-avatar" src={user.profilePicture || ''}>
           {user.name ? user.name.charAt(0).toUpperCase() : ''}
         </Avatar>
@@ -145,40 +148,40 @@ function Profile() {
               {/* <p><strong>ASU ID:</strong> {user.asu_id}</p> */}
             </div>
             <div className="redirect-button">
-              <button onClick={handleEditClick}>
+              <Button variant="contained" onClick={handleEditClick}>
                 Edit Info
-              </button>
+              </Button>
             </div>
           </>
         ) : (
           <>
-          <div className="profile-edit-form">
-            <TextField
-              label="Name"
-              name="name"
-              value={editData.name}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Email"
-              name="email"
-              value={editData.email}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-          </div>
-          <div className="profile-edit-buttons">
+            <div className="profile-edit-form">
+              <TextField
+                label="Name"
+                name="name"
+                value={editData.name}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+              />
+              <TextField
+                label="Email"
+                name="email"
+                value={editData.email}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+              />
+            </div>
+            <div className="profile-edit-buttons">
               <Button variant="contained" color="primary" onClick={handleSaveClick}>
                 Save
               </Button>
-              <Button variant="outlined" onClick={handleCancelClick} style={{ marginLeft: '10px' }}>
+              <Button variant="outlined" onClick={handleCancelClick} sx={{ marginLeft: 2 }}>
                 Cancel
               </Button>
-              <Button variant="outlined" onClick={handleChangePasswordClick} style={{ marginLeft: '10px' }}>
-              {showChangePassword ? "Hide Change Password" : "Change Password"}
+              <Button variant="outlined" onClick={handleChangePasswordClick} sx={{ ml: 1, mt: 2 }}>
+                {showChangePassword ? "Hide Change Password" : "Change Password"}
               </Button>
             </div>
             {showChangePassword && (
@@ -201,7 +204,7 @@ function Profile() {
                   fullWidth
                   margin="normal"
                 />
-                <div className="password-buttons" style={{ marginTop: '10px' }}>
+                <div className="password-buttons" style={{ marginTop: 10 }}>
                   <Button variant="contained" color="primary" onClick={handleUpdatePassword}>
                     Update Password
                   </Button>
@@ -214,6 +217,5 @@ function Profile() {
     </div>
   );
 }
-
 
 export default Profile;
