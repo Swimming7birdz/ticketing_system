@@ -14,6 +14,7 @@ import ConfirmReassign from "../../components/ConfirmReassign/ConfirmReassign";
 import ConfirmEscalate from "../../components/ConfirmEscalate/ConfirmEscalate";
 import ReplySection from "../../components/ReplySection/ReplySection";
 import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
+import { issueTypeDisplay } from "../../constants/IssueTypes";
 import "./TicketInfo.css";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -212,66 +213,126 @@ const TicketInfo = () => {
   };
 
   if (loadingTicketData) {
-    return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0", flexDirection: "column", gap: "20px" }}>
-        <CircularProgress size={80} thickness={4} />
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>Loading, please wait...</Typography>
-      </div>
-    );
-  }
-
-  return (
-
-    <div style={{ display: "flex", flexDirection: "column", backgroundColor: "#DBDADA", padding: 50, gap: 50 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, backgroundColor: "#FFFFFF", padding: 20, borderRadius: 5, flex: 1 }}>
-        <Stack className="ticketInfo">
-          <Button variant="text" className="backButton" onClick={handleBack} startIcon={<ArrowBackIosNewIcon />}>Back</Button>
-          <div className="ticketId">Capstone Ticket - {ticketId}</div>
-          <div className="subject">{TicketSubject}</div>
-
-          <Stack direction="row" className="statusButtons">
-            <TicketStatusIndicator status={ticketStatus.toUpperCase() || "UNKNOWN"} />
-            {ticketData.escalated && <TicketStatusIndicator status={"ESCALATED"} />}
-            <FormControl sx={{ minWidth: 150, ml: 2, mt: 1 }}>
-              <InputLabel sx={{ top: "-5px" }}>Status</InputLabel>
-              <Select value={ticketStatus} onChange={handleStatusChange} sx={{ padding: "10px", height: "40px" }}>
-                <MenuItem value="New">New</MenuItem>
-                <MenuItem value="In Progress">In Progress</MenuItem>
-                <MenuItem value="Resolved">Resolved</MenuItem>
-                <MenuItem value="Escalated">Escalated</MenuItem>
-              </Select>
-            </FormControl>
-            <Button variant="contained" className="editButton" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
-            <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
-            <Button variant="contained" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
-            <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} />
-            {userType === "TA" && (
-              <Button variant="contained" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
-            )}
-            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} />
+     return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "#DBDADA",
+          padding: 50,
+          gap: 50,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+            backgroundColor: "#FFFFFF",
+            padding: 20,
+            borderRadius: 5,
+            flex: 1,
+          }}
+        >
+          <Stack className="ticketInfo">
+            <Button variant="text" className="backButton" onClick={handleBack} startIcon={<ArrowBackIosNewIcon />}>
+              Back
+            </Button>
+  
+            <div className="ticketId">Capstone Ticket - {ticketId}</div>
+            <div className="subject">{issueTypeDisplay[ticketData.issue_type] || TicketSubject || "Unknown issue type"}</div>
+  
+            <Stack direction="row" className="statusButtons">
+              <TicketStatusIndicator status={ticketStatus?.toUpperCase() || "UNKNOWN"} />
+              {ticketData.escalated && <TicketStatusIndicator status={"ESCALATED"} />}
+              
+              <FormControl sx={{ minWidth: 150, ml: 2, mt: 1 }}>
+                <InputLabel sx={{ top: "-5px" }}>Status</InputLabel>
+                <Select
+                  value={ticketStatus}
+                  onChange={handleStatusChange}
+                  sx={{ padding: "10px", height: "40px" }}
+                >
+                  <MenuItem value="New">New</MenuItem>
+                  <MenuItem value="In Progress">In Progress</MenuItem>
+                  <MenuItem value="Resolved">Resolved</MenuItem>
+                  <MenuItem value="Escalated">Escalated</MenuItem>
+                </Select>
+              </FormControl>
+  
+              <Button variant="contained" className="editButton" onClick={handleConfirmEdit}>Edit Ticket</Button>
+              <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
+  
+              <Button variant="contained" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
+              <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} />
+  
+              {userType === "TA" && (
+                <Button variant="contained" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
+              )}
+              <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} />
+            </Stack>
+  
+            <h3>Description:</h3>
+            <div className="ticketAsset">{ticketData.issue_description}</div>
+  
+            <h3>Student - ID:</h3>
+            <div className="ticketAsset">{ticketData.student_name} - {ticketData.student_id}</div>
+  
+            <h3>TA:</h3>
+            <div className="ticketAsset">
+              {idToNameMap[AssignedID]}&nbsp;
+              {userType === "admin" && (
+                <Button
+                  variant="contained"
+                  className="reassignButton"
+                  style={{ marginTop: '10px' }}
+                  onClick={() => setReassignOpen(true)}
+                >
+                  Reassign
+                </Button>
+              )}
+              <ConfirmReassign
+                handleOpen={reassignOpen}
+                handleClose={() => setReassignOpen(false)}
+                ticketID={ticketId}
+                oldTAID={AssignedID}
+                idNameMap={idToNameMap}
+                updateTA={(newTAID) => setAssignedID(newTAID)}
+              />
+            </div>
+  
+            <h3>Sponsor:</h3>
+            <div className="ticketAsset">{ticketData.sponsor_name}</div>
+  
+            <h3>Project - ID:</h3>
+            <div className="ticketAsset">{ticketData.team_name} - {ticketData.team_id}</div>
+  
+            <h3>Created at:</h3>
+            <div className="ticketAsset">
+              {ticketData.created_at ? new Date(ticketData.created_at).toLocaleString() : "N/A"}
+            </div>
+  
+            <h3>Last Updated:</h3>
+            <div className="ticketAsset">
+              {ticketData.updated_at ? new Date(ticketData.updated_at).toLocaleString() : "N/A"}
+            </div>
+  
+            <h3>Replies:</h3>
+            <ReplySection />
           </Stack>
-
-          <h3>Description:</h3>
-          <div className="ticketAsset">{ticketData.issue_description}</div>
-          <h3>Student:</h3>
-          <div className="ticketAsset">{ticketData.student_name}</div>
-          <h3>TA:</h3>
-          <div className="ticketAsset">
-            {idToNameMap[AssignedID]}&nbsp;
-            {userType === "admin" && (
-              <Button variant="contained" className="reassignButton" style={{ marginTop: "10px" }} onClick={() => setReassignOpen(true)}>Reassign</Button>
-            )}
-            <ConfirmReassign handleOpen={reassignOpen} handleClose={() => setReassignOpen(false)} ticketID={ticketId} oldTAID={AssignedID} idNameMap={idToNameMap} updateTA={(newTAID) => setAssignedID(newTAID)} />
-          </div>
-          <h3>Project:</h3>
-          <div className="ticketAsset">{ticketData.team_name}</div>
-          <h3>Replies:</h3>
-          <ReplySection />
-        </Stack>
+        </div>
+  
+        {editFormOpen && (
+          <EditTicket
+            ticketId={ticketId}
+            onClose={() => setEditFormOpen(false)}
+            handleSaveEdit={handleSaveEdit}
+          />
+        )}
       </div>
-      {editFormOpen && <EditTicket ticketId={ticketId} onClose={() => setEditFormOpen(false)} handleSaveEdit={handleSaveEdit} />}
-    </div>
-  );
+    </>
+  );  
 };
 
 export default TicketInfo;

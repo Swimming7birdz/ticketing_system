@@ -15,11 +15,11 @@ const EditTicket = ({ onClose}) => {
     const [section, setSection] = useState("");
     const [team, setTeam] = useState("");
     const [sponsorName, setSponsorName] = useState("");
-    const [instructor, setInstructor] = useState("");
+    // const [instructor, setInstructor] = useState("");
     const [issueType, setIssueType] = useState("");
     const [description, setDescription] = useState("");
     const [teamList, setTeamList] = useState([]); //empty array
-    const [taList, setTaList] = useState([]); //empty array
+    // const [taList, setTaList] = useState([]); //empty array
 
     const location = useLocation();
     const urlParameters = new URLSearchParams(location.search);
@@ -28,28 +28,28 @@ const EditTicket = ({ onClose}) => {
     useEffect(() => {
         console.log("Fetching ticket details for ticketId:", ticketId);
         fetchTicketDetails(ticketId);
-        fetchTAs();
+        // fetchTAs();
         fetchTeams();
     }, []);
 
     // Fetch TA users from the API
-    const fetchTAs = async () => {
-        try {
-            const token = Cookies.get("token");
-            const response = await fetch(`${baseURL}/api/users/role/TA`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const data = await response.json();
-            setTaList(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error("Failed to fetch TAs:", error);
-            setTaList([]); // Fallback to empty array
-        }
-    };
+    // const fetchTAs = async () => {
+    //     try {
+    //         const token = Cookies.get("token");
+    //         const response = await fetch(`${baseURL}/api/users/role/TA`, {
+    //             method: "GET",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 Authorization: `Bearer ${token}`,
+    //             },
+    //         });
+    //         const data = await response.json();
+    //         setTaList(Array.isArray(data) ? data : []);
+    //     } catch (error) {
+    //         console.error("Failed to fetch TAs:", error);
+    //         setTaList([]); // Fallback to empty array
+    //     }
+    // };
 
     // Fetch Teams from the API
     const fetchTeams = async () => {
@@ -84,11 +84,11 @@ const EditTicket = ({ onClose}) => {
           const ticketData = await response.json();
           console.log("Fetched ticket data:", ticketData);
 
-          setStudentName(ticketData.student_name);
+          setStudentName(ticketData.student.name);
           setTeam(ticketData.team_id);
           setSponsorName(ticketData.sponsor_name);
           setSection(ticketData.section);
-          setInstructor(ticketData.instructor_id);
+          //setInstructor(ticketData.instructor_id);
           setIssueType(ticketData.issue_type);
           setDescription(ticketData.issue_description);
       } catch (error) {
@@ -107,7 +107,7 @@ const EditTicket = ({ onClose}) => {
       section: section,
       issue_type: issueType,
       issue_description: description,
-      instructor_id: instructor,
+      //instructor_id: instructor,
     });
 
     try {
@@ -124,7 +124,7 @@ const EditTicket = ({ onClose}) => {
           section: section,
           issue_type: issueType,
           issue_description: description,
-          instructor_id: instructor, // Update assigned TA if necessary
+          //instructor_id: instructor, // Update assigned TA if necessary
         }),
       });
 
@@ -134,6 +134,7 @@ const EditTicket = ({ onClose}) => {
       if(response.ok) {
         alert("Ticket updated successfully!");
         onClose(); // Close the modal after updating
+        window.location.reload(); //refresh page to reflect new changes
       }
       else {
         console.error("Failed to update ticket:", responseData.message || "Unknown error");
@@ -150,7 +151,7 @@ const EditTicket = ({ onClose}) => {
     section,
     team,
     sponsorName,
-    instructor,
+    //instructor,
     issueType,
     description,
   });
@@ -223,7 +224,7 @@ const EditTicket = ({ onClose}) => {
               required
             />
           </label>
-          <label>
+          {/* <label>
             Instructor (TA):
             <select
               value={instructor}
@@ -237,7 +238,7 @@ const EditTicket = ({ onClose}) => {
                 </option>
               ))}
             </select>
-          </label>
+          </label> */}
           <label>
             Issue Type:
             <select
@@ -249,6 +250,9 @@ const EditTicket = ({ onClose}) => {
               <option value="sponsorIssue">Issues with Sponsor</option>
               <option value="teamIssue">Issues within the Team</option>
               <option value="assignmentIssue">Issues with Assignments</option>
+              <option value="Bug">Bug</option>
+              <option value="Feature Request">Feature Request</option>
+              <option value="Question">Question</option>
               <option value="other">Other</option>
             </select>
           </label>
