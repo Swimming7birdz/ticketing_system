@@ -95,7 +95,7 @@ async function insertTickets() {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     const sponsorName = "Sponsor Name";
     const section = "My Section";
-    const asu_id = faker.random.alphaNumeric(10);
+    //const asu_id = faker.random.alphaNumeric(10);
     return pool.query(
       "INSERT INTO tickets (student_id, team_id, issue_description, sponsor_name, section, issue_type, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
       [
