@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import { issueTypeDisplay } from "../../constants/IssueTypes";
 
+
 import "./TicketView.css"; // Adjust if necessary
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
