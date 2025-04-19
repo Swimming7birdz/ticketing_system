@@ -6,9 +6,6 @@ import { useNavigate } from "react-router-dom";
 //In order to have the buttons have a ripple effect, this page has to be rebuilt with mui
 //mui by default does the ripple effect
 import { Button } from "@mui/material";
-import { issueTypeDisplay } from "../../constants/IssueTypes";
-
-
 import "./TicketView.css"; // Adjust if necessary
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -118,7 +115,7 @@ const TicketView = ({ ticketId, onClose }) => {
           <strong>Section:</strong> {ticket.section}
         </p>
         <p>
-          <strong>Issue Type:</strong> {issueTypeDisplay[ticket.issue_type] || "Unknown Issue Type"}
+          <strong>Issue Type:</strong> {ticket.issue_type}
         </p>
         <p>
           <strong>Status:</strong> {ticket.status}

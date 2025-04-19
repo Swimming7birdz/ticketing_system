@@ -127,7 +127,7 @@ const CreateTicket = ({ onClose }) => {
       const a = await assignResponse.json();
       alert("Ticket submitted successfully!");
       console.log("Ticket created:", ticket);
-      console.log("Assignment", a);
+      console.log("Assignemtn", a);
 
       // Reset the form
       setStudentName("");
@@ -140,7 +140,6 @@ const CreateTicket = ({ onClose }) => {
       // setAsuId("");
 
       if (onClose) onClose(); // Close modal if `onClose` is provided
-      window.location.reload();
     } catch (error) {
       console.error("Error creating ticket:", error);
       alert(error.message || "An error occurred while submitting the ticket.");
@@ -255,9 +254,6 @@ const CreateTicket = ({ onClose }) => {
               <option value="sponsorIssue">Issues with Sponsor</option>
               <option value="teamIssue">Issues within the Team</option>
               <option value="assignmentIssue">Issues with Assignments</option>
-              <option value="Bug">Bug</option>
-              <option value="Feature Request">Feature Request</option>
-              <option value="Question">Question</option>
               <option value="other">Other</option>
             </select>
           </label>

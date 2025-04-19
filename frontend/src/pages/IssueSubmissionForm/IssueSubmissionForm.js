@@ -203,9 +203,6 @@ const IssueSubmissionForm = () => {
           <option value="assignmentIssue">
             Issues with Assignments or Grading (Including Extensions)
           </option>
-          <option value="Bug">Bug</option>
-          <option value="Feature Request">Feature Request</option>
-          <option value="Question">Question</option>
           <option value="other">Other</option>
         </select>
 
