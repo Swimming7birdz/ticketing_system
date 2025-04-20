@@ -71,3 +71,74 @@ export const fetchAllTicketDataById = async (ticketId) => {
   const url = `${baseURL}/api/tickets/info/${ticketId}`;
   return apiFetch(url);
 };
+
+//Fetch all TAs
+export const fetchAllTAs = async () => {
+  const url = `${baseURL}/api/users/role/TA`;
+  return apiFetch(url);
+};
+
+//Fetch all Teams
+export const fetchAllTeams = async () => {
+  const url = `${baseURL}/api/teams`;
+  return apiFetch(url);
+}
+
+// Fetch TA assignments by ticket ID
+export const fetchTAsByTicketId = async (ticketId) => {
+  const url = `${baseURL}/api/ticketassignments/ticket/${ticketId}`;
+  return apiFetch(url);
+};
+
+//
+export const handleSaveEdit = async (ticketId) => {
+  const url = `${baseURL}/api/tickets/${ticketId}/edit`;
+  const body = { status: "Update" }; 
+  return apiFetch(url, "PUT", body);
+};
+
+//
+export const handleStatusChange = async (ticketId) => {
+  const url = `${baseURL}/api/tickets/${ticketId}/status`;
+  const body = { status: newStatus };
+  return apiFetch(url, "PUT", body);
+};
+
+//Update a ticket's TA assignment
+export const handleTAUpdate = async (ticketId, oldTAID, newTAID) => {
+  const url = `${baseURL}/api/ticketassignments/ticket/${ticketId}/assignment/${oldTAID}`;
+  const body  = { new_user_id: newTAID };
+  return apiFetch(url, "PUT", body);
+};
+
+//Add new TAs (Note: uses default password)
+export const addTA = async (newTAName, newTAEmail) => {
+  const url = `${baseURL}/api/users`;
+  const body = {
+    name: newTAName,
+    email: newTAEmail,
+    role: "TA",
+    password: "password", // Default password
+  };
+  return apiFetch(url, "POST", body);
+};
+
+//Add new Teams
+export const addTeam = async (newTeamName) => {
+  const url = `${baseURL}/api/teams`;
+  const body = { team_name: newTeamName };
+  return apiFetch(url, "POST", body);
+};
+
+//Delete TA
+export const deleteTA = async (taId) => {
+  const url = `${baseURL}/api/users/${taId}`;
+  return apiFetch(url, "DELETE");
+};
+
+//Delete Team
+export const deleteTeam = async (teamId) => {
+  const url = `${baseURL}/api/teams/${teamId}`;
+  return apiFetch(url, "DELETE");
+};
+
