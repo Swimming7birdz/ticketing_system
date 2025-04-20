@@ -106,7 +106,7 @@ async function insertTickets() {
         section,
         issueType,
         status,
-        asu_id,
+        //asu_id,
       ]
     );
   });
