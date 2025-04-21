@@ -55,10 +55,21 @@ const Ticket = sequelize.define(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    // asu_id: {
+    //   type: DataTypes.STRING(10),
+    //   allowNull: false,
+    //   validate:{
+    //     len:[10,10],
+    //     isNumeric: true,
+    //   },
+    // },
   },
   {
     tableName: "tickets",
-    timestamps: false,
+    //Need to update ticket everytime it is edited
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   }
 );
 

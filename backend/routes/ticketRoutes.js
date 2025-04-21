@@ -66,5 +66,12 @@ router.put(
   authMiddleware.isAdmin,
   ticketController.reassignTicket
 );
+//Robert: add backend route
+router.put(
+  "/:ticket_id/edit",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  ticketController.editTicket
+);
 
 module.exports = router;

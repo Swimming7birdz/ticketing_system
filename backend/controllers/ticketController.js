@@ -46,14 +46,24 @@ exports.getTicketsByTAId = async (req, res) => {
 
 exports.getTicketById = async (req, res) => {
   try {
-    const ticket = await Ticket.findByPk(req.params.ticket_id);
+    const ticketId = req.params.ticket_id;
+
+    //Make sure ticketId includes associated student name as well. 
+    const ticket = await Ticket.findByPk(ticketId, {
+      include: [{
+        model: User,
+        as: 'student',
+        attributes: ['name']
+      }]
+    });
+
     if (ticket) {
       res.json(ticket);
     } else {
       res.status(404).json({ error: "Ticket not found" });
     }
   } catch (error) {
-    res.status(510).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -143,6 +153,27 @@ exports.deleteTicket = async (req, res) => {
     }
   } catch (error) {
     res.status(514).json({ error: error.message });
+  }
+};
+
+//Robert: need to have backend controller
+exports.editTicket = async (req, res) => {
+  try {
+    const ticket = await Ticket.findByPk(req.params.ticket_id);
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    //Update ticket with request body data
+    await ticket.update(req.body);
+
+    res.status(200).json({
+      message: "Ticket updated successfully",
+      ticket, //Return updated ticket data
+    });
+  } catch(error) {
+    console.error("Error editing ticket:", error);
+    res.status(500).json({ error: error.message});
   }
 };
 

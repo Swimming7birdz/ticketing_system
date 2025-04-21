@@ -18,7 +18,7 @@ const CreateTicket = ({ onClose }) => {
   const [description, setDescription] = useState("");
   const [taList, setTaList] = useState([]); // Initialize as empty array
   const [teamList, setTeamList] = useState([]); // Initialize as empty array for teams
-
+  // const [asuId, setAsuId] = useState(""); 
   useEffect(() => {
     fetchTAs();
     fetchTeams();
@@ -73,6 +73,7 @@ const CreateTicket = ({ onClose }) => {
       instructorName,
       issueType,
       description,
+      // asuId,
     };
 
     try {
@@ -93,6 +94,8 @@ const CreateTicket = ({ onClose }) => {
           section: submittedData.section,
           issue_type: submittedData.issueType,
           issue_description: submittedData.description,
+          // asu_id: submittedData.asuId,
+
         }),
       });
 
@@ -124,7 +127,7 @@ const CreateTicket = ({ onClose }) => {
       const a = await assignResponse.json();
       alert("Ticket submitted successfully!");
       console.log("Ticket created:", ticket);
-      console.log("Assignemtn", a);
+      console.log("Assignment", a);
 
       // Reset the form
       setStudentName("");
@@ -134,8 +137,10 @@ const CreateTicket = ({ onClose }) => {
       setInstructorName("");
       setIssueType("");
       setDescription("");
+      // setAsuId("");
 
       if (onClose) onClose(); // Close modal if `onClose` is provided
+      window.location.reload();
     } catch (error) {
       console.error("Error creating ticket:", error);
       alert(error.message || "An error occurred while submitting the ticket.");
@@ -180,6 +185,15 @@ const CreateTicket = ({ onClose }) => {
               required
             />
           </label>
+          {/* <label>ASU ID:</label>
+          <input
+            type="text"
+            placeholder="10-digit ASU ID"
+            value={asuId}
+            onChange={(e) => setAsuId(e.target.value)}
+            required
+            maxLength={10}
+          /> */}
           <label>
             Section:
             <input
@@ -241,6 +255,9 @@ const CreateTicket = ({ onClose }) => {
               <option value="sponsorIssue">Issues with Sponsor</option>
               <option value="teamIssue">Issues within the Team</option>
               <option value="assignmentIssue">Issues with Assignments</option>
+              <option value="Bug">Bug</option>
+              <option value="Feature Request">Feature Request</option>
+              <option value="Question">Question</option>
               <option value="other">Other</option>
             </select>
           </label>

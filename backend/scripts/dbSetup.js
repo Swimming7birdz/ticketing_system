@@ -6,8 +6,8 @@ require("dotenv").config();
 // Initialize connection pool
 const pool = new Pool({
   connectionString:
-  	"postgresql://test_user:testpassword@127.0.0.1:5432/test_database?sslmode=disable",
-	ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
+  	"postgres://j_user:j_password@127.0.0.1:5432/j_db",
+	//ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
 });
 
 // Helper function to hash passwords
@@ -25,15 +25,20 @@ async function insertUsers() {
   const hashedPassword = await hashPassword(defaultPassword);
 
   const userPromises = Array.from({ length: 20 }).map(async (_, i) => {
+
+    // const asu_id = faker.random.alphaNumeric(10);
+
     const firstName =  faker.person.firstName();
     const lastName = faker.person.lastName();
     const name = firstName + " " + lastName; // Corrected name generation
     const email = i === 0 ? "admin1@asu.edu" : faker.internet.email({firstName: firstName, lastName: lastName, provider: 'asu.edu'}); // Make the first user a specific admin, the rest will be randomly generated with asu emails
+
     const role =
       i === 0 ? "admin" : roles[Math.floor(Math.random() * roles.length)];
     return pool.query(
       "INSERT INTO users (name, email, role, password) VALUES ($1, $2, $3, $4)",
-      [name, email, role, hashedPassword]
+	[name, email, role, hashedPassword]
+      //[name, email, role, hashedPassword, asu_id]
     );
   });
 
@@ -90,6 +95,7 @@ async function insertTickets() {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     const sponsorName = "Sponsor Name";
     const section = "My Section";
+    //const asu_id = faker.random.alphaNumeric(10);
     return pool.query(
       "INSERT INTO tickets (student_id, team_id, issue_description, sponsor_name, section, issue_type, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
       [
@@ -100,6 +106,7 @@ async function insertTickets() {
         section,
         issueType,
         status,
+        //asu_id,
       ]
     );
   });
@@ -176,6 +183,7 @@ async function insertOfficeHours() {
 async function generateData() {
   try {
     await insertUsers();
+
     await insertTeams();
     await insertTeamMembers();
     await insertTickets();
@@ -189,7 +197,7 @@ async function generateData() {
     await insertTickets();
     await insertTicketAssignments();
     await insertTicketCommunications();
-    //await insertOfficeHours;
+
     console.log("Fake data inserted successfully!");
   } catch (error) {
     console.error("Error inserting data:", error);
