@@ -155,22 +155,20 @@ async function insertTicketCommunications() {
   console.log("Inserted ticket communications");
 }
 /*
-async function insertSchedule() {
+async function insertOfficeHours() {
   const users = await pool.query("SELECT user_id FROM users WHERE role = 'TA'");
 
-  const schedulePromises = Array.from({ length: 30 }).map(() => {
-    const ticket =
-      tickets.rows[Math.floor(Math.random() * tickets.rows.length)];
+  const schedulePromises = Array.from({ length: users.rows.length }).map(() => {
     const user = users.rows[Math.floor(Math.random() * users.rows.length)];
-    const message = faker.lorem.paragraph();
+    const office_hours = "Monday: 1:00 PM - 2:00 PM, Tuesday: 3:00 PM - 4:00 PM";
     return pool.query(
-      "INSERT INTO ticketcommunications (ticket_id, user_id, message) VALUES ($1, $2, $3)",
-      [ticket.ticket_id, user.user_id, message]
+      "INSERT INTO officehours (ta_id, schedule) VALUES ($1, $2)",
+      [user.user_id, schedule]
     );
   });
 
   await Promise.all(communicationPromises);
-  console.log("Inserted TA schedules");
+  console.log("Inserted TA office hours");
 }
 */
 
@@ -191,6 +189,7 @@ async function generateData() {
     await insertTickets();
     await insertTicketAssignments();
     await insertTicketCommunications();
+    //await insertOfficeHours;
     console.log("Fake data inserted successfully!");
   } catch (error) {
     console.error("Error inserting data:", error);

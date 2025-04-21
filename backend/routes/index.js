@@ -5,6 +5,7 @@ const communicationRoutes = require("./communicationRoutes");
 const authRoutes = require("./authRoutes");
 const teamMemberRoutes = require("./teamMemberRoutes");
 const ticketAssignmentRoutes = require("./ticketAssignmentRoutes");
+const officeHoursRoutes = require("./officeHoursRoutes");
 const pingRoutes = require("./pingRoutes");
 
 // Array to simplify route setup
@@ -17,6 +18,7 @@ const routes = [
   { path: "/api/teammembers", route: teamMemberRoutes },
   { path: "/api/ticketassignments", route: ticketAssignmentRoutes },
   { path: "/api/ping", route: pingRoutes },
+  { path: "/api/officehours", route: officeHoursRoutes},
 ];
 
 module.exports = (app) => {

@@ -74,6 +74,16 @@ TABLES['TicketCommunications'] = (
     ")"
 )
 
+TABLES['OfficeHours'] = (
+    "CREATE TABLE IF NOT EXISTS OfficeHours ("
+    "  office_hours_id INT NOT NULL,"
+    "  ta_id INT NOT NULL,"
+    "  office_hours JSONB,"
+    "  FOREIGN KEY (ta_id) REFERENCES Users(user_id)"
+    ")"
+)
+
+
 try:
     conn = psycopg2.connect(connection_string)
     cursor = conn.cursor()
