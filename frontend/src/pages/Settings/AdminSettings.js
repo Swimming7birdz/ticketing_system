@@ -270,7 +270,12 @@ const AdminSettings = () => {
               <TableCell>{ta.name}</TableCell>
               <TableCell>{ta.email}</TableCell>
               <TableCell align="right">
-                <Button color="secondary" onClick={() => deleteTA(ta.user_id)}>
+              <Button 
+                  color="secondary" 
+                  onClick={() =>  { 
+                    handleDelete(ta);
+                    }
+                  }> 
                   Delete
                 </Button>
               </TableCell>
@@ -279,6 +284,15 @@ const AdminSettings = () => {
         </TableBody>
       </Table>
     </TableContainer>
+    {deleteOpen && (
+      <ConfirmTADelete
+        handleOpen={deleteOpen}
+        handleClose={deletePopupClose}
+        ta={selectedTA}
+        idNameMap={idNameMap}
+        updateStatus={updateStatus}
+      />
+    )}
 
 
 
