@@ -23,7 +23,11 @@ router.get(
   authMiddleware.isTAOrAdmin,
   userController.getAllUsers
 );
-router.get("/:user_id", authMiddleware.verifyToken, userController.getUserById);
+router.get(
+  "/:user_id", 
+  authMiddleware.verifyToken, 
+  userController.getUserById
+);
 router.post(
   "/",
   authMiddleware.verifyToken,
