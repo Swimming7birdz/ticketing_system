@@ -40,4 +40,9 @@ npx nodemon server.js
 
 ### 📝 Notes
 
-Ensure your MySQL database is set up correctly and the **.env** file has valid credentials.
+Ensure your MySQL database is set up correctly and the **.env** file has valid credentials. 
+
+### Email information  
+For the .env backend file 
+EMAIL_USER=support@helpdesk.asucapstonetools.com
+EMAIL_PASS=TempNotify123!

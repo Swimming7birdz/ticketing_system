@@ -1,7 +1,8 @@
 const Ticket = require("../models/Ticket");
 const User = require("../models/User");
 const Team = require("../models/Team");
-const Communication = require("../models/Communication");
+const Communication = require("../models/Communication"); 
+const sendEmail = require('../services/emailService');
 
 exports.getAllTickets = async (req, res) => {
   try {
@@ -180,14 +181,48 @@ exports.editTicket = async (req, res) => {
 exports.updateTicketStatus = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
-    if (ticket) {
-      await ticket.update({ status: req.body.status });
-      res.json(ticket);
-    } else {
-      res.status(404).json({ error: "Ticket not found" });
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
     }
+
+    await ticket.update({ status: req.body.status });
+    const updatedTicket = await Ticket.findByPk(req.params.ticket_id);
+
+    const student = await User.findByPk(ticket.student_id);
+
+    if (!student || !student.email) {
+      console.warn("Student not found or missing email.");
+    } else if (!student.notifications_enabled) {
+      console.log(`Email not sent — notifications disabled for ${student.email}`);
+    } else {
+      const isEscalated = req.body.status.toLowerCase() === 'escalated';
+
+      const subject = isEscalated
+        ? 'Your Ticket Has Been Escalated'
+        : 'Ticket Status Updated';
+
+      const body = isEscalated
+        ? `Your ticket (ID: ${ticket.ticket_id}) has been escalated and is under review.`
+        : `Your ticket (ID: ${ticket.ticket_id}) has been updated to "${req.body.status}".`;
+
+      await sendEmail(student.email, subject, body);
+
+      if (isEscalated) {
+        // const instructorEmails = ['instructor1@asu.edu', 'instructor2@asu.edu'];
+        // for (const email of instructorEmails) {
+        //   await sendEmail(
+        //     email,
+        //     `Ticket Escalated: ID ${ticket.ticket_id}`,
+        //     `Ticket ID ${ticket.ticket_id} has been escalated.\n\nStudent: ${student.name} (${student.email})`
+        //   );
+        // }
+      }
+    }
+
+    res.json(updatedTicket);
   } catch (error) {
-    res.status(515).json({ error: error.message });
+    console.error("Error updating ticket and sending email:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
