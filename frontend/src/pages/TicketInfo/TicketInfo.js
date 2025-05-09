@@ -29,6 +29,7 @@ const TicketInfo = () => {
   const [ticketData, setTicketData] = useState(null);
   const [ticketStatus, setTicketStatus] = useState("");
   const [loadingTicketData, setLoadingTicketData] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [error, setError] = useState(false);
   const [AssignedID, setAssignedID] = useState([]);
   const [idToNameMap, setIdToNameMap] = useState({});
@@ -54,12 +55,17 @@ const TicketInfo = () => {
         },
       });
 
-      if (!ticketDataResponse.ok) throw new Error("Failed to fetch tickets");
-
-      const data = await ticketDataResponse.json();
-      setTicketData(data);
-      setTicketStatus(data.status);
-      setLoadingTicketData(false);
+      if (!ticketDataResponse.ok) {
+        setUnauthorized(true);
+        throw new Error("Failed to fetch tickets");
+        
+      } else {
+        const data = await ticketDataResponse.json();
+        setTicketData(data);
+        setTicketStatus(data.status);
+        setLoadingTicketData(false);
+      }
+      
     } catch (err) {
       console.error("Error: ", err);
       setError(true);
@@ -215,6 +221,14 @@ const TicketInfo = () => {
     setEditFormOpen(true);
   };
 
+  if (unauthorized){
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0" }}>
+        <Typography variant="h6" sx={{ color: "#8C1D40" }}>Sorry, you are not authorized to view this ticket</Typography>
+      </div>
+    );
+  }
+  
   if (loadingTicketData) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0", flexDirection: "column", gap: "20px" }}>
