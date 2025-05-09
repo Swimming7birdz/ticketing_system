@@ -79,11 +79,14 @@ function Profile() {
       });      
       if(!response.ok)
       {
-        throw new Error(`failed to update profile. Status ${response.status}`);
+        alert(`ERROR failed to update profile. Status ${response.status}`);
+        //throw new Error(`failed to update profile. Status ${response.status}`);
+      } else {
+        const updatedUser = await response.json();
+        setUser(updatedUser);
+        setIsEditing(false);
+
       }
-      const updatedUser = await response.json();
-      setUser(updatedUser);
-      setIsEditing(false);
     } catch(err){
       console.error("Error updating profile: ",err);
       setError(err.message);

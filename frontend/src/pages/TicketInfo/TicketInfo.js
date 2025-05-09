@@ -138,17 +138,20 @@ const TicketInfo = () => {
             },
         });
 
+        //console.log("Assigned TA ID: ", getResponse);
+
         if (!getResponse.ok) {
           console.error(`Failed to get assigned TAs ID. Status: ${getResponse.status}`);
           console.error(`${getResponse.reason}`);
         }
       
         const list = await getResponse.json();
+        console.log("Assigned TA ID: ", list);
         const TA_id = list.map(obj => obj.user_id)[0]; //if tickets have multiple TAs, only get the first one
         setAssignedID(TA_id);
 
       } catch (err) {
-        console.log("Error: ", error);
+        console.log("Error: ", err);
         setError(true);
       }
   }
@@ -180,7 +183,7 @@ const TicketInfo = () => {
         }
       
         const list = await getResponse.json();
-        //console.log("all ID: ", list);
+        console.log("all ID: ", list);
         const idToNameMap = convertToMap(list);
         setIdToNameMap(idToNameMap);
 

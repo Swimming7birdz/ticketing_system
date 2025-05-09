@@ -15,10 +15,10 @@ router.get(
   authMiddleware.verifyToken,
   ticketAssignmentController.getTicketAssignmentsByUserId
 );
-router.get(
+router.get( //changed to allow students to see TA assignments
   "/ticket/:ticket_id",
   authMiddleware.verifyToken,
-  authMiddleware.isTAOrAdmin,
+  authMiddleware.isStudentOrTAOrAdmin,
   ticketAssignmentController.getTicketAssignmentsByTicketId
 );
 router.post( // 2/21/25 changed to allow everyone to post in order to stop getting ticket assignment error
