@@ -29,6 +29,7 @@ const TicketInfo = () => {
   const [ticketData, setTicketData] = useState(null);
   const [ticketStatus, setTicketStatus] = useState("");
   const [loadingTicketData, setLoadingTicketData] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [error, setError] = useState(false);
   const [AssignedID, setAssignedID] = useState([]);
   const [idToNameMap, setIdToNameMap] = useState({});
@@ -54,12 +55,17 @@ const TicketInfo = () => {
         },
       });
 
-      if (!ticketDataResponse.ok) throw new Error("Failed to fetch tickets");
-
-      const data = await ticketDataResponse.json();
-      setTicketData(data);
-      setTicketStatus(data.status);
-      setLoadingTicketData(false);
+      if (!ticketDataResponse.ok) {
+        setUnauthorized(true);
+        throw new Error("Failed to fetch tickets");
+        
+      } else {
+        const data = await ticketDataResponse.json();
+        setTicketData(data);
+        setTicketStatus(data.status);
+        setLoadingTicketData(false);
+      }
+      
     } catch (err) {
       console.error("Error: ", err);
       setError(true);
@@ -138,17 +144,20 @@ const TicketInfo = () => {
             },
         });
 
+        //console.log("Assigned TA ID: ", getResponse);
+
         if (!getResponse.ok) {
           console.error(`Failed to get assigned TAs ID. Status: ${getResponse.status}`);
           console.error(`${getResponse.reason}`);
         }
       
         const list = await getResponse.json();
+        console.log("Assigned TA ID: ", list);
         const TA_id = list.map(obj => obj.user_id)[0]; //if tickets have multiple TAs, only get the first one
         setAssignedID(TA_id);
 
       } catch (err) {
-        console.log("Error: ", error);
+        console.log("Error: ", err);
         setError(true);
       }
   }
@@ -180,7 +189,7 @@ const TicketInfo = () => {
         }
       
         const list = await getResponse.json();
-        //console.log("all ID: ", list);
+        console.log("all ID: ", list);
         const idToNameMap = convertToMap(list);
         setIdToNameMap(idToNameMap);
 
@@ -212,6 +221,14 @@ const TicketInfo = () => {
     setEditFormOpen(true);
   };
 
+  if (unauthorized){
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0" }}>
+        <Typography variant="h6" sx={{ color: "#8C1D40" }}>Sorry, you are not authorized to view this ticket</Typography>
+      </div>
+    );
+  }
+  
   if (loadingTicketData) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0", flexDirection: "column", gap: "20px" }}>

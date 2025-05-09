@@ -6,7 +6,7 @@ require("dotenv").config();
 // Initialize connection pool
 const pool = new Pool({
   connectionString:
-  	"postgres://j_user:j_password@127.0.0.1:5432/j_db",
+  	"postgres://test_user:testpassword@127.0.0.1:5432/test_database",
 	//ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
 });
 

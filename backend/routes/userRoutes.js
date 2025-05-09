@@ -34,10 +34,10 @@ router.post(
   authMiddleware.isAdmin,
   userController.createUser
 );
-router.put(
+router.put( //changed to allow students and TAs to edit their own profile
   "/:user_id",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
+  authMiddleware.isStudentOrTAOrAdmin,
   userController.updateUser
 );
 router.delete(

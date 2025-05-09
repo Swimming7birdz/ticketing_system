@@ -117,6 +117,28 @@ const AdminSettings = () => {
     }
   };
 
+  const encryptPassword = async (password) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/encrypt`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ password }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to encrypt password.");
+      const data = await response.json();
+      return data.hashedPassword;
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const addTA = async () => {
     if (!newTAName.trim())           //validation check to prevent adding blank TA name
     {
@@ -129,6 +151,7 @@ const AdminSettings = () => {
       return;
     }
     
+    const defaultPassword = await encryptPassword(`password`); // Encrypt the default password
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_BASE_URL}/api/users`,
@@ -142,7 +165,7 @@ const AdminSettings = () => {
             name: newTAName,
             email: newTAEmail,
             role: "TA",
-            password: "password", // Default password
+            password: defaultPassword, // Default password
           }),
         }
       );
