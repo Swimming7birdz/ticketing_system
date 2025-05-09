@@ -84,7 +84,7 @@ const SideBar = () => {
         } else if (userType === "student") {
           navigate("/mytickets"); // Students only see their own tickets
         } else {
-          navigate("/alltickets"); // Default case (for TAs or unknown roles)
+          navigate("/instructortickets"); // Default case (for TAs or unknown roles)
         }
   }}
 >

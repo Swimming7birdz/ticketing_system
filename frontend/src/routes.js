@@ -51,6 +51,12 @@ const routes = [
     roles: ["admin", "student", "TA"],
   },
   {
+    path: "/instructortickets",
+    element: <InstructorTickets />,
+    isProtected: true,
+    roles: ["admin", "student", "TA"],
+  },
+  {
     path: "/ta-info",
     element: <TAinfo />,
     isProtected: true,

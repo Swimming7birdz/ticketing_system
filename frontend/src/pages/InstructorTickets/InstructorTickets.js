@@ -33,23 +33,21 @@ const InstructorTickets = () => {
     }
 
     const loadTickets = async () => {
-        try {
-        const instructorTickets = await fetchTicketAssignmentsByUserId();//change
+      try {
+        const instructorTickets = await fetchTicketAssignmentsByUserId();
+        console.log(instructorTickets);
         const sortedTickets = sortTicketsById(instructorTickets);
         const uniqueTickets = filterUniqueTickets(sortedTickets);
        
         const ticketList = await Promise.all(
-            uniqueTickets.map(async (ticket) => {
-                const ticketData = await fetchTicketById(ticket.ticket_id);
-                return ticketData;
+            uniqueTickets.map(async (ticket_) => {
+                const ticketData = await fetchTicketById(ticket_.ticket_id);
+                return { ...ticket_, ticketData };
             })
         );
-        console.log(ticketList);
-       
         setTickets(ticketList);
         setTotalTickets(ticketList.length);
         setLoading(false);
-        
         
     } catch (error) {
         console.error("Error fetching instructor tickets:", error);
@@ -159,12 +157,13 @@ const InstructorTickets = () => {
 >
 
           {tickets.map((ticket) => (
+            ticket = ticket.ticketData,
             <TicketCard
               key={ticket.ticket_id}
               ticketId={ticket.ticket_id}
               issueDescription={ticket.issue_description}
               status={ticket.status} 
-              name={ticket.student_name || "Unknown"}
+              name={ticket.student?.name || "Unknown"}
             />
           ))}
         </div>

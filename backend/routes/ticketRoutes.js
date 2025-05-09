@@ -15,7 +15,7 @@ router.get(
   authMiddleware.verifyToken,
   ticketController.getTicketsByUserId
 );
-router.get(
+router.get( //depricated
   "/ta/:ta_id",
   authMiddleware.verifyToken,
   authMiddleware.isTAOrAdmin,
