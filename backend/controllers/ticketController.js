@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Team = require("../models/Team");
 const Communication = require("../models/Communication"); 
 const sendEmail = require('../services/emailService');
+const TicketAssignment = require("../models/TicketAssignment");
 
 exports.getAllTickets = async (req, res) => {
   try {
@@ -74,7 +75,12 @@ exports.getAllTicketDataById = async (req, res) => {
 
   if (req.user.role !== 'admin') {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
-    if (!ticket || ticket.student_id !== req.user.id) {
+    const ticketAssignments = await TicketAssignment.findAll({where: { ticket_id: req.params.ticket_id },});
+    const firstAssignment = ticketAssignments[0]; // Get the first element
+     if (
+      !(!ticket || ticket.student_id !== req.user_id) &&
+      (!firstAssignment || firstAssignment.user_id !== req.user_id)
+      ) {
       console.log(" Access Denied - User is not allowed to view this ticket.");
       return res.status(403).json({ error: "Access denied: You can only view your own tickets." });
     }
