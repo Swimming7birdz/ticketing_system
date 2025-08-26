@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const bcrypt = require("bcrypt"); // Required for password change
+const bcrypt = require("bcryptjs"); // Required for password change
 
 // github tracking 
 
