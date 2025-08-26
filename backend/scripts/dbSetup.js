@@ -1,6 +1,6 @@
 const { Pool } = require("pg");
 const { faker } = require("@faker-js/faker");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 require("dotenv").config();
 
 // Initialize connection pool
