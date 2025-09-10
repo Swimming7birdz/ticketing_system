@@ -39,6 +39,11 @@ const AllTickets = () => {
     applyFilters();
   }, [tickets, activeFilters, hideResolved]);
 
+  useEffect(() => {
+  if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
+    setHideResolved(false);
+  }
+}, [activeFilters.status]);
 
   const applyFilters = () => {
     let filtered = [...tickets];
