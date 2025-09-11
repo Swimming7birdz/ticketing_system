@@ -124,7 +124,7 @@ const StudentSettings = () => {
         >
           <MenuItem value="all">All My Tickets</MenuItem>
           <MenuItem value="new">New</MenuItem>
-          <MenuItem value="in-progress">In Progress</MenuItem>
+          <MenuItem value="ongoing">Ongoing</MenuItem>
           <MenuItem value="resolved">Resolved</MenuItem>
         </Select>
       </FormControl>

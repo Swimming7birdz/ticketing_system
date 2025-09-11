@@ -133,8 +133,8 @@ const TicketCard = ({
   <Typography variant="body2" sx={{ fontWeight: "bold" }}>
     Status:
   </Typography>
-  {(normalizedStatus === "in progress" || normalizedStatus === "ongoing") && (
-  <Chip label="In Progress" size="small" sx={{ backgroundColor: "#ADE1BE", color: "#1C741F" }} />
+  {(normalizedStatus === "ongoing") && (
+  <Chip label="Ongoing" size="small" sx={{ backgroundColor: "#ADE1BE", color: "#1C741F" }} />
 )}
 {normalizedStatus === "escalated" && (
   <Chip label="Escalated" size="small" sx={{ backgroundColor: "#A0C0F0", color: "#1965D8" }} />

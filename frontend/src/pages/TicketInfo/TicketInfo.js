@@ -253,9 +253,9 @@ const TicketInfo = () => {
             <FormControl sx={{ minWidth: 150, ml: 2, mt: 1 }}>
               <InputLabel sx={{ top: "-5px" }}>Status</InputLabel>
               <Select value={ticketStatus} onChange={handleStatusChange} sx={{ padding: "10px", height: "40px" }}>
-                <MenuItem value="New">New</MenuItem>
-                <MenuItem value="In Progress">In Progress</MenuItem>
-                <MenuItem value="Resolved">Resolved</MenuItem>
+                <MenuItem value="new">New</MenuItem>
+                <MenuItem value="ongoing">Ongoing</MenuItem>
+                <MenuItem value="resolved">Resolved</MenuItem>
                 <MenuItem value="Escalated">Escalated</MenuItem>
               </Select>
             </FormControl>
