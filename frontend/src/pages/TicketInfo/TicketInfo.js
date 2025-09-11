@@ -256,7 +256,7 @@ const TicketInfo = () => {
                 <MenuItem value="new">New</MenuItem>
                 <MenuItem value="ongoing">Ongoing</MenuItem>
                 <MenuItem value="resolved">Resolved</MenuItem>
-                <MenuItem value="Escalated">Escalated</MenuItem>
+                {/*<MenuItem value="Escalated">Escalated</MenuItem>*/}
               </Select>
             </FormControl>
             <Button variant="contained" className="editButton" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
