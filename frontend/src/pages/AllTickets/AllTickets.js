@@ -39,6 +39,11 @@ const AllTickets = () => {
     applyFilters();
   }, [tickets, activeFilters, hideResolved]);
 
+  useEffect(() => {
+  if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
+    setHideResolved(false);
+  }
+}, [activeFilters.status]);
 
   const applyFilters = () => {
     let filtered = [...tickets];
@@ -48,6 +53,10 @@ const AllTickets = () => {
       filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (activeFilters.sort === "oldest") {
       filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (activeFilters.sort === "id-asc") {
+    filtered.sort((a, b) => a.ticket_id - b.ticket_id);
+    } else if (activeFilters.sort === "id-desc") {
+      filtered.sort((a, b) => b.ticket_id - a.ticket_id);
     }
 
     // Apply status filter
@@ -283,6 +292,40 @@ const AllTickets = () => {
               <span style={{ marginRight: 8 }}>✔</span>
             )}
             Oldest
+          </MenuItem>
+
+          {/* Sort: ID Ascending */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.sort === "id-asc") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "id-asc" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.sort === "id-asc" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Sort by ID: Ascending
+          </MenuItem>
+
+          {/* Sort: ID Descending */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.sort === "id-desc") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "id-desc" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.sort === "id-desc" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Sort by ID: Descending
           </MenuItem>
 
           {/* Status: New */}
