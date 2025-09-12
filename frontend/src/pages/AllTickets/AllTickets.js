@@ -17,12 +17,13 @@ const AllTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
-  const [filterAnchor, setFilterAnchor] = useState(null); // For dropdown
+  const [filterAnchor, setFilterAnchor] = useState(null); 
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState({
     sort: null,
     status: null,
     search: "",
+    ticketIdSearch: "", 
   });
 
   const [hideResolved, setHideResolved] = useState(true);
@@ -75,6 +76,13 @@ const AllTickets = () => {
           .includes(activeFilters.search.toLowerCase())
       );
     }
+
+    // Search by ticket ID
+    if (activeFilters.ticketIdSearch) {
+    filtered = filtered.filter(
+      (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
+    );
+  }
 
     if (hideResolved) {
       filtered = filtered.filter(
@@ -222,6 +230,15 @@ const AllTickets = () => {
             value={activeFilters.search}
             onChange={(e) =>
               setActiveFilters({ ...activeFilters, search: e.target.value })
+            }
+            sx={{ flex: 1 }}
+          />
+          <TextField
+            label="Search by Ticket ID"
+            variant="outlined"
+            value={activeFilters.ticketIdSearch}
+            onChange={(e) =>
+              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
             }
             sx={{ flex: 1 }}
           />
