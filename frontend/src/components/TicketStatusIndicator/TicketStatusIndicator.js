@@ -5,15 +5,30 @@ const TicketStatusIndicator = ({status}) => {
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
             case "new":
-                return "#FFFFC5";
-            case "ongoing":
-                return "#ADE1BE";
-            case "escalated":
                 return "#F89795";
-            case "resolved":
+            case "ongoing":
                 return "#A0C0F0";
+            case "escalated":
+                return "#A9CDEB";
+            case "resolved":
+                return "#ADE1BE";
             default:
                 return "gray"; 
+        }
+    };
+
+    const getStatusFontColor = (status) => {
+        switch (status.toLowerCase()) {
+            case "new":
+                return "#D00505";
+            case "ongoing":
+                return "#1965D8";
+            case "escalated":
+                return "#326D94";
+            case "resolved":
+                return "#1C741F";
+            default:
+                return "black"; 
         }
     };
 
@@ -21,7 +36,7 @@ const TicketStatusIndicator = ({status}) => {
         <div className="ticketStatusIndicator">
             <span 
                 className="statusCircle" 
-                style={{ backgroundColor: getStatusColor(status) }} 
+                style={{ backgroundColor: getStatusColor(status), color: getStatusFontColor(status) }} 
             >
                 {status}
             </span>
