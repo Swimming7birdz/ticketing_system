@@ -266,7 +266,7 @@ const TicketInfo = () => {
             {userType === "TA" && (
               <Button variant="contained" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
             )}
-            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} />
+            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
           </Stack>
 
           <h3>Description:</h3>
