@@ -236,7 +236,7 @@ exports.escalateTicket = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
     if (ticket) {
-      await ticket.update({ status: "escalated" });
+      await ticket.update({ escalated: true });
       res.json(ticket);
     } else {
       res.status(404).json({ error: "Ticket not found" });
