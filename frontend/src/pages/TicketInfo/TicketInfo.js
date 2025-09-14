@@ -263,10 +263,14 @@ const TicketInfo = () => {
             <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
             <Button variant="contained" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
             <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} />
-            {userType === "TA" && (
+            {userType === "TA" && ticketData.escalated === false && (
               <Button variant="contained" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
             )}
             <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
+            {userType === "admin" && ticketData.escalated && (
+              <Button variant="contained" className="deEscalateButton">Resolve Escalation</Button>
+            )}
+            
           </Stack>
 
           <h3>Description:</h3>
