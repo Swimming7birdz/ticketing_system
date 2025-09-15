@@ -33,10 +33,6 @@ const EscalatedTickets = () => {
     applyFilters();
     }, [tickets, activeFilters]);
 
-    useEffect(() => {
-    applyFilters();
-    }, [tickets, activeFilters]);
-
     const applyFilters = () => {
         let filtered = tickets.filter(ticket => ticket.escalated === true);
 
@@ -78,7 +74,7 @@ const EscalatedTickets = () => {
     };
 
     const handleClearFilters = () => {
-        setActiveFilters({ sort: null, status: null, search: "" });
+        setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch });
     };
 
     const fetchNameFromId = async (student_id) => {

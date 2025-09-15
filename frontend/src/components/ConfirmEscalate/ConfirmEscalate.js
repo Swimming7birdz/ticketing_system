@@ -26,7 +26,7 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
             );
         
             if (!escalateResponse.ok) {
-                console.error(`Failed to esclate ticket. Status: ${escalateResponse.status}`);
+                console.error(`Failed to escalate ticket. Status: ${escalateResponse.status}`);
                 console.error(`${escalateResponse.reason}`);
                 alert("Failed to escalate ticket. Please try again.");
             } else {
