@@ -1,6 +1,7 @@
 import ArticleIcon from "@mui/icons-material/Article";
 import PeopleIcon from "@mui/icons-material/People";
-import { Avatar, Button, Typography } from "@mui/material";
+import { Avatar, Button, Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
@@ -10,6 +11,7 @@ import TicketCard from "../../components/TicketCard";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AdminDash = () => {
+  const theme = useTheme();
   const [tickets, setTickets] = useState([]);
   const [TACounts, setTACounts] = useState([]);
   const [TAs, setTAs] = useState([]);
@@ -193,34 +195,34 @@ const AdminDash = () => {
 
   if (loading) {
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh", // Full viewport height to center vertically
-          backgroundColor: "#f0f0f0", // Optional: a subtle background color
+          backgroundColor: theme.palette.background.default, // Optional: a subtle background color
           flexDirection: "column",
-          gap: "20px",
+          gap: 2.5,
         }}
       >
         <CircularProgress size={80} thickness={4} />{" "}
         {/* Adjust size and thickness */}
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
           Loading, please wait...
         </Typography>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#DBDADA",
-        padding: 50,
-        gap: 50,
+        backgroundColor: theme.palette.background.default,
+        padding: 6.25,
+        gap: 6.25,
       }}
     >
       <Typography
@@ -230,14 +232,14 @@ const AdminDash = () => {
         Admin Dashboard
       </Typography>
       {/* TICKET SECTION CONTAINER */}
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
           flex: 1,
         }}
       >
@@ -263,7 +265,7 @@ const AdminDash = () => {
             </Typography>
             <Typography
               variant="p"
-              sx={{ fontSize: "0.8rem", color: "#737373" }}
+              sx={{ fontSize: "0.8rem", color: theme.palette.text.secondary }}
             >
               Total Tickets
             </Typography>
@@ -272,7 +274,7 @@ const AdminDash = () => {
             variant="contained"
             disableElevation
             sx={{
-              backgroundColor: "#8C1D40",
+              backgroundColor: theme.palette.primary.main,
               color: "white",
               borderRadius: 999,
               fontSize: "0.75rem",
@@ -304,17 +306,17 @@ const AdminDash = () => {
             />
           ))}
         </div>
-      </div>
+      </Box>
 
       {/* TA SECTION CONTAINER */}
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
           flex: 1,
         }}
       >
@@ -340,7 +342,7 @@ const AdminDash = () => {
             </Typography>
             <Typography
               variant="p"
-              sx={{ fontSize: "0.8rem", color: "#737373" }}
+              sx={{ fontSize: "0.8rem", color: theme.palette.text.secondary }}
             >
               Assignees
             </Typography>
@@ -349,7 +351,7 @@ const AdminDash = () => {
             variant="contained"
             disableElevation
             sx={{
-              backgroundColor: "#8C1D40",
+              backgroundColor: theme.palette.primary.main,
               color: "white",
               borderRadius: 999,
               fontSize: "0.75rem",
@@ -380,8 +382,8 @@ const AdminDash = () => {
             />
           ))}
         </div>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

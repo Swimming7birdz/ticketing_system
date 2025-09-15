@@ -80,7 +80,7 @@ export default function SignIn(props) {
       const token = responseData.token;
 
       // Store Cookie
-      Cookies.set("token", token, { secure: true, sameSite: "Strict" });
+      Cookies.set("token", token, { secure: false, sameSite: "Strict" });
 
       // Get Role
       const decodedToken = jwtDecode(token);
@@ -88,7 +88,7 @@ export default function SignIn(props) {
       const userId = decodedToken.id;
 
       // Store ID
-      Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
+      Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
 
       // Redirect based on role
       if (userType === "admin") {

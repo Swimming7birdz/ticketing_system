@@ -13,12 +13,16 @@ import {
   ListItemSecondaryAction,
   ListItemText,
   Typography,
+  Switch,
+  FormControlLabel,
+  Divider,
 } from "@mui/material";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import "./AdminSettings.css";
 import {useNavigate} from "react-router-dom";
 import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
@@ -30,12 +34,71 @@ const AdminSettings = () => {
   const [selectedTA, setSelectedTA] = useState(null); // To track which TA is being deleted
   const [idNameMap, setIdToNameMap] = useState({});
   const [deleteStatus, setDeleteStatus] = useState(false);
+  const [user, setUser] = useState(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const token = Cookies.get("token");
   const navigate = useNavigate();
+  const { isDarkMode, toggleTheme } = useTheme();
   useEffect(() => {
     fetchTeams();
     fetchTAs();
+    fetchUserProfile();
   }, [deleteStatus]); // Fetch teams and TAs when the component mounts or when deleteStatus changes
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/profile`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data);
+        setNotificationsEnabled(data.notifications_enabled);
+      }
+    } catch (error) {
+      console.error("Failed to load user profile:", error);
+    }
+  };
+
+  const updatePreference = (updates) => {
+    if (!user) return;
+
+    fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/${user.user_id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ...user,
+        ...updates,
+      }),
+    })
+      .then((res) => res.json())
+      .then((updatedUser) => {
+        setUser(updatedUser);
+      })
+      .catch((err) => {
+        console.error("Error saving preferences:", err);
+      });
+  };
+
+  const handleNotificationsToggle = () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    updatePreference({ notifications_enabled: newValue });
+  };
+
+  const handleDarkModeToggle = () => {
+    const newValue = !isDarkMode;
+    toggleTheme();
+    updatePreference({ dark_mode: newValue });
+  };
 
   const fetchTeams = async () => {
     try {
@@ -240,6 +303,25 @@ const AdminSettings = () => {
       <Typography variant="h4" className="settings-title">
         Settings
       </Typography>
+      
+      {/* Personal Preferences Section */}
+      <div className="section-container">
+        <Typography variant="h5" className="section-title">
+          Personal Preferences
+        </Typography>
+        <FormControlLabel
+          control={<Switch checked={notificationsEnabled} onChange={handleNotificationsToggle} />}
+          label="Email Notifications"
+        />
+        <br />
+        <FormControlLabel
+          control={<Switch checked={isDarkMode} onChange={handleDarkModeToggle} />}
+          label="Dark Mode"
+        />
+      </div>
+
+      <Divider sx={{ margin: "20px 0" }} />
+
       {/* Teams Section */}
       <div className="section-container">
         <Typography variant="h5" className="section-title">
