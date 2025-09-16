@@ -125,6 +125,34 @@ const TicketInfo = () => {
     }
   };
 
+  const resolveEscalation = async () => {
+    try{
+        const deescalateResponse = await fetch(
+            `${baseURL}/api/tickets/${ticketId}/deescalate`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    
+        if (!deescalateResponse.ok) {
+            console.error(`Failed to de-escalate ticket. Status: ${deescalateResponse.status}`);
+            console.error(`${deescalateResponse.reason}`);
+            alert("Failed to de-escalate ticket. Please try again.");
+        } else {
+            alert("Ticket was de-escalated successfully.");        
+        }
+        
+
+    } catch(error) {
+        console.log("Error: ", error);
+        setError(true);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [ticketId]);
@@ -263,10 +291,14 @@ const TicketInfo = () => {
             <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
             <Button variant="contained" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
             <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} />
-            {userType === "TA" && (
+            {userType === "TA" && ticketData.escalated === false && (
               <Button variant="contained" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
             )}
-            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} />
+            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
+            {userType === "admin" && ticketData.escalated && (
+              <Button variant="contained" className="deEscalateButton" onClick={() => resolveEscalation()}>Resolve Escalation</Button>
+            )}
+            
           </Stack>
 
           <h3>Description:</h3>

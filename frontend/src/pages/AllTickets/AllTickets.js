@@ -265,7 +265,7 @@ const AllTickets = () => {
             onClick={() => setHideResolved(prev => !prev)}
             sx={{ borderColor: "#8C1D40", color: "#8C1D40" }}
           >
-            {hideResolved ? "Show Resolved Tickets" : "Hide Resolved Tickets"}
+            {hideResolved ? "Include Resolved Tickets" : "Hide Resolved Tickets"}
           </Button>
 
         </div>
