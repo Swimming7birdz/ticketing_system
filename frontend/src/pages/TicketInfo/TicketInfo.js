@@ -125,6 +125,34 @@ const TicketInfo = () => {
     }
   };
 
+  const resolveEscalation = async () => {
+    try{
+        const deescalateResponse = await fetch(
+            `${baseURL}/api/tickets/${ticketId}/deescalate`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    
+        if (!deescalateResponse.ok) {
+            console.error(`Failed to de-escalate ticket. Status: ${deescalateResponse.status}`);
+            console.error(`${deescalateResponse.reason}`);
+            alert("Failed to de-escalate ticket. Please try again.");
+        } else {
+            alert("Ticket was de-escalated successfully.");        
+        }
+        
+
+    } catch(error) {
+        console.log("Error: ", error);
+        setError(true);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [ticketId]);
@@ -268,7 +296,7 @@ const TicketInfo = () => {
             )}
             <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
             {userType === "admin" && ticketData.escalated && (
-              <Button variant="contained" className="deEscalateButton">Resolve Escalation</Button>
+              <Button variant="contained" className="deEscalateButton" onClick={() => resolveEscalation()}>Resolve Escalation</Button>
             )}
             
           </Stack>
