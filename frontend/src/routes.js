@@ -80,8 +80,8 @@ const routes = [
     isProtected: true,
     roles: ["TA"],
   },
-  {// addd 3/22/25 along with creation of instructor profile
-    path: "/instructorprofile".
+  {
+    path: "/instructorprofile",
     element: <InstructorProfile />,
     isProtected: true,
     roles: ["admin", "student", "TA"],

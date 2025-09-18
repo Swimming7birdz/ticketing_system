@@ -13,10 +13,12 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 const AdminDash = () => {
   const theme = useTheme();
   const [tickets, setTickets] = useState([]);
+  const [escalatedTickets, setEscalatedTickets] = useState([]);
   const [TACounts, setTACounts] = useState([]);
   const [TAs, setTAs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
+  const [totalEscalatedTickets, setTotalEscalatedTickets] = useState(0);
   const [totalTAs, setTotalTAs] = useState(0);
   const [statusCounts, setStatusCounts] = useState({});
   const [assignees, setAssignees] = useState([]);
@@ -172,6 +174,7 @@ const AdminDash = () => {
       }
 
       const ticketsData = await response.json();
+      const escalated = ticketsData.filter(ticket => ticket.escalated === true);
       const limitedTickets = ticketsData.slice(0, 21); // Maybe do this to set how may tickets we want to display
 
       // Grab name from ticket
@@ -182,9 +185,20 @@ const AdminDash = () => {
         })
       );
 
+       const ticketsWithNamesEscalated = await Promise.all(
+        escalated.map(async (ticket) => {
+          const userName = await fetchNameFromId(ticket.student_id); // Fetch user name based on ticket ID
+          return { ...ticket, userName }; // Add the userName to the ticket object
+        })
+      );
+
+
       // set tickets
       setTickets(ticketsWithNames); // Assuming data is an array of tickets
       setTotalTickets(ticketsData.length);
+      // set escalated tickets
+      setEscalatedTickets(ticketsWithNamesEscalated);
+      setTotalEscalatedTickets(ticketsWithNamesEscalated.length);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching tickets:", error);
@@ -307,6 +321,83 @@ const AdminDash = () => {
           ))}
         </div>
       </Box>
+
+      {/* Escalated TICKET SECTION CONTAINER */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+          backgroundColor: "#F5F5F5",
+          padding: 20,
+          borderRadius: 5,
+          flex: 1,
+        }}
+      >
+        {/* SECTION HEADER */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 10,
+          }}
+        >
+          <Avatar>
+            <ArticleIcon sx={{ fontSize: "2rem" }} />
+          </Avatar>
+          <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            <Typography
+              variant="h1"
+              sx={{ fontWeight: "bold", fontSize: "2rem" }}
+            >
+              {totalEscalatedTickets} 
+            </Typography>
+            <Typography
+              variant="p"
+              sx={{ fontSize: "0.8rem", color: "#737373" }}
+            >
+              Escalated Tickets
+            </Typography>
+          </div>
+          <Button
+            variant="contained"
+            disableElevation
+            sx={{
+              backgroundColor: "#8C1D40",
+              color: "white",
+              borderRadius: 999,
+              fontSize: "0.75rem",
+            }}
+            onClick={() => navigate("/escalatedtickets")}
+          >
+            View
+          </Button>
+        </div>
+        {/* TICKETS */}
+        <div
+          style={{
+            display: "grid", // Use grid layout for better alignment
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Responsive columns
+            gap: "20px", // Space between cards
+            justifyContent: "center", // Center-align cards
+            padding: "5px", // Add padding around the grid
+            maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
+            overflowY: "hidden",
+          }}
+        >
+          {escalatedTickets.map((ticket) => (
+            <TicketCard
+              key={ticket.ticket_id}
+              ticketId={ticket.ticket_id}
+              issueDescription={ticket.issue_description}
+              status={ticket.status}
+              name={ticket.userName}
+            />
+          ))}
+        </div>
+      </div>
 
       {/* TA SECTION CONTAINER */}
       <Box

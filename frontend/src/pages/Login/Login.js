@@ -22,6 +22,7 @@ export default function SignIn(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [rememberMe, setRememberMe] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleClickOpen = () => {
@@ -80,7 +81,11 @@ export default function SignIn(props) {
       const token = responseData.token;
 
       // Store Cookie
-      Cookies.set("token", token, { secure: false, sameSite: "Strict" });
+      Cookies.set("token", token, {
+        secure: true,
+        sameSite: "Strict",
+        expires: rememberMe ? 7 : undefined
+      });
 
       // Get Role
       const decodedToken = jwtDecode(token);
@@ -193,7 +198,13 @@ export default function SignIn(props) {
             />
           </FormControl>
           <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
+            control={
+              <Checkbox
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                color="primary"
+              />
+            }
             label="Remember me"
           />
           {/* <ForgotPassword open={open} handleClose={handleClose} /> */}

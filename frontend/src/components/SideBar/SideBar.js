@@ -75,24 +75,42 @@ const SideBar = () => {
               <ListItemText className="fontStyle" primary="Dashboard" />
             </ListItemButton>
             <ListItemButton
-      className="buttonStyle"
-      selected={selectedPage === 1}
-      onClick={() => {
-        setSelectedPage(1);
-        if (userType === "admin") {
-          navigate("/alltickets"); // Admins see all tickets
-        } else if (userType === "student") {
-          navigate("/mytickets"); // Students only see their own tickets
-        } else {
-          navigate("/instructortickets"); // Default case (for TAs or unknown roles)
-        }
-  }}
->
-        <ListItemIcon>
-          <ListIcon className="iconStyle" />
-        </ListItemIcon>
-        <ListItemText className="fontStyle" primary="All Tickets" />
+          className="buttonStyle"
+          selected={selectedPage === 1}
+          onClick={() => {
+            setSelectedPage(1);
+            if (userType === "admin") {
+              navigate("/alltickets"); // Admins see all tickets
+            } else if (userType === "student") {
+              navigate("/mytickets"); // Students only see their own tickets
+            } else {
+              navigate("/instructortickets"); // Default case (for TAs or unknown roles)
+            }
+      }}
+    >
+            <ListItemIcon>
+              <ListIcon className="iconStyle" />
+            </ListItemIcon> 
+            <ListItemText 
+              className="fontStyle" 
+              primary={userType === "admin" ? "All Tickets" : "My Tickets"}/>
       </ListItemButton> 
+      
+      { userType === "admin" && (
+      <ListItemButton
+          className="buttonStyle"
+          selected={selectedPage === 5} // Assign a unique selectedPage index for "Escalated Tickets"
+          onClick={() => {
+            setSelectedPage(5);
+            navigate("/escalatedtickets"); // Navigate to a new route for escalated tickets
+          }}
+        >
+          <ListItemIcon>
+            <LayersIcon className="iconStyle" />
+          </ListItemIcon>
+          <ListItemText className="fontStyle" primary="Escalated Tickets" />
+        </ListItemButton>
+      )}
 
         <ListItemButton
           className="buttonStyle"
@@ -108,20 +126,22 @@ const SideBar = () => {
           <ListItemText className="fontStyle" primary="All Assignees" />
         </ListItemButton>
 
-        <ListItemButton
-          className="buttonStyle"
-          selected={selectedPage === 3}
-          onClick={() => {
-            openModal();
-            //setSelectedPage(3);
-            //navigate("ticketsubmit");
-          }}
-        >
-          <ListItemIcon>
-            <AddCircleIcon className="iconStyle" />
-          </ListItemIcon>
-          <ListItemText className="fontStyle" primary="Create A Ticket" />
-        </ListItemButton>
+        { userType === "student" && (
+          <ListItemButton
+            className="buttonStyle"
+            selected={selectedPage === 3}
+            onClick={() => {
+              openModal();
+              //setSelectedPage(3);
+              //navigate("ticketsubmit");
+            }}
+          >
+            <ListItemIcon>
+              <AddCircleIcon className="iconStyle" />
+            </ListItemIcon>
+            <ListItemText className="fontStyle" primary="Create A Ticket" />
+          </ListItemButton>
+        )}
       </List>
 
       {showModal && (
