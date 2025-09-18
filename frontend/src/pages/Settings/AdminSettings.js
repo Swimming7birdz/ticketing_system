@@ -16,13 +16,15 @@ import {
   Switch,
   FormControlLabel,
   Divider,
+  Box,
+  TextField,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-import "./AdminSettings.css";
 import {useNavigate} from "react-router-dom";
 import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
 
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
@@ -38,7 +40,8 @@ const AdminSettings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const token = Cookies.get("token");
   const navigate = useNavigate();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const theme = useTheme();
+  const { isDarkMode, toggleTheme } = useCustomTheme();
   useEffect(() => {
     fetchTeams();
     fetchTAs();
@@ -299,14 +302,54 @@ const AdminSettings = () => {
   }
 
   return (
-    <div className="settings-container">
-      <Typography variant="h4" className="settings-title">
+    <Box
+      sx={{
+        minHeight: "calc(100vh - 60px)",
+        backgroundColor: theme.palette.background.paper,
+        padding: "20px 0",
+      }}
+    >
+      <Box
+        sx={{
+          padding: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          maxWidth: "800px",
+          margin: "40px auto",
+        }}
+      >
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          marginBottom: 5, 
+          textAlign: "center", 
+          fontWeight: "bold",
+          color: theme.palette.text.primary
+        }}
+      >
         Settings
       </Typography>
       
       {/* Personal Preferences Section */}
-      <div className="section-container">
-        <Typography variant="h5" className="section-title">
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
           Personal Preferences
         </Typography>
         <FormControlLabel
@@ -318,23 +361,52 @@ const AdminSettings = () => {
           control={<Switch checked={isDarkMode} onChange={handleDarkModeToggle} />}
           label="Dark Mode"
         />
-      </div>
+      </Box>
 
       <Divider sx={{ margin: "20px 0" }} />
 
       {/* Teams Section */}
-      <div className="section-container">
-        <Typography variant="h5" className="section-title">
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
           Teams
         </Typography>
-        <List className="scrollable-list">
+        <List 
+          sx={{
+            maxHeight: "300px",
+            overflowY: "auto",
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: "5px",
+            padding: 1.25,
+            backgroundColor: isDarkMode ? "#2d2d2d" : theme.palette.background.default,
+          }}
+        >
           {teams.map((team) => (
             <ListItem key={team.team_id}>
               <ListItemText primary={team.team_name} />
               <ListItemSecondaryAction>
                 <Button
-                  color="secondary"
+                  variant="outlined"
                   onClick={() => deleteTeam(team.team_id)}
+                  sx={{ 
+                    color: isDarkMode ? "white" : "black", 
+                    borderColor: isDarkMode ? "white" : "black" 
+                  }}
                 >
                   Delete
                 </Button>
@@ -342,45 +414,80 @@ const AdminSettings = () => {
             </ListItem>
           ))}
         </List>
-        <div className="add-form">
-          <input
-            type="text"
+        <Box sx={{ marginTop: 2.5, display: "flex", gap: 1.25 }}>
+          <TextField
+            fullWidth
             value={newTeamName}
             placeholder="New Team Name"
             onChange={(e) => setNewTeamName(e.target.value)}
+            variant="outlined"
+            size="small"
           />
-          <Button variant="contained" onClick={addTeam}>
+          <Button 
+            variant="contained" 
+            onClick={addTeam}
+            sx={{ backgroundColor: theme.palette.primary.main }}
+          >
             Add Team
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Teaching Assistants Section */}
-      <div className="section-container">
-        <Typography variant="h5" className="section-title">
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
           Teaching Assistants (TAs)
         </Typography>
-        <TableContainer component={Paper} className="ta-table-container">
+        <TableContainer 
+          component={Paper} 
+          sx={{
+            marginTop: 1.25,
+            maxHeight: "300px",
+            overflowY: "auto",
+            backgroundColor: isDarkMode ? "#2d2d2d" : theme.palette.background.default,
+          }}
+        >
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell align="right">Action</TableCell>
+            <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Name</TableCell>
+            <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Email</TableCell>
+            <TableCell align="right" sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Action</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {tas.map((ta) => (
             <TableRow key={ta.user_id}>
-              <TableCell>{ta.name}</TableCell>
-              <TableCell>{ta.email}</TableCell>
+              <TableCell sx={{ color: theme.palette.text.primary }}>{ta.name}</TableCell>
+              <TableCell sx={{ color: theme.palette.text.primary }}>{ta.email}</TableCell>
               <TableCell align="right">
               <Button 
-                  color="secondary" 
+                  variant="outlined"
                   onClick={() =>  { 
                     handleDelete(ta);
                     }
-                  }> 
+                  }
+                  sx={{ 
+                    color: isDarkMode ? "white" : "black", 
+                    borderColor: isDarkMode ? "white" : "black" 
+                  }}
+                > 
                   Delete
                 </Button>
               </TableCell>
@@ -418,31 +525,45 @@ const AdminSettings = () => {
             </ListItem>
           ))}
         </List> */}
-        <div className="add-form">
-          <input
-            type="text"
+        <Box sx={{ marginTop: 2.5, display: "flex", gap: 1.25 }}>
+          <TextField
+            fullWidth
             value={newTAName}
             placeholder="New TA Name"
             onChange={(e) => setNewTAName(e.target.value)}
+            variant="outlined"
+            size="small"
           />
-          <input
+          <TextField
+            fullWidth
             type="email"
             value={newTAEmail}
             placeholder="New TA Email"
             onChange={(e) => setNewTAEmail(e.target.value)}
+            variant="outlined"
+            size="small"
           />
-          <Button variant="contained" onClick={addTA}>
+          <Button 
+            variant="contained" 
+            onClick={addTA}
+            sx={{ backgroundColor: theme.palette.primary.main }}
+          >
             Add TA
           </Button>
-        </div>
-      </div>
-      <div className="redirect-button">
-      <Button variant="contained" onClick={() => navigate("/profile")}>
-        Go To Account Settings
-      </Button>
-
-    </div>
-    </div>
+        </Box>
+      </Box>
+      
+      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center" }}>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate("/profile")}
+          sx={{ backgroundColor: theme.palette.primary.main }}
+        >
+          Go To Account Settings
+        </Button>
+      </Box>
+      </Box>
+    </Box>
   );
 };
 
