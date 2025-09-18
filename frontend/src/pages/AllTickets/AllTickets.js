@@ -5,7 +5,9 @@ import {
   MenuItem,
   TextField,
   Typography,
+  Box,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import TicketCard from "../../components/TicketCard";
@@ -14,6 +16,7 @@ import CheckIcon from "@mui/icons-material/Check";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AllTickets = () => {
+  const theme = useTheme();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
@@ -169,33 +172,33 @@ const AllTickets = () => {
 
   if (loading) {
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
-          backgroundColor: "#f0f0f0",
+          backgroundColor: theme.palette.background.default,
           flexDirection: "column",
-          gap: "20px",
+          gap: 2.5,
         }}
       >
         <CircularProgress size={80} thickness={4} />
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
           Loading, please wait...
         </Typography>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#DBDADA",
-        padding: 50,
-        gap: 50,
+        backgroundColor: theme.palette.background.default,
+        padding: 6.25,
+        gap: 6.25,
       }}
     >
       <Typography
@@ -204,14 +207,14 @@ const AllTickets = () => {
       >
         All Tickets
       </Typography>
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
           flex: 1,
         }}
       >
@@ -245,7 +248,7 @@ const AllTickets = () => {
           <Button
             variant="contained"
             onClick={handleFilterClick}
-            sx={{ backgroundColor: "#8C1D40", color: "white" }}
+            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
           >
             {activeFilters.sort || activeFilters.status
               ? `Filters: ${activeFilters.sort || ""} ${
@@ -256,14 +259,14 @@ const AllTickets = () => {
           <Button
             variant="outlined"
             onClick={handleClearFilters}
-            sx={{ borderColor: "#8C1D40", color: "#8C1D40" }}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
           >
             Clear Filters
           </Button>
           <Button
             variant="outlined"
             onClick={() => setHideResolved(prev => !prev)}
-            sx={{ borderColor: "#8C1D40", color: "#8C1D40" }}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
           >
             {hideResolved ? "Include Resolved Tickets" : "Hide Resolved Tickets"}
           </Button>
@@ -418,8 +421,8 @@ const AllTickets = () => {
             />
           ))}
         </div>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

@@ -13,6 +13,7 @@ import {
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -21,10 +22,10 @@ const StudentSettings = () => {
   console.log("Token:", token);
 
   const navigate = useNavigate();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const [user, setUser] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [ticketView, setTicketView] = useState("all"); // new
 
   useEffect(() => {
@@ -40,7 +41,6 @@ const StudentSettings = () => {
         console.log("Loaded user:", data);
         setUser(data);
         setNotificationsEnabled(data.notifications_enabled);
-        setDarkMode(data.dark_mode);
       })
       .catch((err) => console.error("Failed to load settings:", err));
 
@@ -81,8 +81,8 @@ const StudentSettings = () => {
   };
 
   const handleDarkModeToggle = () => {
-    const newValue = !darkMode;
-    setDarkMode(newValue);
+    const newValue = !isDarkMode;
+    toggleTheme();
     updatePreference({ dark_mode: newValue });
   };
 
@@ -110,7 +110,7 @@ const StudentSettings = () => {
       />
       <br />
       <FormControlLabel
-        control={<Switch checked={darkMode} onChange={handleDarkModeToggle} />}
+        control={<Switch checked={isDarkMode} onChange={handleDarkModeToggle} />}
         label="Dark Mode"
       />
 

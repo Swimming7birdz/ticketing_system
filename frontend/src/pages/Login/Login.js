@@ -85,7 +85,7 @@ export default function SignIn(props) {
         secure: true,
         sameSite: "Strict",
         expires: rememberMe ? 7 : undefined
-      }); 
+      });
 
       // Get Role
       const decodedToken = jwtDecode(token);
@@ -93,7 +93,7 @@ export default function SignIn(props) {
       const userId = decodedToken.id;
 
       // Store ID
-      Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
+      Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
 
       // Redirect based on role
       if (userType === "admin") {
