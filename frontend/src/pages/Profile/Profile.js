@@ -1,12 +1,13 @@
 // ticketing_system/frontend/src/pages/Profile/Profile.js
 import React, { useEffect, useState } from 'react';
-import { TextField, Button, Typography } from '@mui/material';
+import { TextField, Button, Typography, Box } from '@mui/material';
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import Avatar from '@mui/material/Avatar';
-import './Profile.css'
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 function Profile() {
+  const theme = useTheme();
   const [user, setUser] = useState(null);  
   const [error, setError] = useState(null);
   const [isEditing,setIsEditing] = useState(false);
@@ -134,31 +135,92 @@ function Profile() {
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        <Typography variant="h5" sx={{ marginBottom: 2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "calc(100vh - 60px)",
+        backgroundColor: theme.palette.background.default,
+        padding: 2,
+      }}
+    >
+      <Box
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: 2,
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+          padding: 4,
+          maxWidth: 400,
+          width: "100%",
+          textAlign: "center",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2,
+            color: theme.palette.text.primary
+          }}
+        >
           My Profile
         </Typography>
-        <Avatar className="profile-avatar" src={user.profilePicture || ''}>
+        <Avatar 
+          sx={{
+            width: 100,
+            height: 100,
+            margin: "20px auto",
+            backgroundColor: theme.palette.primary.main,
+          }}
+          src={user.profilePicture || ''}
+        >
           {user.name ? user.name.charAt(0).toUpperCase() : ''}
         </Avatar>
         {!isEditing ? (
           <>
-            <div className="profile-details">
-              <p><strong>Name:</strong> {user.name}</p>
-              <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>Role:</strong> {user.role}</p>
-              {/* <p><strong>ASU ID:</strong> {user.asu_id}</p> */}
-            </div>
-            <div className="redirect-button">
-              <Button variant="contained" onClick={handleEditClick}>
+            <Box sx={{ marginBottom: 2.5 }}>
+              <Typography 
+                sx={{ 
+                  fontSize: 16, 
+                  margin: "6px 0",
+                  color: theme.palette.text.primary
+                }}
+              >
+                <strong>Name:</strong> {user.name}
+              </Typography>
+              <Typography 
+                sx={{ 
+                  fontSize: 16, 
+                  margin: "6px 0",
+                  color: theme.palette.text.primary
+                }}
+              >
+                <strong>Email:</strong> {user.email}
+              </Typography>
+              <Typography 
+                sx={{ 
+                  fontSize: 16, 
+                  margin: "6px 0",
+                  color: theme.palette.text.primary
+                }}
+              >
+                <strong>Role:</strong> {user.role}
+              </Typography>
+            </Box>
+            <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center" }}>
+              <Button 
+                variant="contained" 
+                onClick={handleEditClick}
+                sx={{ backgroundColor: theme.palette.primary.main }}
+              >
                 Edit Info
               </Button>
-            </div>
+            </Box>
           </>
         ) : (
           <>
-            <div className="profile-edit-form">
+            <Box sx={{ marginTop: 2.5, textAlign: "left" }}>
               <TextField
                 label="Name"
                 name="name"
@@ -175,9 +237,14 @@ function Profile() {
                 fullWidth
                 margin="normal"
               />
-            </div>
-            <div className="profile-edit-buttons">
-              <Button variant="contained" color="primary" onClick={handleSaveClick}>
+            </Box>
+            <Box sx={{ marginTop: 2.5, textAlign: "center" }}>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={handleSaveClick}
+                sx={{ backgroundColor: theme.palette.primary.main }}
+              >
                 Save
               </Button>
               <Button variant="outlined" onClick={handleCancelClick} sx={{ marginLeft: 2 }}>
@@ -186,9 +253,9 @@ function Profile() {
               <Button variant="outlined" onClick={handleChangePasswordClick} sx={{ ml: 1, mt: 2 }}>
                 {showChangePassword ? "Hide Change Password" : "Change Password"}
               </Button>
-            </div>
+            </Box>
             {showChangePassword && (
-              <div className="change-password-form">
+              <Box sx={{ marginTop: 2.5, textAlign: "left" }}>
                 <TextField
                   label="Current Password"
                   name="currentPassword"
@@ -207,17 +274,22 @@ function Profile() {
                   fullWidth
                   margin="normal"
                 />
-                <div className="password-buttons" style={{ marginTop: 10 }}>
-                  <Button variant="contained" color="primary" onClick={handleUpdatePassword}>
+                <Box sx={{ marginTop: 1.25 }}>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleUpdatePassword}
+                    sx={{ backgroundColor: theme.palette.primary.main }}
+                  >
                     Update Password
                   </Button>
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 

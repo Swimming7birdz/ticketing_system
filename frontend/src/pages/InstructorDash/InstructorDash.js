@@ -1,5 +1,6 @@
 //import React from 'react'
-import { Avatar, Button, Typography } from '@mui/material';
+import { Avatar, Button, Typography, Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import ArticleIcon from '@mui/icons-material/Article';
 import TicketCard from '../../components/TicketCard';
 import SideBar from '../../components/SideBar/SideBar'; //to make the sidebar highlight when clicking view all button in dashboard
@@ -14,6 +15,7 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const InstructorDash = () => {
 // start copy and paste from admindash
+  const theme = useTheme();
   const [selectedPage, setSelectedPage] = useState(0); //copied from sidebar
 
   const [tickets, setTickets] = useState([]);
@@ -197,171 +199,134 @@ const InstructorDash = () => {
 
   if (loading) {
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh", // Full viewport height to center vertically
-          backgroundColor: "#f0f0f0", // Optional: a subtle background color
+          backgroundColor: theme.palette.background.default, // Use theme background
           flexDirection: "column",
-          gap: "20px",
+          gap: 2.5,
         }}
       >
         <CircularProgress size={80} thickness={4} />{" "}
         {/* Adjust size and thickness */}
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
           Loading, please wait...
         </Typography>
-      </div>
+      </Box>
     );
   }
 
 // end copy and paste from admindash
-    return (
-        <div
-	style={{
+  return (
+    <Box
+      sx={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#DBDADA",
-        padding: 50,
-        gap: 50,
+        backgroundColor: theme.palette.background.default,
+        padding: 6.25,
+        gap: 6.25,
       }}
     >
       <Typography
         variant="h1"
         sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
       >
-	Instructor Dashboard
+        Instructor Dashboard
       </Typography>
-	{/* TICKET SECTION CONTAINER */}
-      <div
-        style={{
+      
+      {/* TICKET SECTION CONTAINER */}
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
           flex: 1,
         }}
       >
-	{/* SECTION HEADER */}
-                <div 
-		    style={{ 
-		    display: 'flex', 
-		    flexDirection: 'column', 
-		    gap: 20 }}
-		    >
-                    <div 
-			style={{ 
-			display: 'flex', 
-			flexDirection: 'row', 
-			justifyContent: 'left', 
-			alignItems: 'flex-start', 
-			gap: 10 }}
-			>
-                        <Avatar>
-			<ArticleIcon 
-			sx={{ fontSize: "2rem" }} />
-			</Avatar>
-                        <div 
-			    style={{ 
-				display: 'flex', 
-				flexDirection: 'column', 
-				flex: 1 }}
-			>
-                            <Typography 
-				variant="h1" 
-				sx={{ fontWeight: 'bold', fontSize: '2rem' }}
-				>
-				{totalTickets}	
-				</Typography>
-                            <Typography 
-				variant="p" sx={{ fontSize: '0.8rem', color: '#737373' }}>
-				Total Tickets
-			    </Typography>
-                        </div>
-                        <div 
-			style={{
-			display: 'flex', 
-			flexDirection: 'column', flex: 1 }}>
-                        <Typography
-			variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>24
-			</Typography>
-                        <Typography 
-			variant="p" sx={{ fontSize: '0.8rem', color: '#737373' }}>
-			Open
-			</Typography>
-                        </div>
-                        <div 
-			style={{ 
-				display: 'flex', 
-				flexDirection: 'column',
-				flex: 1 }}>
-                            <Typography 
-			    variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
-			    26
-			    </Typography>
-                            <Typography 
-			    variant="p" sx={{ fontSize: '0.8rem', color: '#737373' }}>Escalated</Typography>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>203</Typography>
-                            <Typography variant="p" sx={{ fontSize: '0.8rem', color: '#737373' }}>Closed</Typography>
-                        </div>
-                        <Button variant="contained" disableElevation sx={{ backgroundColor: '#8C1D40', color: 'white', borderRadius: 999, fontSize: '0.75rem', width: '15%' }}
-		          //selected={selectedPage === 1} // Assign a unique selectedPage index for "All Assignees"
+        {/* SECTION HEADER */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', alignItems: 'flex-start', gap: 10 }}>
+            <Avatar>
+              <ArticleIcon sx={{ fontSize: "2rem" }} />
+            </Avatar>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+                {totalTickets}
+              </Typography>
+              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+                Total Tickets
+              </Typography>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>24</Typography>
+              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+                Open
+              </Typography>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+                26
+              </Typography>
+              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>Escalated</Typography>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>203</Typography>
+              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>Closed</Typography>
+            </div>
+            <Button 
+              variant="contained" 
+              disableElevation 
+              sx={{ backgroundColor: theme.palette.primary.main, color: 'white', borderRadius: 999, fontSize: '0.75rem', width: '15%' }}
+              onClick={() => navigate("/alltickets")}
+            >
+              View All
+            </Button>
+          </div>
 
-		onClick={() => 
-           // setSelectedPage(1),
+          {/* TICKETS */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "20px",
+              justifyContent: "center",
+              padding: "5px",
+              maxHeight: "950px",
+              overflowY: "hidden",
+            }}
+          >
+            {tickets.map((ticket) => (
+              <TicketCard
+                key={ticket.ticket_id}
+                ticketId={ticket.ticket_id}
+                issueDescription={ticket.issue_description}
+                status={ticket.status}
+                name={ticket.userName}
+              />
+            ))}
+          </div>
+        </div>
+      </Box>
 
-		
-		{navigate("/alltickets")}}>	
-		View All</Button>
-
-                    </div>
-
-			{/* TICKETS */}
-
-        		<div
-          		style={{
-            		display: "grid", // Use grid layout for better alignment
-            		gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Responsive columns
-            		gap: "20px", // Space between cards
-            		justifyContent: "center", // Center-align cards
-            		padding: "5px", // Add padding around the grid
-            		maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-            		overflowY: "hidden",
-          		}}
-        		>
-          		{tickets.map((ticket) => (
-            		<TicketCard
-              		key={ticket.ticket_id}
-              		ticketId={ticket.ticket_id}
-              		issueDescription={ticket.issue_description}
-              		status={ticket.status}
-              		name={ticket.userName}
-            		/>
-          		))}
-        		</div>
-
-	{/* TA SECTION CONTAINER */}
-
-	<div
-        style={{
+      {/* TA SECTION CONTAINER */}
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
           flex: 1,
         }}
-	>
-
+      >
         {/* SECTION HEADER */}
-
         <div
           style={{
             display: "flex",
@@ -383,7 +348,7 @@ const InstructorDash = () => {
             </Typography>
             <Typography
               variant="p"
-              sx={{ fontSize: "0.8rem", color: "#737373" }}
+              sx={{ fontSize: "0.8rem", color: theme.palette.text.secondary }}
             >
               Assignees
             </Typography>
@@ -392,31 +357,27 @@ const InstructorDash = () => {
             variant="contained"
             disableElevation
             sx={{
-              backgroundColor: "#8C1D40",
+              backgroundColor: theme.palette.primary.main,
               color: "white",
               borderRadius: 999,
               fontSize: "0.75rem",
             }}
-	   // selected={selectedPage === 2}
-            onClick={() => {//setSelectedPage(2); 
-		navigate("/allassignees");}}
+            onClick={() => navigate("/allassignees")}
           >
             View All
           </Button>
-	</div>
+        </div>
 
-	{/* TA CARDS */}
-
+        {/* TA CARDS */}
         <div
           style={{
-            display: "grid", // Use grid layout for better alignment
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Responsive columns
-            //gridTemplateRows: "repeat(auto-fill, minmax(400px, 1fr))",
-	    gap: "20px", // Space between cards
-            justifyContent: "center", // Center-align cards
-            padding: "5px", // Add padding around the grid
-            maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-	    overflowY: "hidden",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            gap: "20px",
+            justifyContent: "center",
+            padding: "5px",
+            maxHeight: "950px",
+            overflowY: "hidden",
           }}
         >
           {Object.entries(TACounts).map(([id, ta]) => (
@@ -424,17 +385,13 @@ const InstructorDash = () => {
               key={id}
               name={ta.name || "Unknown"}
               counts={ta.counts}
-	      userId={id} //doesn't work when its ta.user_id ????
-
+              userId={id}
             />
           ))}
-	</div>
-
-</div>
-</div>
-</div>
-</div>
-    );
+        </div>
+      </Box>
+    </Box>
+  );
 };
 
 export default InstructorDash

@@ -171,7 +171,7 @@ const SideBar = () => {
             if (userType === "admin") {
               navigate("/adminsettings");
             } else if (userType === "TA") {
-              navigate("/profile"); //go to profile, as TA settings page is empty
+              navigate("/tasettings");
             } else if (userType === "student") {
               navigate("/studentsettings");
             }

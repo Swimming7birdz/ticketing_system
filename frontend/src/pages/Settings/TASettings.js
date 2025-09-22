@@ -1,14 +1,16 @@
-import { 
-  Typography, 
-  Switch, 
-  FormControlLabel, 
-  Divider, 
-  Button 
+import {
+  Typography,
+  Switch,
+  FormControlLabel,
+  Divider,
+  Button
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
+
+const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const TASettings = () => {
   const token = Cookies.get("token");
@@ -19,33 +21,25 @@ const TASettings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/profile`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+    fetch(`${baseURL}/api/users/profile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
         setUser(data);
         setNotificationsEnabled(data.notifications_enabled);
-      }
-    } catch (error) {
-      console.error("Failed to load user profile:", error);
-    }
-  };
+      })
+      .catch((err) => console.error("Failed to load settings:", err));
+  }, []);
 
   const updatePreference = (updates) => {
     if (!user) return;
 
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/${user.user_id}`, {
+    fetch(`${baseURL}/api/users/${user.user_id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -100,6 +94,17 @@ const TASettings = () => {
       />
 
       <Divider sx={{ margin: "30px 0" }} />
+
+      <Typography variant="h6" gutterBottom>
+        Account Management
+      </Typography>
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={() => alert("Delete account coming soon")}
+      >
+        Delete Account
+      </Button>
 
       <div style={{ marginTop: "30px" }}>
         <Button
