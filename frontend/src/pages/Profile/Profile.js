@@ -8,7 +8,7 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 function Profile() {
   const theme = useTheme();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);  
   const [error, setError] = useState(null);
   const [isEditing,setIsEditing] = useState(false);
   const [editData,setEditData] = useState({name: '',email: ''});
@@ -157,16 +157,16 @@ function Profile() {
           textAlign: "center",
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{
+        <Typography 
+          variant="h5" 
+          sx={{ 
             marginBottom: 2,
             color: theme.palette.text.primary
           }}
         >
           My Profile
         </Typography>
-        <Avatar
+        <Avatar 
           sx={{
             width: 100,
             height: 100,
@@ -180,27 +180,27 @@ function Profile() {
         {!isEditing ? (
           <>
             <Box sx={{ marginBottom: 2.5 }}>
-              <Typography
-                sx={{
-                  fontSize: 16,
+              <Typography 
+                sx={{ 
+                  fontSize: 16, 
                   margin: "6px 0",
                   color: theme.palette.text.primary
                 }}
               >
                 <strong>Name:</strong> {user.name}
               </Typography>
-              <Typography
-                sx={{
-                  fontSize: 16,
+              <Typography 
+                sx={{ 
+                  fontSize: 16, 
                   margin: "6px 0",
                   color: theme.palette.text.primary
                 }}
               >
                 <strong>Email:</strong> {user.email}
               </Typography>
-              <Typography
-                sx={{
-                  fontSize: 16,
+              <Typography 
+                sx={{ 
+                  fontSize: 16, 
                   margin: "6px 0",
                   color: theme.palette.text.primary
                 }}
@@ -209,8 +209,8 @@ function Profile() {
               </Typography>
             </Box>
             <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center" }}>
-              <Button
-                variant="contained"
+              <Button 
+                variant="contained" 
                 onClick={handleEditClick}
                 sx={{ backgroundColor: theme.palette.primary.main }}
               >
@@ -239,9 +239,9 @@ function Profile() {
               />
             </Box>
             <Box sx={{ marginTop: 2.5, textAlign: "center" }}>
-              <Button
-                variant="contained"
-                color="primary"
+              <Button 
+                variant="contained" 
+                color="primary" 
                 onClick={handleSaveClick}
                 sx={{ backgroundColor: theme.palette.primary.main }}
               >
@@ -275,9 +275,9 @@ function Profile() {
                   margin="normal"
                 />
                 <Box sx={{ marginTop: 1.25 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
                     onClick={handleUpdatePassword}
                     sx={{ backgroundColor: theme.palette.primary.main }}
                   >

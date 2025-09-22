@@ -82,7 +82,7 @@ export default function SignIn(props) {
 
       // Store Cookie
       Cookies.set("token", token, {
-        secure: true,
+        secure: false, // Set to false for local development, true for production
         sameSite: "Strict",
         expires: rememberMe ? 7 : undefined
       });
