@@ -5,7 +5,9 @@ import {
   MenuItem,
   TextField,
   Typography,
+  Box
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import TicketCard from "../../components/TicketCard";
@@ -13,6 +15,7 @@ import TicketCard from "../../components/TicketCard";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const EscalatedTickets = () => {
+    const theme = useTheme();
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [totalTickets, setTotalTickets] = useState(0);
@@ -139,34 +142,34 @@ const EscalatedTickets = () => {
  
      if (loading) {
         return (
-        <div
-            style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-            backgroundColor: "#f0f0f0",
-            flexDirection: "column",
-            gap: "20px",
+        <Box
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                backgroundColor: "#f0f0f0",
+                flexDirection: "column",
+                gap: "20px",
             }}
         >
             <CircularProgress size={80} thickness={4} />
             <Typography variant="h6" sx={{ color: "#8C1D40" }}>
             Loading, please wait...
             </Typography>
-        </div>
+        </Box>
         );
     }
 
     return (
-        <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "#DBDADA",
-        padding: 50,
-        gap: 50,
-      }}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: theme.palette.background.paper,
+            p: 6.25,
+            gap: 6.25,
+          }}
     >
       <Typography
         variant="h1"
@@ -174,18 +177,19 @@ const EscalatedTickets = () => {
       >
         Escalated Tickets
       </Typography>
-      <div
+      <Box
         style={{
           display: "flex",
           flexDirection: "column",
           gap: 20,
-          backgroundColor: "#F5F5F5",
+          backgroundColor: theme.palette.background.paper,
           padding: 20,
-          borderRadius: 5,
+          borderRadius: 1,
           flex: 1,
+            border: `1px solid ${theme.palette.divider}`
         }}
       >
-        <div
+        <Box
           style={{
             display: "flex",
             flexDirection: "row",
@@ -231,7 +235,7 @@ const EscalatedTickets = () => {
             Clear Filters
           </Button>
 
-        </div>
+        </Box>
 
         {/* Filter Dropdown */}
         <Menu
@@ -311,7 +315,7 @@ const EscalatedTickets = () => {
 
 
         {/* Tickets Grid */}
-        <div
+        <Box
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
@@ -329,9 +333,9 @@ const EscalatedTickets = () => {
               name={ticket.userName}
             />
           ))}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
 
     );
 

@@ -1,13 +1,15 @@
 // ticketing_system/frontend/src/pages/Profile/Profile.js
 import React, { useEffect, useState } from 'react';
-import { TextField, Button, Typography } from '@mui/material';
+import { TextField, Button, Typography, Box } from '@mui/material';
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import Avatar from '@mui/material/Avatar';
 import './Profile.css'
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 function Profile() {
-  const [user, setUser] = useState(null);  
+    const theme = useTheme();
+    const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [isEditing,setIsEditing] = useState(false);
   const [editData,setEditData] = useState({name: '',email: ''});
@@ -134,31 +136,59 @@ function Profile() {
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        <Typography variant="h5" sx={{ marginBottom: 2 }}>
+    <Box className="profile-container"
+         sx={{
+             display: 'flex',
+             flexDirection: 'column',
+             alignItems: 'center',
+             justifyContent: 'center',
+             maxWidth: 1000,
+             margin: '2rem auto',
+             padding: 2,
+         }}
+    >
+
+      <Box className="profile-card"
+           sx={{
+               background: theme.palette.background.paper,
+               borderRadius: 2,
+               boxShadow: 1,
+               padding: '30px 20px',
+               maxWidth: 400,
+               width: '100%',
+               textAlign: 'center',
+               border: `1px solid ${theme.palette.divider}`
+           }}
+      >
+        <Typography variant="h5" sx={{ marginBottom: 2, background: theme.palette.primary.main, color:"white" }}>
           My Profile
         </Typography>
-        <Avatar className="profile-avatar" src={user.profilePicture || ''}>
+        <Avatar className="profile-avatar"
+                sx={{
+                    width: 100,
+                    height: 100,
+                    margin: '20px auto',
+                }}
+                src={user.profilePicture || ''}>
           {user.name ? user.name.charAt(0).toUpperCase() : ''}
         </Avatar>
         {!isEditing ? (
           <>
-            <div className="profile-details">
+            <Box className="profile-details" sx={{ mb: 2.5, '& p': { fontSize: '16px', margin: '6px 0' }, color: theme.palette.text.primary }}>
               <p><strong>Name:</strong> {user.name}</p>
               <p><strong>Email:</strong> {user.email}</p>
               <p><strong>Role:</strong> {user.role}</p>
               {/* <p><strong>ASU ID:</strong> {user.asu_id}</p> */}
-            </div>
-            <div className="redirect-button">
+            </Box>
+            <Box className="redirect-button">
               <Button variant="contained" onClick={handleEditClick}>
                 Edit Info
               </Button>
-            </div>
+            </Box>
           </>
         ) : (
           <>
-            <div className="profile-edit-form">
+            <Box className="profile-edit-form">
               <TextField
                 label="Name"
                 name="name"
@@ -175,8 +205,8 @@ function Profile() {
                 fullWidth
                 margin="normal"
               />
-            </div>
-            <div className="profile-edit-buttons">
+            </Box>
+            <Box className="profile-edit-buttons">
               <Button variant="contained" color="primary" onClick={handleSaveClick}>
                 Save
               </Button>
@@ -186,9 +216,9 @@ function Profile() {
               <Button variant="outlined" onClick={handleChangePasswordClick} sx={{ ml: 1, mt: 2 }}>
                 {showChangePassword ? "Hide Change Password" : "Change Password"}
               </Button>
-            </div>
+            </Box>
             {showChangePassword && (
-              <div className="change-password-form">
+              <Box className="change-password-form">
                 <TextField
                   label="Current Password"
                   name="currentPassword"
@@ -207,17 +237,17 @@ function Profile() {
                   fullWidth
                   margin="normal"
                 />
-                <div className="password-buttons" style={{ marginTop: 10 }}>
+                <Box className="password-buttons" style={{ marginTop: 10 }}>
                   <Button variant="contained" color="primary" onClick={handleUpdatePassword}>
                     Update Password
                   </Button>
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 
