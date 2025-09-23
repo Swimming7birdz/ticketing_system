@@ -15,8 +15,11 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-export default function SignIn(props) {
-  let navigate = useNavigate();
+import ASULogo from "../../assets/ASULogo.png";
+import ASUPitchfork from "../../assets/ASUPitchfork.png";
+
+export default function SignIn() {
+  const navigate = useNavigate();
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
@@ -25,61 +28,36 @@ export default function SignIn(props) {
   const [rememberMe, setRememberMe] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleSignUp = () => {
-    navigate('/registration')
-  }
+  const handleClickOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const handleSignUp = () => navigate("/registration");
 
   const handleSubmit = async (event) => {
     try {
       event.preventDefault();
-      if (emailError || passwordError) {
-        return;
-      }
+      if (emailError || passwordError) return;
       const data = new FormData(event.currentTarget);
 
       const response = await fetch(`${baseURL}/api/auth/login`, {
-        //     event.preventDefault();
-        //     if (emailError || passwordError) {
-        //       return;
-        //     }
-        //     const data = new FormData(event.currentTarget);
-        //     const response = await fetch(
-        //       // "https://helpdesk.asucapstonetools.com:3302/api/auth/login", // For Production
-        //       "http://localhost:3302/api/auth/login", // For Developing
-        //       {
-
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: data.get("email"),
           password: data.get("password"),
         }),
       });
 
-      // Handele Response
       if (!response.ok) {
         setEmailError(true);
         setPasswordError(true);
-        const errorMessage = "Incorrect Email or Password";
-        setEmailErrorMessage(errorMessage);
-        setPasswordErrorMessage(errorMessage);
+        const msg = "Incorrect Email or Password";
+        setEmailErrorMessage(msg);
+        setPasswordErrorMessage(msg);
         return;
       }
 
-      // Grab Response
-      const responseData = await response.json();
-      const token = responseData.token;
-
+      const { token } = await response.json();
+      
       // Store Cookie
       Cookies.set("token", token, {
         secure: false, // Set to false for local development, true for production
@@ -87,25 +65,16 @@ export default function SignIn(props) {
         expires: rememberMe ? 7 : undefined
       });
 
-      // Get Role
-      const decodedToken = jwtDecode(token);
-      const userType = decodedToken.role;
-      const userId = decodedToken.id;
-
-      // Store ID
+      const decoded = jwtDecode(token);
+      const userType = decoded.role;
+      const userId = decoded.id;
       Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
 
-      // Redirect based on role
-      if (userType === "admin") {
-        navigate("/admindash");
-      } else if (userType === "student") {
-        console.log("Attempting to nav as a student");
-        navigate("/studentdash");
-      } else if (userType === "TA") {
-        navigate("/instructordash");
-      }
-    } catch (error) {
-      console.error("An error occurred while logging in:", error);
+      if (userType === "admin") navigate("/admindash");
+      else if (userType === "student") navigate("/studentdash");
+      else if (userType === "TA") navigate("/instructordash");
+    } catch (e) {
+      console.error(e);
       setEmailErrorMessage("Something went wrong. Please try again.");
     }
   };
@@ -113,13 +82,12 @@ export default function SignIn(props) {
   const validateInputs = () => {
     const email = document.getElementById("email");
     const password = document.getElementById("password");
-
-    let isValid = true;
+    let ok = true;
 
     if (!email.value || !/^\S+@asu\.edu$/.test(email.value)) {
       setEmailError(true);
       setEmailErrorMessage("Please enter your ASU email address.");
-      isValid = false;
+      ok = false;
     } else {
       setEmailError(false);
       setEmailErrorMessage("");
@@ -128,108 +96,126 @@ export default function SignIn(props) {
     if (!password.value || password.value.length < 4) {
       setPasswordError(true);
       setPasswordErrorMessage("Password must be at least 4 characters long.");
-      isValid = false;
+      ok = false;
     } else {
       setPasswordError(false);
       setPasswordErrorMessage("");
     }
 
-    return isValid;
+    return ok;
   };
 
   return (
     <Stack className="signInContainer">
-      <MuiCard className="card" variant="outlined">
-        <Typography component="h1" variant="h4">
-          Sign in
-        </Typography>
-        <Box
-          className="loginForm"
-          component="form"
-          onSubmit={handleSubmit}
-          noValidate
-        >
-          <FormControl>
-            <FormLabel className="emailLabel" htmlFor="email">
-              Email
-            </FormLabel>
-            <TextField
-              error={emailError}
-              helperText={emailErrorMessage}
-              id="email"
-              type="email"
-              name="email"
-              placeholder="your@email.com"
-              autoComplete="email"
-              autoFocus
-              required
-              fullWidth
-              variant="outlined"
-              color={emailError ? "error" : "primary"}
-            />
-          </FormControl>
-          <FormControl>
-            <Box className="passwordControls">
-              <FormLabel htmlFor="password">
-		Password
-		</FormLabel>
-              <Link
-                component="button"
-                type="button"
-                onClick={handleClickOpen}
-                variant="body2"
-              >
-                Forgot your password?
-              </Link>
-            </Box>
-            <TextField
-              error={passwordError}
-              helperText={passwordErrorMessage}
-              name="password"
-              placeholder="••••••"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              //autoFocus
-              required
-              fullWidth
-              variant="outlined"
-              color={passwordError ? "error" : "primary"}
-            />
-          </FormControl>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={rememberMe}
-                onChange={e => setRememberMe(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Remember me"
-          />
-          {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            onClick={validateInputs}
-          >
+      <Box className="brandHeader">
+        <img src={ASULogo} alt="ASU Logo" className="brandLogo" />
+      </Box>
+
+      <Box className="centerStage">
+        {/* Mission statement (left) */}
+        <Box className="missionWrapper">
+          <p className="missionText">
+            ASU is a comprehensive public research university, measured not by whom it
+            excludes, but by whom it includes and how they succeed; advancing research
+            and discovery of public value; and assuming fundamental responsibility for
+            the economic, social, cultural and overall health of the communities it serves.
+          </p>
+        </Box>
+
+        {/* Login (center) */}
+        <MuiCard className="card" variant="outlined">
+          <Typography component="h1" variant="h4">
             Sign in
-          </Button>
-          <Typography>
-            Don&apos;t have an account?{' '}
-            <span>
-              <Link
-                href=""
-                variant="body2"
-                onClick={handleSignUp}
-              >
+          </Typography>
+
+          <Box
+            className="loginForm"
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
+            <FormControl>
+              <FormLabel className="emailLabel" htmlFor="email">
+                Email
+              </FormLabel>
+              <TextField
+                error={emailError}
+                helperText={emailErrorMessage}
+                id="email"
+                type="email"
+                name="email"
+                placeholder="your@asu.edu"
+                autoComplete="email"
+                autoFocus
+                required
+                fullWidth
+                variant="outlined"
+                color={emailError ? "error" : "primary"}
+              />
+            </FormControl>
+
+            <FormControl>
+              <Box className="passwordControls">
+                <FormLabel htmlFor="password">Password</FormLabel>
+                <Link
+                  component="button"
+                  type="button"
+                  onClick={handleClickOpen}
+                  variant="body2"
+                >
+                  Forgot your password?
+                </Link>
+              </Box>
+              <TextField
+                error={passwordError}
+                helperText={passwordErrorMessage}
+                name="password"
+                placeholder="••••••"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                required
+                fullWidth
+                variant="outlined"
+                color={passwordError ? "error" : "primary"}
+              />
+            </FormControl>
+
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  color="primary" 
+                />
+              }
+              label="Remember me"
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              onClick={validateInputs}
+              className="primaryButton"
+            >
+              Sign in
+            </Button>
+
+            <Typography>
+              Don&apos;t have an account?{" "}
+              <Link href="" variant="body2" onClick={handleSignUp}>
                 Sign up
               </Link>
-            </span>
-          </Typography>
+            </Typography>
+          </Box>
+        </MuiCard>
+
+        {/* Sparky (right) */}
+        <Box className="pitchforkWrapper">
+          <img src={ASUPitchfork} alt="ASU Pitchfork" className="pitchforkLogo" />
         </Box>
-      </MuiCard>
+      </Box>
     </Stack>
   );
 }
