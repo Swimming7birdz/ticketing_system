@@ -201,7 +201,12 @@ const CreateTicket = ({ onClose }) => {
         </Button>
 
         {/* Form Content */}
-          <Typography variant="h1" sx={{ mb: 2}}>
+          <Typography variant="h4" sx={{ 
+              mb: 2, 
+              fontWeight: 'bold', 
+              textAlign: 'center',
+              color: theme.palette.text.primary
+          }}>
               Create New Ticket
           </Typography>
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

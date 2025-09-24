@@ -148,13 +148,13 @@ const EscalatedTickets = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 height: "100vh",
-                backgroundColor: "#f0f0f0",
+                backgroundColor: theme.palette.background.default,
                 flexDirection: "column",
-                gap: "20px",
+                gap: 2.5,
             }}
         >
             <CircularProgress size={80} thickness={4} />
-            <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+            <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
             Loading, please wait...
             </Typography>
         </Box>
@@ -166,7 +166,7 @@ const EscalatedTickets = () => {
           sx={{
             display: "flex",
             flexDirection: "column",
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: theme.palette.background.default,
             p: 6.25,
             gap: 6.25,
           }}
@@ -178,24 +178,24 @@ const EscalatedTickets = () => {
         Escalated Tickets
       </Typography>
       <Box
-        style={{
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
+          gap: 2.5,
           backgroundColor: theme.palette.background.paper,
-          padding: 20,
+          padding: 2.5,
           borderRadius: 1,
           flex: 1,
-            border: `1px solid ${theme.palette.divider}`
+          border: `1px solid ${theme.palette.divider}`
         }}
       >
         <Box
-          style={{
+          sx={{
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: 20,
+            gap: 2.5,
           }}
         >
           <TextField
@@ -219,7 +219,7 @@ const EscalatedTickets = () => {
           <Button
             variant="contained"
             onClick={handleFilterClick}
-            sx={{ backgroundColor: "#8C1D40", color: "white" }}
+            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
           >
             {activeFilters.sort || activeFilters.status
               ? `Filters: ${activeFilters.sort || ""} ${
@@ -230,7 +230,7 @@ const EscalatedTickets = () => {
           <Button
             variant="outlined"
             onClick={handleClearFilters}
-            sx={{ borderColor: "#8C1D40", color: "#8C1D40" }}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
           >
             Clear Filters
           </Button>
@@ -316,10 +316,10 @@ const EscalatedTickets = () => {
 
         {/* Tickets Grid */}
         <Box
-          style={{
+          sx={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "20px",
+            gap: 2.5,
             maxHeight: "calc(100vh - 400px)",
             overflowY: "auto",
           }}
