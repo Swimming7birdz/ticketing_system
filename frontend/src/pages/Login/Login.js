@@ -9,6 +9,7 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import * as React from "react";
@@ -18,6 +19,27 @@ import "./Login.css";
 import ASULogo from "../../assets/ASULogo.png";
 import ASUPitchfork from "../../assets/ASUPitchfork.png";
 
+// Force light theme for login page
+const lightTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#8C1D40', // ASU Maroon
+    },
+    secondary: {
+      main: '#FFC627', // ASU Gold
+    },
+    background: {
+      default: '#ffffff',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#000000',
+      secondary: '#666666',
+    },
+  },
+});
+
 export default function SignIn() {
   const navigate = useNavigate();
   const [emailError, setEmailError] = React.useState(false);
@@ -25,6 +47,7 @@ export default function SignIn() {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [rememberMe, setRememberMe] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleClickOpen = () => setOpen(true);
@@ -56,12 +79,22 @@ export default function SignIn() {
       }
 
       const { token } = await response.json();
-      Cookies.set("token", token, { secure: true, sameSite: "Strict" });
+      
+      // Store Cookie
+      Cookies.set("token", token, {
+        secure: false, // Set to false for local development, true for production
+        sameSite: "Strict",
+        expires: rememberMe ? 7 : undefined
+      });
 
       const decoded = jwtDecode(token);
       const userType = decoded.role;
       const userId = decoded.id;
-      Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
+      Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
+
+      // Trigger user change event for theme context
+      window.dispatchEvent(new CustomEvent('userChanged'));
+      localStorage.setItem('user_changed', Date.now().toString());
 
       if (userType === "admin") navigate("/admindash");
       else if (userType === "student") navigate("/studentdash");
@@ -99,34 +132,35 @@ export default function SignIn() {
   };
 
   return (
-    <Stack className="signInContainer">
-      <Box className="brandHeader">
-        <img src={ASULogo} alt="ASU Logo" className="brandLogo" />
-      </Box>
-
-      <Box className="centerStage">
-        {/* Mission statement (left) */}
-        <Box className="missionWrapper">
-          <p className="missionText">
-            ASU is a comprehensive public research university, measured not by whom it
-            excludes, but by whom it includes and how they succeed; advancing research
-            and discovery of public value; and assuming fundamental responsibility for
-            the economic, social, cultural and overall health of the communities it serves.
-          </p>
+    <ThemeProvider theme={lightTheme}>
+      <Stack className="signInContainer">
+        <Box className="brandHeader">
+          <img src={ASULogo} alt="ASU Logo" className="brandLogo" />
         </Box>
 
-        {/* Login (center) */}
-        <MuiCard className="card" variant="outlined">
-          <Typography component="h1" variant="h4">
-            Sign in
-          </Typography>
+        <Box className="centerStage">
+          {/* Mission statement (left) */}
+          <Box className="missionWrapper">
+            <p className="missionText">
+              ASU is a comprehensive public research university, measured not by whom it
+              excludes, but by whom it includes and how they succeed; advancing research
+              and discovery of public value; and assuming fundamental responsibility for
+              the economic, social, cultural and overall health of the communities it serves.
+            </p>
+          </Box>
 
-          <Box
-            className="loginForm"
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-          >
+          {/* Login (center) */}
+          <MuiCard className="card" variant="outlined">
+            <Typography component="h1" variant="h4">
+              Sign in
+            </Typography>
+
+            <Box
+              className="loginForm"
+              component="form"
+              onSubmit={handleSubmit}
+              noValidate
+            >
             <FormControl>
               <FormLabel className="emailLabel" htmlFor="email">
                 Email
@@ -175,7 +209,13 @@ export default function SignIn() {
             </FormControl>
 
             <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
+              control={
+                <Checkbox 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  color="primary" 
+                />
+              }
               label="Remember me"
             />
 
@@ -204,5 +244,6 @@ export default function SignIn() {
         </Box>
       </Box>
     </Stack>
+    </ThemeProvider>
   );
 }

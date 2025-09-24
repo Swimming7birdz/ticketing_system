@@ -4,11 +4,13 @@ import "./CreateTicket.css";
 
 //In order to have the buttons have a ripple effect, this page has to be rebuilt with mui
 //mui by default does the ripple effect
-import { Button } from "@mui/material";
+import { Box, Button, Typography, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { useTheme } from "@mui/material/styles";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const CreateTicket = ({ onClose }) => {
+    const theme = useTheme();
   const [studentName, setStudentName] = useState("");
   const [teamName, setTeamName] = useState("");
   const [sponsorName, setSponsorName] = useState("");
@@ -149,8 +151,34 @@ const CreateTicket = ({ onClose }) => {
 
   //Robert: All buttons below have been updated with '<Button/>' in order to have a ripple effect when the button is clicked
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <Box className="modal-overlay"
+         sx={{
+             position: 'fixed',
+             top: 0,
+             left: 0,
+             width: '100vw',
+             height: '100vh',
+             bgcolor: 'rgba(0, 0, 0, 0.5)',
+             display: 'flex',
+             justifyContent: 'center',
+             alignItems: 'center',
+             zIndex: 1000,
+             pl: '250px',
+             pt: '50px',
+         }}
+    >
+      <Box className="modal-content"
+           sx={{
+               bgcolor: theme.palette.background.paper,
+               p: 3,
+               borderRadius: 2.5,
+               width: '90%',
+               maxWidth: 600,
+               position: 'relative',
+               boxShadow: 3,
+               mt: -6.25,
+           }}
+      >
         {/* Close button */}
         <Button 
           className="close-button" 
@@ -173,18 +201,24 @@ const CreateTicket = ({ onClose }) => {
         </Button>
 
         {/* Form Content */}
-        <h1>Create New Ticket</h1>
-        <form onSubmit={handleSubmit}>
-          <label>
-            Student Name:
-            <input
-              type="text"
-              placeholder="Enter your name"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              required
-            />
-          </label>
+          <Typography variant="h4" sx={{ 
+              mb: 2, 
+              fontWeight: 'bold', 
+              textAlign: 'center',
+              color: theme.palette.text.primary
+          }}>
+              Create New Ticket
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                  label="Student Name"
+                  variant="outlined"
+                  placeholder="Enter your name"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  required
+                  fullWidth
+              />
           {/* <label>ASU ID:</label>
           <input
             type="text"
@@ -194,86 +228,86 @@ const CreateTicket = ({ onClose }) => {
             required
             maxLength={10}
           /> */}
-          <label>
-            Section:
-            <input
-              type="text"
-              placeholder="Enter your section"
-              value={section}
-              onChange={(e) => setSection(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Team:
-            <select
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              required
-            >
-              <option value="">Select a team</option>
-              {teamList.map((team) => (
-                <option key={team.team_id} value={team.team_id}>
-                  {team.team_name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Sponsor Name:
-            <input
-              type="text"
-              placeholder="Enter your Sponsor's name"
-              value={sponsorName}
-              onChange={(e) => setSponsorName(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Instructor (TA):
-            <select
-              value={instructorName}
-              onChange={(e) => setInstructorName(e.target.value)}
-              required
-            >
-              <option value="">Select an instructor</option>
-              {taList.map((ta) => (
-                <option key={ta.user_id} value={ta.user_id}>
-                  {ta.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Issue Type:
-            <select
-              value={issueType}
-              onChange={(e) => setIssueType(e.target.value)}
-              required
-            >
-              <option value="">Select an issue</option>
-              <option value="sponsorIssue">Issues with Sponsor</option>
-              <option value="teamIssue">Issues within the Team</option>
-              <option value="assignmentIssue">Issues with Assignments</option>
-              <option value="Bug">Bug</option>
-              <option value="Feature Request">Feature Request</option>
-              <option value="Question">Question</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
-          <label>
-            Description:
-            <textarea
-              placeholder="Describe your issue"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </label>
+              <TextField
+                  label="Section"
+                  variant="outlined"
+                  placeholder="Enter your section"
+                  value={section}
+                  onChange={(e) => setSection(e.target.value)}
+                  required
+                  fullWidth
+              />
+              <FormControl fullWidth required>
+                  <InputLabel>Team</InputLabel>
+                  <Select
+                      value={teamName}
+                      label="Team"
+                      placeholder="Select a team"
+                      onChange={(e) => setTeamName(e.target.value)}
+                  >
+                      {teamList.map((team) => (
+                          <MenuItem key={team.team_id} value={team.team_id}>
+                              {team.team_name}
+                          </MenuItem>
+                      ))}
+                  </Select>
+              </FormControl>
+              <TextField
+                  label="Sponsor Name"
+                  variant="outlined"
+                  placeholder="Enter your Sponsor's name"
+                  value={sponsorName}
+                  onChange={(e) => setSponsorName(e.target.value)}
+                  required
+                  fullWidth
+              />
+              <FormControl fullWidth required>
+                  <InputLabel>Instructor (TA)</InputLabel>
+                  <Select
+                      value={instructorName}
+                      label="Instructor (TA)"
+                      placeholder="Select a instructor (TA)"
+                      onChange={(e) => setInstructorName(e.target.value)}
+                  >
+                      {taList.map((ta) => (
+                          <MenuItem key={ta.user_id} value={ta.user_id}>
+                              {ta.name}
+                          </MenuItem>
+                      ))}
+                  </Select>
+              </FormControl>
+              <FormControl fullWidth required>
+                  <InputLabel>Issue Type</InputLabel>
+                  <Select
+                      value={issueType}
+                      label="Issue Type"
+                      placeholder="Select a issue type"
+                      onChange={(e) => setIssueType(e.target.value)}
+                  >
+                      <MenuItem value="sponsorIssue">Issues with Sponsor</MenuItem>
+                      <MenuItem value="teamIssue">Issues within the Team</MenuItem>
+                      <MenuItem value="assignmentIssue">Issues with Assignments</MenuItem>
+                      <MenuItem value="Bug">Bug</MenuItem>
+                      <MenuItem value="Feature Request">Feature Request</MenuItem>
+                      <MenuItem value="Question">Question</MenuItem>
+                      <MenuItem value="other">Other</MenuItem>
+                  </Select>
+              </FormControl>
+              <TextField
+                  label="Description"
+                  variant="outlined"
+                  placeholder="Describe your issue"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  fullWidth
+                  multiline
+                  rows={6}
+              />
           <Button type="submit">Submit Ticket</Button>
-        </form>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
