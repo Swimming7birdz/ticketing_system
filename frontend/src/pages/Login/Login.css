@@ -1,45 +1,113 @@
+:root { --header-h: 60px; }
+
+
+
+@import url('https://fonts.googleapis.com/css2?family=Alan+Sans&display=swap');
+
+/* Page */
+.signInContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f6f7fb, #ffffff);
+}
+
+/* Header */
+.brandHeader {
+  height: var(--header-h);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #8C1D40;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+}
+.brandLogo { max-height: 180%; width: auto; object-fit: contain; margin-top: 18px;}
+
+/* Center area */
+.centerStage {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - var(--header-h));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Card */
 .card {
   display: flex;
   flex-direction: column;
   text-align: center;
-  align-self: center;
   width: 100%;
-  padding: 16px;
+  max-width: 450px;
+  padding: 24px;
   gap: 16px;
-  margin: auto;
-  box-shadow: hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    hsla(220, 30%, 5%, 0.06) 0 8px 24px,
+    hsla(220, 25%, 10%, 0.08) 0 18px 40px -6px;
 }
 
-@media (min-width: 600px) {
-  .card {
-    max-width: 450px;
-  }
-}
+/* Form */
+.loginForm { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+.emailLabel { text-align: left; }
+.passwordControls { display: flex; justify-content: space-between; align-items: center; }
 
-.card.dark {
-  box-shadow: hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px;
+.primaryButton {
+  background-color: #8C1D40 !important;
+  border-radius: 12px;
+  padding-block: 12px;
+  text-transform: none;
+  font-weight: 600;
 }
+.primaryButton:hover { background-color: #6e1733 !important; }
 
-.signInContainer {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: #D9D9D9;
-}
-
-.signInContainer::before {
-  content: "";
-  display: block;
+/* Sparky (right, absolute so card stays centered) */
+.pitchforkWrapper {
   position: absolute;
-  z-index: -1;
-  inset: 0;
-  background-image: radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%));
-  background-repeat: no-repeat;
+  top: 50%;
+  left: calc(45% + 280px);
+  transform: translateY(-40%);
+  pointer-events: none;
+}
+.pitchforkLogo {
+  height: 580px;
+  width: auto;
+  object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 0 0 transparent);
 }
 
-.signInContainer.dark::before {
-  background-image: radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%));
+/* Mission statement (left, mirrored offset) */
+.missionWrapper {
+  position: absolute;
+  top: 50%;
+  right: calc(45% + 380px);
+  transform: translateY(-40%);
+  max-width: 360px;
+  text-align: center;
+}
+.missionText {
+  font-size: 1.5rem;
+   font-family: 'Alan Sans', sans-serif;
+  line-height: 1.55;
+  color: #8c1d40;
+  font-style: italic;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .centerStage { flex-direction: column; gap: 20px; padding: 0 16px; }
+  .pitchforkWrapper, .missionWrapper {
+    position: static;
+    transform: none;
+    margin-top: 8px;
+    pointer-events: auto;
+    text-align: center;
+  }
+  .pitchforkLogo { height: 160px; }
+  .missionWrapper { max-width: 90%; }
 }
 
 .loginForm{

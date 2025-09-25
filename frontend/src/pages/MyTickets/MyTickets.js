@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";  // Make sure this import is correct!
 import { fetchTicketsByUserId } from "../../services/ticketServices";
 
 const MyTickets = () => {
+  const theme = useTheme();
   const [ticketsForUser, setTicketsForUser] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,28 +38,29 @@ const MyTickets = () => {
 
   if (loading) {
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
-          backgroundColor: "#f0f0f0",
+          backgroundColor: theme.palette.background.default,
           flexDirection: "column",
-          gap: "20px",
+          gap: 2.5,
         }}
       >
         <CircularProgress size={80} thickness={4} />
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
           Loading, please wait...
         </Typography>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }}>
+    <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh", padding: 2 }}>
+      <TableContainer component={Paper} sx={{ backgroundColor: theme.palette.background.paper }}>
+        <Table sx={{ minWidth: 650 }}>
         <TableHead>
           <TableRow>
             <TableCell>Number</TableCell>
@@ -82,8 +85,9 @@ const MyTickets = () => {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-    </TableContainer>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 

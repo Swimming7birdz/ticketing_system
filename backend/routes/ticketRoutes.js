@@ -61,6 +61,12 @@ router.put(
   ticketController.escalateTicket
 );
 router.put(
+  "/:ticket_id/deescalate", 
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  ticketController.deescalateTicket
+);
+router.put(
   "/:ticket_id/reassign",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,

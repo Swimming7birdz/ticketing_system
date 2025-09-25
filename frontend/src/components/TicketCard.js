@@ -1,4 +1,5 @@
-import { Avatar, Button, Chip, Typography } from "@mui/material";
+import { Avatar, Button, Chip, Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import React, { useState } from "react";
 import TicketView from "./TicketView/TicketView"; // Import TicketView component
 // minor change for git tracking
@@ -49,6 +50,7 @@ const TicketCard = ({
   status = defaultProps.status,
   name = defaultProps.name,
 }) => {
+  const theme = useTheme();
   const [showTicketView, setShowTicketView] = useState(false);
 
   const handleOpenTicket = () => {
@@ -64,20 +66,22 @@ const TicketCard = ({
 
   return (
     <>
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          backgroundColor: "#E0E0E0",
-          padding: 20,
-          borderRadius: 5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
           flex: 1,
-          gap: 10,
+          gap: 1.25,
           width: "100%",
           height: "300px",
           overflow: "hidden",
           boxSizing: "border-box",
+          border: 1,
+          borderColor: theme.palette.divider,
         }}
       >
         {/* HEADER */}
@@ -100,7 +104,7 @@ const TicketCard = ({
               variant="body1"
               sx={{
                 fontSize: "1rem",
-                color: "#212121",
+                color: theme.palette.text.primary,
                 fontWeight: "bold",
                 textAlign: "right",
               }}
@@ -115,7 +119,7 @@ const TicketCard = ({
           variant="body2"
           sx={{
             fontSize: "0.8rem",
-            color: "#212121",
+            color: theme.palette.text.primary,
             textAlign: "left",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -165,7 +169,7 @@ const TicketCard = ({
           disableElevation
           onClick={handleOpenTicket}
           sx={{
-            backgroundColor: "#8C1D40",
+            backgroundColor: theme.palette.primary.main,
             color: "white",
             borderRadius: 999,
             fontSize: "0.75rem",
@@ -175,7 +179,7 @@ const TicketCard = ({
         >
           Open Ticket
         </Button>
-      </div>
+      </Box>
 
       {/* Render TicketView when the button is clicked */}
       {showTicketView && (

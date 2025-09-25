@@ -10,8 +10,20 @@ const ProtectedRoute = ({ element, authorizedRoles }) => {
         return <Navigate to="/login" replace />;
     }
 
-    const decodedToken = jwtDecode(token);
+    let decodedToken;
+    try {
+        decodedToken = jwtDecode(token);
+    } catch (err) {
+        Cookies.remove('token');
+        return <Navigate to="/login" replace />;
+    }
     const userType = decodedToken.role;
+    const now = Date.now() / 1000;
+
+    if (decodedToken.exp && decodedToken.exp < now) {
+        Cookies.remove('token');
+        return <Navigate to="/login" replace />;
+    }
 
     if (!authorizedRoles.includes(userType)) { // incorrect user type
         return <Navigate to="/unauthorized" replace />; 

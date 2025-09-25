@@ -1,5 +1,6 @@
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import { Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Typography, Select, MenuItem, FormControl, InputLabel, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Stack from "@mui/material/Stack";
@@ -21,6 +22,7 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 const TicketSubject = "Sponsor Isn’t Responding";
 
 const TicketInfo = () => {
+    const theme = useTheme();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editFormOpen, setEditFormOpen] = useState(false);
@@ -122,6 +124,34 @@ const TicketInfo = () => {
       window.dispatchEvent(new Event("ticketUpdated"));
     } catch (error) {
       console.error("Error updating ticket status:", error);
+    }
+  };
+
+  const resolveEscalation = async () => {
+    try{
+        const deescalateResponse = await fetch(
+            `${baseURL}/api/tickets/${ticketId}/deescalate`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    
+        if (!deescalateResponse.ok) {
+            console.error(`Failed to de-escalate ticket. Status: ${deescalateResponse.status}`);
+            console.error(`${deescalateResponse.reason}`);
+            alert("Failed to de-escalate ticket. Please try again.");
+        } else {
+            alert("Ticket was de-escalated successfully.");        
+        }
+        
+
+    } catch(error) {
+        console.log("Error: ", error);
+        setError(true);
     }
   };
 
@@ -240,12 +270,16 @@ const TicketInfo = () => {
 
   return (
 
-    <div style={{ display: "flex", flexDirection: "column", backgroundColor: "#DBDADA", padding: 50, gap: 50 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, backgroundColor: "#FFFFFF", padding: 20, borderRadius: 5, flex: 1 }}>
-        <Stack className="ticketInfo">
+    <Box sx={{ backgroundColor: theme.palette.background.default, p: 6}}>
+      <Box sx={{backgroundColor: theme.palette.background.paper, p: 3, borderRadius: 1, flex: 1 }}>
+        <Stack className="ticketInfo" sx={{ backgroundColor: theme.palette.background.paper, border: `5px solid ${theme.palette.divider}`}}>
           <Button variant="text" className="backButton" onClick={handleBack} startIcon={<ArrowBackIosNewIcon />}>Back</Button>
-          <div className="ticketId">Capstone Ticket - {ticketId}</div>
-          <div className="subject">{issueTypeDisplay[ticketData.issue_type] || "Unknown issue type"}</div>
+            <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                Capstone Ticket - {ticketId}
+            </Typography>
+            <Typography variant="h6" component="div" color="text.secondary">
+                {issueTypeDisplay[ticketData.issue_type] || "Unknown issue type"}
+            </Typography>
 
           <Stack direction="row" className="statusButtons">
             <TicketStatusIndicator status={ticketStatus.toUpperCase() || "UNKNOWN"} />
@@ -261,46 +295,51 @@ const TicketInfo = () => {
             </FormControl>
             <Button variant="contained" className="editButton" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
             <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
-            <Button variant="contained" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
+            <Button variant="contained" color="error" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
             <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} />
-            {userType === "TA" && (
-              <Button variant="contained" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
+            {userType === "TA" && ticketData.escalated === false && (
+              <Button variant="contained" color="warning" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
             )}
-            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} />
+            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
+            {userType === "admin" && ticketData.escalated && (
+              <Button variant="contained" color="success" className="deEscalateButton" onClick={() => resolveEscalation()}>Resolve Escalation</Button>
+            )}
+
           </Stack>
 
-          <h3>Description:</h3>
-          <div className="ticketAsset">{ticketData.issue_description}</div>
-          <h3>Student - ID:</h3>
-          <div className="ticketAsset">{ticketData.student_name} - {ticketData.student_id}</div>
-          <h3>TA:</h3>
-          <div className="ticketAsset">
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Description:</Typography>
+            <Typography variant="body1">{ticketData.issue_description}</Typography>
+
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Student - ID:</Typography>
+            <Typography variant="body1">{ticketData.student_name} - {ticketData.student_id}</Typography>
+
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>TA:</Typography>
+            <Box className="ticketAsset">
             {idToNameMap[AssignedID]}&nbsp;
             {userType === "admin" && (
               <Button variant="contained" className="reassignButton" style={{ marginTop: "10px" }} onClick={() => setReassignOpen(true)}>Reassign</Button>
             )}
             <ConfirmReassign handleOpen={reassignOpen} handleClose={() => setReassignOpen(false)} ticketID={ticketId} oldTAID={AssignedID} idNameMap={idToNameMap} updateTA={(newTAID) => setAssignedID(newTAID)} />
-          </div>
-                <h3>Sponsor:</h3>
-                <div className="ticketAsset">
-                  {ticketData.sponsor_name}
-                </div>
-          <h3>Project - ID:</h3>
-                <div className="ticketAsset">
-                  {ticketData.team_name} - {ticketData.team_id}
-                </div>
-                <h3>Created at: </h3>
-                <div className="ticketAsset">
-                  {ticketData.created_at ? new Date(ticketData.created_at).toLocaleString() : "N/A"}
-                </div>
-                <h3>Last Updated: </h3>
-          <div className="ticketAsset">{ticketData.updated_at ? new Date(ticketData.updated_at).toLocaleString() : "N/A"}</div>
-          <h3>Replies:</h3>
+          </Box>
+
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Sponsor:</Typography>
+            <Typography variant="body1">{ticketData.sponsor_name}</Typography>
+
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Project - ID:</Typography>
+            <Typography variant="body1">{ticketData.team_name} - {ticketData.team_id}</Typography>
+
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Created at:</Typography>
+            <Typography variant="body1">{ticketData.created_at ? new Date(ticketData.created_at).toLocaleString() : "N/A"}</Typography>
+
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Last Updated:</Typography>
+            <Typography variant="body1">{ticketData.updated_at ? new Date(ticketData.updated_at).toLocaleString() : "N/A"}</Typography>
+
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Replies:</Typography>
           <ReplySection />
         </Stack>
-      </div>
+      </Box>
       {editFormOpen && <EditTicket ticketId={ticketId} onClose={() => setEditFormOpen(false)} handleSaveEdit={handleSaveEdit} />}
-    </div>
+    </Box>
   );
 };
 

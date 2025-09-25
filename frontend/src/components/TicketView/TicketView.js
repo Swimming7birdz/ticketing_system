@@ -1,18 +1,14 @@
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-//import "./TicketView.css"; // You can reuse CreateTicket.css or create a new one
 import { useNavigate } from "react-router-dom";
-
-//In order to have the buttons have a ripple effect, this page has to be rebuilt with mui
-//mui by default does the ripple effect
-import { Button } from "@mui/material";
+import { Button, Box, Typography, Modal } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { issueTypeDisplay } from "../../constants/IssueTypes";
-
-import "./TicketView.css"; // Adjust if necessary
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const TicketView = ({ ticketId, onClose }) => {
+  const theme = useTheme();
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,31 +48,77 @@ const TicketView = ({ ticketId, onClose }) => {
 
   if (loading) {
     return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <p>Loading ticket details...</p>
-        </div>
-      </div>
+      <Modal open={true} onClose={onClose}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 500,
+            maxWidth: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            bgcolor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography>Loading ticket details...</Typography>
+        </Box>
+      </Modal>
     );
   }
 
   if (!ticket) {
     return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <p>Failed to load ticket details.</p>
-          <Button onClick={onClose}>Close</Button>
-        </div>
-      </div>
+      <Modal open={true} onClose={onClose}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 500,
+            maxWidth: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            bgcolor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography>Failed to load ticket details.</Typography>
+          <Button onClick={onClose} sx={{ mt: 2 }}>Close</Button>
+        </Box>
+      </Modal>
     );
   }
 
-  //Robert: All buttons below have been updated with '<Button/>' in order to have a ripple effect when the button is clicked
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <Modal open={true} onClose={onClose}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 500,
+          maxWidth: '90%',
+          maxHeight: '80vh',
+          overflow: 'auto',
+          bgcolor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          borderRadius: 2,
+          boxShadow: 24,
+          p: 4,
+        }}
+      >
         <Button 
-          className="close-button" 
           onClick={onClose}
           sx={{
             position: "absolute",
@@ -85,57 +127,70 @@ const TicketView = ({ ticketId, onClose }) => {
             minWidth: "32px",
             minHeight: "32px",
             borderRadius: "50%",
-            backgroundColor: "#8C1D40",
+            backgroundColor: theme.palette.primary.main,
             color: "white",
             "&:hover": {
-              backgroundColor: "#5F0E24",
+              backgroundColor: theme.palette.primary.dark,
             },
           }}
         >
           &times;
         </Button>
-        <h1>Ticket Details</h1>
-        <p>
+        
+        <Typography variant="h4" component="h1" sx={{ mb: 3, textAlign: 'center', fontWeight: 'bold' }}>
+          Ticket Details
+        </Typography>
+        
+        <Typography sx={{ mb: 1 }}>
           <strong>Ticket ID:</strong> {ticket.ticket_id}
-        </p>
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Student ID:</strong> {ticket.student_id}
-        </p>
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Team ID:</strong> {ticket.team_id}
-        </p>
-        {/* <p> */}
-          {/* <strong>ASU ID:</strong> {ticket.asu_id} */}
-        {/* </p> */}
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Issue Description:</strong> {ticket.issue_description}
-        </p>
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Sponsor Name:</strong> {ticket.sponsor_name || "N/A"}
-        </p>
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Section:</strong> {ticket.section}
-        </p>
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Issue Type:</strong> {issueTypeDisplay[ticket.issue_type] || "Unknown Issue Type"}
-        </p>
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Status:</strong> {ticket.status}
-        </p>
-        <p>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
           <strong>Escalated:</strong> {ticket.escalated ? "Yes" : "No"}
-        </p>
-        <p>
-          <strong>Created At:</strong>{" "}
-          {new Date(ticket.created_at).toLocaleString()}
-        </p>
-        <p>
-          <strong>Updated At:</strong>{" "}
-          {new Date(ticket.updated_at).toLocaleString()}
-        </p>
-        <Button onClick={onOpenTicket}>View Ticket Page</Button>
-      </div>
-    </div>
+        </Typography>
+        <Typography sx={{ mb: 1 }}>
+          <strong>Created At:</strong> {new Date(ticket.created_at).toLocaleString()}
+        </Typography>
+        <Typography sx={{ mb: 3 }}>
+          <strong>Updated At:</strong> {new Date(ticket.updated_at).toLocaleString()}
+        </Typography>
+        
+        <Button 
+          onClick={onOpenTicket}
+          variant="contained"
+          sx={{
+            display: 'block',
+            margin: '0 auto',
+            backgroundColor: theme.palette.primary.main,
+            '&:hover': {
+              backgroundColor: theme.palette.primary.dark,
+            },
+          }}
+        >
+          VIEW TICKET PAGE
+        </Button>
+      </Box>
+    </Modal>
   );
 };
 

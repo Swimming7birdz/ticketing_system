@@ -1,4 +1,5 @@
-import { Avatar, Button, Typography } from "@mui/material";
+import { Avatar, Button, Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -59,7 +60,7 @@ const InstructorCard = ({
   counts = defaultProps.counts,
   userId = defaultProps.userId,
 }) => {
-
+  const theme = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -99,20 +100,22 @@ const InstructorCard = ({
   };
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        backgroundColor: "#E0E0E0",
-        padding: 20,
-        borderRadius: 5,
+        backgroundColor: theme.palette.background.paper,
+        padding: 2.5,
+        borderRadius: 1,
         flex: 1,
-        gap: 10,
+        gap: 1.25,
         width: "100%",
         height: "300px",
         overflow: "hidden",
         boxSizing: "border-box",
+        border: 1,
+        borderColor: theme.palette.divider,
       }}
     >
       {/* HEADER */}
@@ -129,7 +132,7 @@ const InstructorCard = ({
             variant="p"
             sx={{
               fontSize: "1rem",
-              color: "#212121",
+              color: theme.palette.text.primary,
               fontWeight: "bold",
               textAlign: "right",
             }}
@@ -180,25 +183,25 @@ const InstructorCard = ({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" }}>
+          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
             Monday: 01:00 PM - 02:00 PM
           </Typography>
-          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" }}>
+          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
             Tuesday: 01:00 PM - 02:00 PM
           </Typography>
-          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" }}>
+          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
             Wednesday: 01:00 PM - 02:00 PM
           </Typography>
-          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" }}>
+          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
             Thursday: 01:00 PM - 02:00 PM
           </Typography>
-          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" }}>
+          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
             Friday: 01:00 PM - 02:00 PM
           </Typography>
-          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" }}>
+          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
             Saturday: 01:00 PM - 02:00 PM
           </Typography>
-          <Typography variant="p" sx={{ color: "#737373", fontSize: "0.8rem" }}>
+          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
             Sunday: 01:00 PM - 02:00 PM
           </Typography>
         </div>
@@ -208,7 +211,7 @@ const InstructorCard = ({
         variant="contained"
         disableElevation
         sx={{
-          backgroundColor: "#8C1D40",
+          backgroundColor: theme.palette.primary.main,
           color: "white",
           borderRadius: 999,
           fontSize: "0.75rem",
@@ -219,7 +222,7 @@ const InstructorCard = ({
       >
         View Profile
       </Button>
-    </div>
+    </Box>
   );
 };
 

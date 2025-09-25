@@ -1,10 +1,12 @@
-import { Button, CircularProgress, TextField, Typography } from "@mui/material";
+import { Button, CircularProgress, TextField, Typography, Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import InstructorCard from "../../components/InstructorCard";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AllAssignees = () => {
+  const theme = useTheme();
   const [tas, setTAs] = useState([]);
   const [filteredTAs, setFilteredTAs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,33 +55,33 @@ const AllAssignees = () => {
 
   if (loading) {
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
-          backgroundColor: "#f0f0f0",
+          backgroundColor: theme.palette.background.default,
           flexDirection: "column",
           gap: "20px",
         }}
       >
         <CircularProgress size={80} thickness={4} />
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
           Loading, please wait...
         </Typography>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#DBDADA",
-        padding: 50,
-        gap: 50,
+        backgroundColor: theme.palette.background.default,
+        padding: 6.25,
+        gap: 6.25,
       }}
     >
       <Typography
@@ -106,21 +108,22 @@ const AllAssignees = () => {
         <Button
           variant="outlined"
           onClick={() => setSearch("")}
-          sx={{ color: "#8C1D40", borderColor: "#8C1D40" }}
+          sx={{ color: theme.palette.primary.main, borderColor: theme.palette.primary.main }}
         >
           Clear Search
         </Button>
       </div>
-      <div
-        style={{
+      <Box
+        sx={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-          gap: "20px",
+          gap: 2.5,
           maxHeight: "70vh",
           overflowY: "auto",
-          padding: "5px",
-          border: "1px solid #ccc",
-          borderRadius: "5px",
+          padding: 0.625,
+          border: 1,
+          borderColor: theme.palette.divider,
+          borderRadius: 1,
         }}
       >
         {filteredTAs.map((ta) => (
@@ -130,8 +133,8 @@ const AllAssignees = () => {
             counts={{}} // You can pass counts or other data if needed
           />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

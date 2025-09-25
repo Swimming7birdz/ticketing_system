@@ -8,11 +8,14 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  RadioGroup,
+  Radio
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -21,10 +24,10 @@ const StudentSettings = () => {
   console.log("Token:", token);
 
   const navigate = useNavigate();
+  const { isDarkMode, themeMode, setTheme } = useTheme();
 
   const [user, setUser] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [ticketView, setTicketView] = useState("all"); // new
 
   useEffect(() => {
@@ -40,7 +43,6 @@ const StudentSettings = () => {
         console.log("Loaded user:", data);
         setUser(data);
         setNotificationsEnabled(data.notifications_enabled);
-        setDarkMode(data.dark_mode);
       })
       .catch((err) => console.error("Failed to load settings:", err));
 
@@ -80,10 +82,13 @@ const StudentSettings = () => {
     updatePreference({ notifications_enabled: newValue });
   };
 
-  const handleDarkModeToggle = () => {
-    const newValue = !darkMode;
-    setDarkMode(newValue);
-    updatePreference({ dark_mode: newValue });
+  const handleThemeModeChange = (event) => {
+    const newThemeMode = event.target.value;
+    setTheme(newThemeMode);
+    updatePreference({ 
+      theme_mode: newThemeMode,
+      dark_mode: newThemeMode === 'dark' // Update dark_mode for backward compatibility
+    });
   };
 
   const handleTicketViewChange = (event) => {
@@ -108,11 +113,21 @@ const StudentSettings = () => {
         control={<Switch checked={notificationsEnabled} onChange={handleNotificationsToggle} />}
         label="Email Notifications"
       />
-      <br />
-      <FormControlLabel
-        control={<Switch checked={darkMode} onChange={handleDarkModeToggle} />}
-        label="Dark Mode"
-      />
+      
+      <Typography variant="subtitle1" gutterBottom sx={{ marginTop: "20px" }}>
+        Theme Mode
+      </Typography>
+      <FormControl component="fieldset">
+        <RadioGroup
+          value={themeMode}
+          onChange={handleThemeModeChange}
+          row
+        >
+          <FormControlLabel value="light" control={<Radio />} label="Light" />
+          <FormControlLabel value="dark" control={<Radio />} label="Dark" />
+          <FormControlLabel value="auto" control={<Radio />} label="Auto (Time-based)" />
+        </RadioGroup>
+      </FormControl>
 
       <FormControl fullWidth sx={{ marginTop: "20px" }}>
         <InputLabel id="ticket-view-label">Default Ticket View</InputLabel>

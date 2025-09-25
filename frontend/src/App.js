@@ -23,7 +23,8 @@ import Registration from "./pages/Registration/Registration";
 import Profile from "./pages/Profile/Profile";
 import StudentTickets from "./pages/StudentTickets/StudentTickets";
 import InstructorTickets from "./pages/InstructorTickets/InstructorTickets";
-import InstructorProfile from "./pages/InstructorProfile/InstructorProfile"; //added 3/22/25 along with creation of instructor profile
+import InstructorProfile from "./pages/InstructorProfile/InstructorProfile"; 
+import EscalatedTickets from "./pages/EscalatedTickets/EscalatedTickets";
 
 function App() {
   return (
@@ -50,7 +51,15 @@ function App() {
         <Route path="/tasettings" element={<TASettings />} />
         <Route path="/studentsettings" element={<StudentSettings />} />
         <Route path="/ticketview" element={<TicketView />} />
-	<Route path="/instructorprofile" element={<InstructorProfile />} /> //added 3/22/25 along with creation of instructor profile
+	      <Route path="/instructorprofile" element={<InstructorProfile />} /> 
+        <Route 
+          path="/escalatedtickets" 
+          element={<ProtectedRoute
+            element={<EscalatedTickets />}
+            authorizedRoles={["admin"]}
+           />
+          } 
+        />
         {/* Testing Pages */}
 
         {/* Change user_id to the user's id */}
