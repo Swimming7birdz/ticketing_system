@@ -8,6 +8,7 @@ const ticketAssignmentRoutes = require("./ticketAssignmentRoutes");
 const officeHoursRoutes = require("./officeHoursRoutes");
 const encryptionRoutes = require("./encryptionRoutes");
 const pingRoutes = require("./pingRoutes");
+const emailRoutes = require('./emailRoutes');
 
 // Array to simplify route setup
 const routes = [
@@ -21,6 +22,7 @@ const routes = [
   { path: "/api/ping", route: pingRoutes },
   { path: "/api/officehours", route: officeHoursRoutes},
   { path: "/api/encrypt", route: encryptionRoutes },
+  { path: "/api/email", route: emailRoutes }
 ];
 
 module.exports = (app) => {

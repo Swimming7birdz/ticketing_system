@@ -2,7 +2,7 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  host: 'helpdesk.asucapstonetools.com',
+  host: 'smtpout.secureserver.net',
   port: 465,
   secure: true, // Use SSL
   auth: {
@@ -19,7 +19,16 @@ const sendEmail = async (to, subject, text) => {
     text,
   };
 
+  transporter.verify(function(error, success) {
+    if (error) {
+      console.error("SMTP connection failed:", error);
+    } else {
+      console.log("SMTP server is ready to take messages");
+    }
+  });
+
   try {
+    console.log('Attempting to send email...');
     const info = await transporter.sendMail(mailOptions);
     console.log(`Email sent: ${info.response}`);
   } catch (error) {
