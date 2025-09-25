@@ -48,6 +48,7 @@ export default function SignIn() {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [rememberMe, setRememberMe] = React.useState(false);
+  const [showPass, setShowPass] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleClickOpen = () => setOpen(true);
@@ -130,6 +131,7 @@ export default function SignIn() {
 
     return ok;
   };
+  
 
   return (
     <ThemeProvider theme={lightTheme}>
@@ -232,6 +234,96 @@ export default function SignIn() {
             <Typography>
               Don&apos;t have an account?{" "}
               <Link href="" variant="body2" onClick={handleSignUp}>
+    <Stack className="signInContainer">
+      <MuiCard className="card" variant="outlined">
+        <Typography component="h1" variant="h4">
+          Sign in
+        </Typography>
+        <Box
+          className="loginForm"
+          component="form"
+          onSubmit={handleSubmit}
+          noValidate
+        >
+          <FormControl>
+            <FormLabel className="emailLabel" htmlFor="email">
+              Email
+            </FormLabel>
+            <TextField
+              error={emailError}
+              helperText={emailErrorMessage}
+              id="email"
+              type="email"
+              name="email"
+              placeholder="your@email.com"
+              autoComplete="email"
+              autoFocus
+              required
+              fullWidth
+              variant="outlined"
+              color={emailError ? "error" : "primary"}
+            />
+          </FormControl>
+          <FormControl>
+            <Box className="passwordControls">
+              <FormLabel htmlFor="password">
+                Password
+              </FormLabel>
+              <Link
+                component="button"
+                type="button"
+                onClick={handleClickOpen}
+                variant="body2"
+              >
+                Forgot your password?
+              </Link>
+            </Box>
+            <TextField
+              error={passwordError}
+              helperText={passwordErrorMessage}
+              name="password"
+              placeholder="••••••"
+              type={showPass ? "text" : "password"} 
+              id="password"
+              autoComplete="current-password"
+              //autoFocus
+              required
+              fullWidth
+              variant="outlined"
+              color={passwordError ? "error" : "primary"}
+            />
+            <label className="checkBoxLabel">
+              <input 
+                type="checkbox"
+                id="showPassCheckBox"
+                onChange={e => setShowPass(e.target.checked)}
+                checked={showPass}
+                style={{ marginRight: '0px'}}
+              />
+              <span style={{ marginLeft: "0.5rem" }}>Show Password</span>
+            </label>
+          </FormControl>
+          <FormControlLabel
+            control={<Checkbox value="remember" color="primary" />}
+            label="Remember me"
+          />
+          {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            onClick={validateInputs}
+          >
+            Sign in
+          </Button>
+          <Typography>
+            Don&apos;t have an account?{' '}
+            <span>
+              <Link
+                href=""
+                variant="body2"
+                onClick={handleSignUp}
+              >
                 Sign up
               </Link>
             </Typography>
