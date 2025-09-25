@@ -22,6 +22,7 @@ export default function SignIn(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [showPass, setShowPass] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleClickOpen = () => {
@@ -131,6 +132,7 @@ export default function SignIn(props) {
 
     return isValid;
   };
+  
 
   return (
     <Stack className="signInContainer">
@@ -166,8 +168,8 @@ export default function SignIn(props) {
           <FormControl>
             <Box className="passwordControls">
               <FormLabel htmlFor="password">
-		Password
-		</FormLabel>
+                Password
+              </FormLabel>
               <Link
                 component="button"
                 type="button"
@@ -182,7 +184,7 @@ export default function SignIn(props) {
               helperText={passwordErrorMessage}
               name="password"
               placeholder="••••••"
-              type="password"
+              type={showPass ? "text" : "password"} 
               id="password"
               autoComplete="current-password"
               //autoFocus
@@ -191,6 +193,16 @@ export default function SignIn(props) {
               variant="outlined"
               color={passwordError ? "error" : "primary"}
             />
+            <label className="checkBoxLabel">
+              <input 
+                type="checkbox"
+                id="showPassCheckBox"
+                onChange={e => setShowPass(e.target.checked)}
+                checked={showPass}
+                style={{ marginRight: '0px'}}
+              />
+              <span style={{ marginLeft: "0.5rem" }}>Show Password</span>
+            </label>
           </FormControl>
           <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}

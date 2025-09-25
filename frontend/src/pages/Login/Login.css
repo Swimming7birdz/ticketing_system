@@ -57,3 +57,12 @@
   display: flex;
   justify-content: space-between;
 }
+
+.checkBoxLabel {
+  display: inline-flex;
+  white-space: nowrap;
+  font-weight: normal;
+  text-align: right;
+  justify-content: flex-end;
+  padding-left: 400px;
+}
