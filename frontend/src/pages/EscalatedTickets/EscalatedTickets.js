@@ -50,6 +50,14 @@ const EscalatedTickets = () => {
         filtered.sort((a, b) => b.ticket_id - a.ticket_id);
         }
 
+        // Apply status filter
+        if (activeFilters.status) {
+          filtered = filtered.filter(
+            (ticket) =>
+              ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
+          );
+        }
+
         // Apply search filter
         if (activeFilters.search) {
         filtered = filtered.filter((ticket) =>
@@ -77,7 +85,7 @@ const EscalatedTickets = () => {
     };
 
     const handleClearFilters = () => {
-        setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch });
+        setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
     };
 
     const fetchNameFromId = async (student_id) => {
@@ -311,8 +319,57 @@ const EscalatedTickets = () => {
             )}
             Sort by ID: Descending
           </MenuItem>
-        </Menu>
 
+        {/* Status: New */}
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.status === "New") {
+              setActiveFilters({ ...activeFilters, status: null});
+            } else {
+              setActiveFilters({ ...activeFilters, status: "New" })
+            }
+          }}  
+        >
+          { activeFilters.status === "New" && (
+            <span style={{ marginRight: 8 }}>✔</span>
+          )}
+          Status: New
+        </MenuItem>
+
+        {/* Status: Ongoing */}
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.status === "Ongoing") {
+              setActiveFilters({ ...activeFilters, status: null });
+            } else {
+              setActiveFilters({ ...activeFilters, status: "Ongoing" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.status === "Ongoing" && (
+            <span style={{ marginRight: 8 }}>✔</span>
+          )}
+          Status: Ongoing
+        </MenuItem>
+
+        {/* Status: Resolved */}
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.status === "Resolved") {
+              setActiveFilters({ ...activeFilters, status: null });
+            } else {
+              setActiveFilters({ ...activeFilters, status: "Resolved" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.status === "Resolved" && (
+            <span style={{ marginRight: 8 }}>✔</span>
+          )}
+          Status: Resolved
+        </MenuItem>
+        </Menu>
 
         {/* Tickets Grid */}
         <Box
