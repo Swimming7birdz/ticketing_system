@@ -48,6 +48,7 @@ export default function SignIn() {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [rememberMe, setRememberMe] = React.useState(false);
+  const [showPass, setShowPass] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleClickOpen = () => setOpen(true);
@@ -80,9 +81,8 @@ export default function SignIn() {
 
       const { token } = await response.json();
       
-      // Store Cookie
       Cookies.set("token", token, {
-        secure: false, // Set to false for local development, true for production
+        secure: false,
         sameSite: "Strict",
         expires: rememberMe ? 7 : undefined
       });
@@ -92,9 +92,12 @@ export default function SignIn() {
       const userId = decoded.id;
       Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
 
-      // Trigger user change event for theme context
-      window.dispatchEvent(new CustomEvent('userChanged'));
-      localStorage.setItem('user_changed', Date.now().toString());
+      try {
+        window.dispatchEvent(new CustomEvent('userChanged'));
+        localStorage.setItem('user_changed', Date.now().toString());
+      } catch (error) {
+        console.warn('Theme event/storage failed:', error);
+      }
 
       if (userType === "admin") navigate("/admindash");
       else if (userType === "student") navigate("/studentdash");
@@ -198,7 +201,7 @@ export default function SignIn() {
                 helperText={passwordErrorMessage}
                 name="password"
                 placeholder="••••••"
-                type="password"
+                type={showPass ? "text" : "password"}
                 id="password"
                 autoComplete="current-password"
                 required
@@ -207,6 +210,17 @@ export default function SignIn() {
                 color={passwordError ? "error" : "primary"}
               />
             </FormControl>
+
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={showPass}
+                  onChange={(e) => setShowPass(e.target.checked)}
+                  color="primary" 
+                />
+              }
+              label="Show Password"
+            />
 
             <FormControlLabel
               control={
