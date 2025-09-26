@@ -222,17 +222,6 @@ export default function SignIn() {
             <FormControlLabel
               control={
                 <Checkbox 
-                  checked={showPass}
-                  onChange={(e) => setShowPass(e.target.checked)}
-                  color="primary" 
-                />
-              }
-              label="Show Password"
-            />
-
-            <FormControlLabel
-              control={
-                <Checkbox 
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                   color="primary" 
