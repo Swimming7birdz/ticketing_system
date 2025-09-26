@@ -82,7 +82,7 @@ export default function SignIn() {
       const { token } = await response.json();
       
       Cookies.set("token", token, {
-        secure: false,
+        secure: true,
         sameSite: "Strict",
         expires: rememberMe ? 7 : undefined
       });
@@ -90,7 +90,7 @@ export default function SignIn() {
       const decoded = jwtDecode(token);
       const userType = decoded.role;
       const userId = decoded.id;
-      Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
+      Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
 
       try {
         window.dispatchEvent(new CustomEvent('userChanged'));
