@@ -81,6 +81,7 @@ const AllTickets = () => {
     }
 
     // Search by ticket ID
+    //Can repurpose this section for Team Name filter
     if (activeFilters.ticketIdSearch) {
     filtered = filtered.filter(
       (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
@@ -236,7 +237,8 @@ const AllTickets = () => {
             }
             sx={{ flex: 1 }}
           />
-          <TextField
+          {/*Can repurpose Textfield to be used for searching by Team Name*/}
+          {/* <TextField
             label="Search by Ticket ID"
             variant="outlined"
             value={activeFilters.ticketIdSearch}
@@ -244,7 +246,7 @@ const AllTickets = () => {
               setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
             }
             sx={{ flex: 1 }}
-          />
+          /> */}
           <Button
             variant="contained"
             onClick={handleFilterClick}

@@ -81,9 +81,8 @@ export default function SignIn() {
 
       const { token } = await response.json();
       
-      // Store Cookie
       Cookies.set("token", token, {
-        secure: false, // Set to false for local development, true for production
+        secure: true,
         sameSite: "Strict",
         expires: rememberMe ? 7 : undefined
       });
@@ -91,11 +90,14 @@ export default function SignIn() {
       const decoded = jwtDecode(token);
       const userType = decoded.role;
       const userId = decoded.id;
-      Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
+      Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
 
-      // Trigger user change event for theme context
-      window.dispatchEvent(new CustomEvent('userChanged'));
-      localStorage.setItem('user_changed', Date.now().toString());
+      try {
+        window.dispatchEvent(new CustomEvent('userChanged'));
+        localStorage.setItem('user_changed', Date.now().toString());
+      } catch (error) {
+        console.warn('Theme event/storage failed:', error);
+      }
 
       if (userType === "admin") navigate("/admindash");
       else if (userType === "student") navigate("/studentdash");

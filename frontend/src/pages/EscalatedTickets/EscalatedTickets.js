@@ -60,6 +60,7 @@ const EscalatedTickets = () => {
         }
 
         // Search by ticket ID
+        //Can repurpose this section for Team Name filter
         if (activeFilters.ticketIdSearch) {
         filtered = filtered.filter(
         (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
@@ -207,7 +208,8 @@ const EscalatedTickets = () => {
             }
             sx={{ flex: 1 }}
           />
-          <TextField
+          {/*Can repurpose Textfield to be used for searching by Team Name*/}
+          {/* <TextField
             label="Search by Ticket ID"
             variant="outlined"
             value={activeFilters.ticketIdSearch}
@@ -215,7 +217,8 @@ const EscalatedTickets = () => {
               setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
             }
             sx={{ flex: 1 }}
-          />
+          /> */
+          /*Can repurpose Textfield to be used for searching by Team Name*/}
           <Button
             variant="contained"
             onClick={handleFilterClick}

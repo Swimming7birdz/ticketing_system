@@ -5,7 +5,9 @@ import {
   MenuItem,
   TextField,
   Typography,
+  Box
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import TicketCard from "../../components/TicketCard";
@@ -18,6 +20,7 @@ import { jwtDecode } from "jwt-decode";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 //const token = Cookies.get("token");
 const InstructorProfile = () => {
+  const theme = useTheme();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
@@ -325,58 +328,64 @@ const InstructorProfile = () => {
   
   if (loading) {
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
-          backgroundColor: "#f0f0f0",
+          backgroundColor: theme.palette.background.default,
           flexDirection: "column",
-          gap: "20px",
+          gap: 2.5,
         }}
       >
         <CircularProgress size={80} thickness={4} />
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
           Loading, please wait...
         </Typography>
-      </div>
+      </Box>
     );
   }
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#DBDADA",
-        padding: 50,
-        gap: 50,
+        backgroundColor: theme.palette.background.default,
+        p: 6.25,
+        gap: 6.25,
       }}
     >
       <Typography
         variant="h1"
-        sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
+        sx={{ 
+          fontWeight: "bold", 
+          fontSize: "2rem", 
+          textAlign: "center",
+          color: theme.palette.text.primary
+        }}
       >
         {TA.name || ' '} Profile
       </Typography>
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          p: 2.5,
+          borderRadius: 1,
           flex: 1,
+          border: `1px solid ${theme.palette.divider}`
         }}
       >
-        <div
-          style={{
+        <Box
+          sx={{
             display: "flex",
             flexDirection: "row",
             justifyContent: "right",
             alignItems: "right",
-            gap: 20,
+            gap: 2.5,
           }}
         >{/*
           <TextField
@@ -391,7 +400,7 @@ const InstructorProfile = () => {
           <Button
             variant="contained"
             onClick={handleFilterClick}
-            sx={{ backgroundColor: "#8C1D40", color: "white" }}
+            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
           >
             {activeFilters.sort || activeFilters.status
               ? `Filters: ${activeFilters.sort || ""} ${
@@ -402,11 +411,11 @@ const InstructorProfile = () => {
           <Button
             variant="outlined"
             onClick={handleClearFilters}
-            sx={{ borderColor: "#8C1D40", color: "#8C1D40" }}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
           >
             Clear Filters
           </Button>
-        </div>
+        </Box>
 
         {/* Filter Dropdown */}
         <Menu
@@ -458,12 +467,13 @@ const InstructorProfile = () => {
 
 
         {/* Tickets Grid */}
-        <div
-          style={{
+        <Box
+          sx={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "20px",
+            gap: 2.5,
             justifyContent: "center",
+            maxHeight: "calc(100vh - 400px)",
             overflowY: "auto",
           }}
         >
@@ -476,30 +486,36 @@ const InstructorProfile = () => {
               name={ticket.userName}
             />
           ))}
-        </div>
-      </div>
+        </Box>
+      </Box>
 	{/*Schedule section*/}
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          p: 2.5,
+          borderRadius: 1,
           flex: 1,
+          border: `1px solid ${theme.palette.divider}`
         }}
-      ><div
-          style={{
+      ><Box
+          sx={{
             display: "flex",
             flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
-            gap: 20,
+            gap: 2.5,
           }}
         ><Typography
               variant="h1"
-              sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
+              sx={{ 
+                fontWeight: "bold", 
+                fontSize: "2rem", 
+                textAlign: "center",
+                color: theme.palette.text.primary
+              }}
             >
               Office Hours
             </Typography>
@@ -509,12 +525,12 @@ const InstructorProfile = () => {
           <Button
             variant="contained"
             onClick={handleEditClick}
-            sx={{ backgroundColor: "#8C1D40", color: "white" }}
+            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
           >
           Edit
           </Button>
 	 )}
-        </div>
+        </Box>
         	
 	<div style={{ display: "grid", flexDirection: "column", justifyContent: "center" }}>
 	{isEditing ? (
@@ -679,20 +695,20 @@ const InstructorProfile = () => {
 	<Button
 		variant="contained"
 		onClick={handleSaveClick}
-		sx={{ backgroundColor: "#8C1D40", color: "white", padding:"2px 10px" }}
+		sx={{ backgroundColor: theme.palette.primary.main, color: "white", padding:"2px 10px" }}
 	>
 	Save
 	</Button>
 	<Button
                 variant="contained"
                 onClick={handleCloseClick}
-                sx={{ backgroundColor: "#8C1D40", color: "white", padding:"2px" }}
+                sx={{ backgroundColor: theme.palette.primary.main, color: "white", padding:"2px" }}
         >
         Close
         </Button>
 	</div>
 	</>) : ( <>
-	  <Typography variant="p" sx={{  display: 'grid', gridTemplateColumns: '1fr 2fr', alignItems: 'center', gap: '4px', color: "#737373", fontSize: "0.8rem" , textAlign: "left"}}>
+	  <Typography variant="p" sx={{  display: 'grid', gridTemplateColumns: '1fr 2fr', alignItems: 'center', gap: '4px', color: theme.palette.text.secondary, fontSize: "0.8rem" , textAlign: "left"}}>
 	  {selectedDays.monday && (time.monday.start != '' && time.monday.end != '') && ( <>
 	    <label> Monday: </label>
 	    <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
@@ -738,8 +754,8 @@ const InstructorProfile = () => {
           </Typography>
 	  </>)}
         </div>
-	</div> 
-    </div>
+	</Box> 
+    </Box>
   );
 };
 
