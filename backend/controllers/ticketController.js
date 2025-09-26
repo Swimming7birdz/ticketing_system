@@ -211,7 +211,7 @@ exports.updateTicketStatus = async (req, res) => {
         ? `Your ticket (ID: ${ticket.ticket_id}) has been escalated and is under review.`
         : `Your ticket (ID: ${ticket.ticket_id}) has been updated to "${req.body.status}".`;
 
-      await sendEmail(student.email, subject, body);
+      //await sendEmail(student.email, subject, body);
 
       if (isEscalated) {
         // const instructorEmails = ['instructor1@asu.edu', 'instructor2@asu.edu'];

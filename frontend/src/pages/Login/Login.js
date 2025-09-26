@@ -133,37 +133,37 @@ export default function SignIn() {
 
     return ok;
   };
+  
 
   return (
-    <ThemeProvider theme={lightTheme}>
-      <Stack className="signInContainer">
-        <Box className="brandHeader">
-          <img src={ASULogo} alt="ASU Logo" className="brandLogo" />
+  <ThemeProvider theme={lightTheme}>
+    <Stack className="signInContainer">
+      <Box className="brandHeader">
+        <img src={ASULogo} alt="ASU Logo" className="brandLogo" />
+      </Box>
+
+      <Box className="centerStage">
+        {/* Mission statement (left) */}
+        <Box className="missionWrapper">
+          <p className="missionText">
+            ASU is a comprehensive public research university, measured not by whom it
+            excludes, but by whom it includes and how they succeed; advancing research
+            and discovery of public value; and assuming fundamental responsibility for
+            the economic, social, cultural and overall health of the communities it serves.
+          </p>
         </Box>
 
-        <Box className="centerStage">
-          {/* Mission statement (left) */}
-          <Box className="missionWrapper">
-            <p className="missionText">
-              ASU is a comprehensive public research university, measured not by whom it
-              excludes, but by whom it includes and how they succeed; advancing research
-              and discovery of public value; and assuming fundamental responsibility for
-              the economic, social, cultural and overall health of the communities it serves.
-            </p>
-          </Box>
-
-          {/* Login (center) */}
-          <MuiCard className="card" variant="outlined">
-            <Typography component="h1" variant="h4">
-              Sign in
-            </Typography>
-
-            <Box
-              className="loginForm"
-              component="form"
-              onSubmit={handleSubmit}
-              noValidate
-            >
+        {/* Login (center) */}
+        <MuiCard className="card" variant="outlined">
+          <Typography component="h1" variant="h4">
+            Sign in
+          </Typography>
+          <Box
+            className="loginForm"
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <FormControl>
               <FormLabel className="emailLabel" htmlFor="email">
                 Email
@@ -183,7 +183,6 @@ export default function SignIn() {
                 color={emailError ? "error" : "primary"}
               />
             </FormControl>
-
             <FormControl>
               <Box className="passwordControls">
                 <FormLabel htmlFor="password">Password</FormLabel>
@@ -209,8 +208,17 @@ export default function SignIn() {
                 variant="outlined"
                 color={passwordError ? "error" : "primary"}
               />
+              <label className="checkBoxLabel">
+                <input 
+                  type="checkbox"
+                  id="showPassCheckBox"
+                  onChange={e => setShowPass(e.target.checked)}
+                  checked={showPass}
+                  style={{ marginRight: '0px'}}
+                />
+                <span style={{ marginLeft: "0.5rem" }}>Show Password</span>
+              </label>
             </FormControl>
-
             <FormControlLabel
               control={
                 <Checkbox 
@@ -232,7 +240,7 @@ export default function SignIn() {
               }
               label="Remember me"
             />
-
+            {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
             <Button
               type="submit"
               fullWidth
@@ -242,22 +250,26 @@ export default function SignIn() {
             >
               Sign in
             </Button>
-
             <Typography>
               Don&apos;t have an account?{" "}
-              <Link href="" variant="body2" onClick={handleSignUp}>
-                Sign up
-              </Link>
+              <span>
+                <Link
+                  href=""
+                  variant="body2"
+                  onClick={handleSignUp}
+                >
+                  Sign up
+                </Link>
+              </span>
             </Typography>
           </Box>
         </MuiCard>
-
         {/* Sparky (right) */}
         <Box className="pitchforkWrapper">
           <img src={ASUPitchfork} alt="ASU Pitchfork" className="pitchforkLogo" />
         </Box>
       </Box>
     </Stack>
-    </ThemeProvider>
+  </ThemeProvider>
   );
 }
