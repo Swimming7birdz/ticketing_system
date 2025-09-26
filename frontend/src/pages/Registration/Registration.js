@@ -19,6 +19,7 @@ export default function Registration() {
   const [nameErrorMessage, setNameErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
+  const [showPass, setShowPass] = React.useState(false);
   // const [asuIdError, setAsuIdError] = React.useState(false);
   // const [asuIdErrorMessage, setAsuIdErrorMessage] = React.useState("");
   const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -182,7 +183,7 @@ export default function Registration() {
               helperText={passwordErrorMessage}
               name="password"
               placeholder="••••••"
-              type="password"
+              type={showPass ? "text" : "password"}
               id="password"
               autoComplete="current-password"
               autoFocus
@@ -190,7 +191,17 @@ export default function Registration() {
               fullWidth
               variant="outlined"
               color={passwordError ? "error" : "primary"}
-            />
+            /> 
+              <label className="checkBoxLabel">
+                <input 
+                  type="checkbox"
+                  id="showPassCheckBox"
+                  onChange={e => setShowPass(e.target.checked)}
+                  checked={showPass}
+                  style={{ marginRight: '0px'}}
+                />
+                <span style={{ marginLeft: "0.5rem" }}>Show Password</span>
+              </label>
           </FormControl>
           {/* <FormControl>
             <FormLabel className="asuIdLabel" htmlFor="asu_id">

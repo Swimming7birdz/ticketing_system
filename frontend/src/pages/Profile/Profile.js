@@ -12,6 +12,7 @@ function Profile() {
   const [error, setError] = useState(null);
   const [isEditing,setIsEditing] = useState(false);
   const [editData,setEditData] = useState({name: '',email: ''});
+  const [showPass, setShowPass] = React.useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -259,7 +260,7 @@ function Profile() {
                 <TextField
                   label="Current Password"
                   name="currentPassword"
-                  type="password"
+                  type={showPass ? "text" : "password"}
                   value={passwordData.currentPassword}
                   onChange={handlePasswordInputChange}
                   fullWidth
@@ -268,12 +269,22 @@ function Profile() {
                 <TextField
                   label="New Password"
                   name="newPassword"
-                  type="password"
+                  type={showPass ? "text" : "password"}
                   value={passwordData.newPassword}
                   onChange={handlePasswordInputChange}
                   fullWidth
                   margin="normal"
                 />
+                <Box sx={{ marginTop: 1.25, marginBottom: 1.75 }}>
+                  <input 
+                      type="checkbox"
+                      id="showPassCheckBox"
+                      onChange={e => setShowPass(e.target.checked)}
+                      checked={showPass}
+                      style={{ marginRight: '0px'}}
+                  />
+                  <label style={{ marginLeft: "0.5rem" }}>Show Password</label>
+                </Box>              
                 <Box sx={{ marginTop: 1.25 }}>
                   <Button 
                     variant="contained" 

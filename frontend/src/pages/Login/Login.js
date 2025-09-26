@@ -48,6 +48,7 @@ export default function SignIn() {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [rememberMe, setRememberMe] = React.useState(false);
+  const [showPass, setShowPass] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleClickOpen = () => setOpen(true);
@@ -80,9 +81,8 @@ export default function SignIn() {
 
       const { token } = await response.json();
       
-      // Store Cookie
       Cookies.set("token", token, {
-        secure: false, // Set to false for local development, true for production
+        secure: true,
         sameSite: "Strict",
         expires: rememberMe ? 7 : undefined
       });
@@ -90,11 +90,14 @@ export default function SignIn() {
       const decoded = jwtDecode(token);
       const userType = decoded.role;
       const userId = decoded.id;
-      Cookies.set("user_id", userId, { secure: false, sameSite: "Strict" });
+      Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
 
-      // Trigger user change event for theme context
-      window.dispatchEvent(new CustomEvent('userChanged'));
-      localStorage.setItem('user_changed', Date.now().toString());
+      try {
+        window.dispatchEvent(new CustomEvent('userChanged'));
+        localStorage.setItem('user_changed', Date.now().toString());
+      } catch (error) {
+        console.warn('Theme event/storage failed:', error);
+      }
 
       if (userType === "admin") navigate("/admindash");
       else if (userType === "student") navigate("/studentdash");
@@ -130,37 +133,37 @@ export default function SignIn() {
 
     return ok;
   };
+  
 
   return (
-    <ThemeProvider theme={lightTheme}>
-      <Stack className="signInContainer">
-        <Box className="brandHeader">
-          <img src={ASULogo} alt="ASU Logo" className="brandLogo" />
+  <ThemeProvider theme={lightTheme}>
+    <Stack className="signInContainer">
+      <Box className="brandHeader">
+        <img src={ASULogo} alt="ASU Logo" className="brandLogo" />
+      </Box>
+
+      <Box className="centerStage">
+        {/* Mission statement (left) */}
+        <Box className="missionWrapper">
+          <p className="missionText">
+            ASU is a comprehensive public research university, measured not by whom it
+            excludes, but by whom it includes and how they succeed; advancing research
+            and discovery of public value; and assuming fundamental responsibility for
+            the economic, social, cultural and overall health of the communities it serves.
+          </p>
         </Box>
 
-        <Box className="centerStage">
-          {/* Mission statement (left) */}
-          <Box className="missionWrapper">
-            <p className="missionText">
-              ASU is a comprehensive public research university, measured not by whom it
-              excludes, but by whom it includes and how they succeed; advancing research
-              and discovery of public value; and assuming fundamental responsibility for
-              the economic, social, cultural and overall health of the communities it serves.
-            </p>
-          </Box>
-
-          {/* Login (center) */}
-          <MuiCard className="card" variant="outlined">
-            <Typography component="h1" variant="h4">
-              Sign in
-            </Typography>
-
-            <Box
-              className="loginForm"
-              component="form"
-              onSubmit={handleSubmit}
-              noValidate
-            >
+        {/* Login (center) */}
+        <MuiCard className="card" variant="outlined">
+          <Typography component="h1" variant="h4">
+            Sign in
+          </Typography>
+          <Box
+            className="loginForm"
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <FormControl>
               <FormLabel className="emailLabel" htmlFor="email">
                 Email
@@ -180,7 +183,6 @@ export default function SignIn() {
                 color={emailError ? "error" : "primary"}
               />
             </FormControl>
-
             <FormControl>
               <Box className="passwordControls">
                 <FormLabel htmlFor="password">Password</FormLabel>
@@ -198,7 +200,7 @@ export default function SignIn() {
                 helperText={passwordErrorMessage}
                 name="password"
                 placeholder="••••••"
-                type="password"
+                type={showPass ? "text" : "password"}
                 id="password"
                 autoComplete="current-password"
                 required
@@ -206,8 +208,17 @@ export default function SignIn() {
                 variant="outlined"
                 color={passwordError ? "error" : "primary"}
               />
+              <label className="checkBoxLabel">
+                <input 
+                  type="checkbox"
+                  id="showPassCheckBox"
+                  onChange={e => setShowPass(e.target.checked)}
+                  checked={showPass}
+                  style={{ marginRight: '0px'}}
+                />
+                <span style={{ marginLeft: "0.5rem" }}>Show Password</span>
+              </label>
             </FormControl>
-
             <FormControlLabel
               control={
                 <Checkbox 
@@ -218,7 +229,7 @@ export default function SignIn() {
               }
               label="Remember me"
             />
-
+            {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
             <Button
               type="submit"
               fullWidth
@@ -228,22 +239,26 @@ export default function SignIn() {
             >
               Sign in
             </Button>
-
             <Typography>
               Don&apos;t have an account?{" "}
-              <Link href="" variant="body2" onClick={handleSignUp}>
-                Sign up
-              </Link>
+              <span>
+                <Link
+                  href=""
+                  variant="body2"
+                  onClick={handleSignUp}
+                >
+                  Sign up
+                </Link>
+              </span>
             </Typography>
           </Box>
         </MuiCard>
-
         {/* Sparky (right) */}
         <Box className="pitchforkWrapper">
           <img src={ASUPitchfork} alt="ASU Pitchfork" className="pitchforkLogo" />
         </Box>
       </Box>
     </Stack>
-    </ThemeProvider>
+  </ThemeProvider>
   );
 }

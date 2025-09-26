@@ -109,3 +109,28 @@
   .pitchforkLogo { height: 160px; }
   .missionWrapper { max-width: 90%; }
 }
+
+.loginForm{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.emailLabel {
+  text-align: left;
+}
+
+.passwordControls {
+  display: flex;
+  justify-content: space-between;
+}
+
+.checkBoxLabel {
+  display: inline-flex;
+  white-space: nowrap;
+  font-weight: normal;
+  text-align: right;
+  justify-content: flex-end;
+  padding-left: 400px;
+}
