@@ -5,9 +5,12 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
+import TextField from '@mui/material/TextField';
+import { useTheme } from '@mui/material/styles';
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
+    const theme = useTheme();
     const [userInput, setUserInput] = useState('');
     const [error, setError] = useState(false);
     const token = Cookies.get("token");
@@ -90,34 +93,45 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
             event.preventDefault();
             //handleClose();
             },
+            sx: {
+                bgcolor: theme.palette.background.paper,
+                color: theme.palette.text.primary,
+            }
         }}
         >
             <DialogContent>
-                <DialogContentText> 
+                <DialogContentText sx={{ color: theme.palette.text.primary, mb: 2 }}> 
                 Note: This action will escalate the ticket Capstone coordinators. 
                 </DialogContentText>
                 
-                <DialogActions classname="textbox">
-
-                    <textarea
-                        placeholder="Enter comments"
-                        value={userInput} // Bind the value to a state variable
-                        onChange={(event) => setUserInput(event.target.value)} // Update the state on change
-                        style={{
-                            width: '100%',
-                            height: '100px',
-                            padding: '8px',
-                            margin: '10px 0',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            resize: 'vertical',
+                <TextField
+                    placeholder="Enter comments"
+                    value={userInput}
+                    onChange={(event) => setUserInput(event.target.value)}
+                    multiline
+                    rows={4}
+                    fullWidth
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                />
+                <DialogActions sx={{ mt: 2 }}>
+                    <Button 
+                        onClick={handleClose}
+                        sx={{ color: theme.palette.text.secondary }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        variant="contained" 
+                        type="submit" 
+                        onClick={handleSubmit}
+                        sx={{
+                            backgroundColor: theme.palette.primary.main,
+                            '&:hover': {
+                                backgroundColor: theme.palette.primary.dark,
+                            },
                         }}
-                    />
-                    
-                </DialogActions>
-                <DialogActions classname="buttons">
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button variant="contained" type="submit" onClick={handleSubmit}>
+                    >
                         Confirm
                     </Button>
                 </DialogActions>

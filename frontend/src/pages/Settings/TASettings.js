@@ -1,51 +1,48 @@
-import { 
-  Typography, 
-  Switch, 
-  FormControlLabel, 
-  Divider, 
-  Button 
+import {
+  Typography,
+  Switch,
+  FormControlLabel,
+  Divider,
+  Button,
+  FormControl,
+  RadioGroup,
+  Radio
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
 
+const baseURL = process.env.REACT_APP_API_BASE_URL;
+
 const TASettings = () => {
   const token = Cookies.get("token");
   const navigate = useNavigate();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, themeMode, setTheme } = useTheme();
 
   const [user, setUser] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/profile`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+    fetch(`${baseURL}/api/users/profile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
         setUser(data);
         setNotificationsEnabled(data.notifications_enabled);
-      }
-    } catch (error) {
-      console.error("Failed to load user profile:", error);
-    }
-  };
+      })
+      .catch((err) => console.error("Failed to load settings:", err));
+  }, []);
 
   const updatePreference = (updates) => {
     if (!user) return;
 
-    fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/${user.user_id}`, {
+    fetch(`${baseURL}/api/users/${user.user_id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -71,10 +68,13 @@ const TASettings = () => {
     updatePreference({ notifications_enabled: newValue });
   };
 
-  const handleDarkModeToggle = () => {
-    const newValue = !isDarkMode;
-    toggleTheme();
-    updatePreference({ dark_mode: newValue });
+  const handleThemeModeChange = (event) => {
+    const newThemeMode = event.target.value;
+    setTheme(newThemeMode);
+    updatePreference({ 
+      theme_mode: newThemeMode,
+      dark_mode: newThemeMode === 'dark' // Update dark_mode for backward compatibility
+    });
   };
 
   return (
@@ -93,13 +93,34 @@ const TASettings = () => {
         control={<Switch checked={notificationsEnabled} onChange={handleNotificationsToggle} />}
         label="Email Notifications"
       />
-      <br />
-      <FormControlLabel
-        control={<Switch checked={isDarkMode} onChange={handleDarkModeToggle} />}
-        label="Dark Mode"
-      />
+      
+      <Typography variant="subtitle1" gutterBottom sx={{ marginTop: "20px" }}>
+        Theme Mode
+      </Typography>
+      <FormControl component="fieldset">
+        <RadioGroup
+          value={themeMode}
+          onChange={handleThemeModeChange}
+          row
+        >
+          <FormControlLabel value="light" control={<Radio />} label="Light" />
+          <FormControlLabel value="dark" control={<Radio />} label="Dark" />
+          <FormControlLabel value="auto" control={<Radio />} label="Auto (Time-based)" />
+        </RadioGroup>
+      </FormControl>
 
       <Divider sx={{ margin: "30px 0" }} />
+
+      <Typography variant="h6" gutterBottom>
+        Account Management
+      </Typography>
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={() => alert("Delete account coming soon")}
+      >
+        Delete Account
+      </Button>
 
       <div style={{ marginTop: "30px" }}>
         <Button

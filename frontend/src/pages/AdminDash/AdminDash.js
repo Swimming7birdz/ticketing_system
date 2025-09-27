@@ -323,14 +323,14 @@ const AdminDash = () => {
       </Box>
 
       {/* Escalated TICKET SECTION CONTAINER */}
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 20,
-          backgroundColor: "#F5F5F5",
-          padding: 20,
-          borderRadius: 5,
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
           flex: 1,
         }}
       >
@@ -356,7 +356,7 @@ const AdminDash = () => {
             </Typography>
             <Typography
               variant="p"
-              sx={{ fontSize: "0.8rem", color: "#737373" }}
+              sx={{ fontSize: "0.8rem", color: theme.palette.text.secondary }}
             >
               Escalated Tickets
             </Typography>
@@ -365,7 +365,7 @@ const AdminDash = () => {
             variant="contained"
             disableElevation
             sx={{
-              backgroundColor: "#8C1D40",
+              backgroundColor: theme.palette.primary.main,
               color: "white",
               borderRadius: 999,
               fontSize: "0.75rem",
@@ -397,7 +397,7 @@ const AdminDash = () => {
             />
           ))}
         </div>
-      </div>
+      </Box>
 
       {/* TA SECTION CONTAINER */}
       <Box

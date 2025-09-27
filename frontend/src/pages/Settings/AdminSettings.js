@@ -18,6 +18,9 @@ import {
   Divider,
   Box,
   TextField,
+  FormControl,
+  RadioGroup,
+  Radio,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
@@ -41,7 +44,7 @@ const AdminSettings = () => {
   const token = Cookies.get("token");
   const navigate = useNavigate();
   const theme = useTheme();
-  const { isDarkMode, toggleTheme } = useCustomTheme();
+  const { isDarkMode, themeMode, setTheme } = useCustomTheme();
   useEffect(() => {
     fetchTeams();
     fetchTAs();
@@ -97,10 +100,13 @@ const AdminSettings = () => {
     updatePreference({ notifications_enabled: newValue });
   };
 
-  const handleDarkModeToggle = () => {
-    const newValue = !isDarkMode;
-    toggleTheme();
-    updatePreference({ dark_mode: newValue });
+  const handleThemeModeChange = (event) => {
+    const newThemeMode = event.target.value;
+    setTheme(newThemeMode);
+    updatePreference({ 
+      theme_mode: newThemeMode,
+      dark_mode: newThemeMode === 'dark'
+    });
   };
 
   const fetchTeams = async () => {
@@ -305,7 +311,7 @@ const AdminSettings = () => {
     <Box
       sx={{
         minHeight: "calc(100vh - 60px)",
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: theme.palette.background.default,
         padding: "20px 0",
       }}
     >
@@ -356,11 +362,21 @@ const AdminSettings = () => {
           control={<Switch checked={notificationsEnabled} onChange={handleNotificationsToggle} />}
           label="Email Notifications"
         />
-        <br />
-        <FormControlLabel
-          control={<Switch checked={isDarkMode} onChange={handleDarkModeToggle} />}
-          label="Dark Mode"
-        />
+        
+        <Typography variant="subtitle1" gutterBottom sx={{ marginTop: "20px" }}>
+          Theme Mode
+        </Typography>
+        <FormControl component="fieldset">
+          <RadioGroup
+            value={themeMode}
+            onChange={handleThemeModeChange}
+            row
+          >
+            <FormControlLabel value="light" control={<Radio />} label="Light" />
+            <FormControlLabel value="dark" control={<Radio />} label="Dark" />
+            <FormControlLabel value="auto" control={<Radio />} label="Auto (Time-based)" />
+          </RadioGroup>
+        </FormControl>
       </Box>
 
       <Divider sx={{ margin: "20px 0" }} />
