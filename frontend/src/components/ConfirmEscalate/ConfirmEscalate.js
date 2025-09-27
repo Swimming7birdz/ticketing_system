@@ -63,7 +63,8 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
                 console.error(`${escalateResponse.reason}`);
                 alert("Failed to escalate ticket. Please try again.");
             } else {
-                alert("Ticket was escalated successfully.");        
+                alert("Ticket was escalated successfully.");     
+                sendEmail();   
             }
             
         } catch(error) {
@@ -72,14 +73,9 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
         }
     }
 
-    const handleUpdate = () => {
-        //handleEscalate(); removed for testing purposes
-        sendEmail();
-    }
-
 
      const handleSubmit = () => {
-        handleUpdate();
+        handleEscalate();
         handleClose();  
     }
 
