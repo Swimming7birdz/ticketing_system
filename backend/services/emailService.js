@@ -2,13 +2,16 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  host: 'smtpout.secureserver.net',
-  port: 465,
-  secure: true, // Use SSL
+  host: 'smtp.office365.com',
+  port: 587,
+  secure: false, // Use tls
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    ciphers: 'SSLv3'
+  }
 });
 
 const sendEmail = async (to, subject, text) => {
