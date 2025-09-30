@@ -311,7 +311,7 @@ const AdminSettings = () => {
     <Box
       sx={{
         minHeight: "calc(100vh - 60px)",
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: theme.palette.background.default,
         padding: "20px 0",
       }}
     >
