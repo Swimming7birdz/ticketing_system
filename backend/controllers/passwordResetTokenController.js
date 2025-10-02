@@ -11,19 +11,18 @@ exports.requestPasswordReset = async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        
-        req.body.user_id = user.user_id; 
-        const token = createToken(req, res);
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
 
         //update table with token
         await PasswordResetToken.create({ //modify
             user_id: user.user_id,
-            token_hash: token.token_hash,
+            token_hash: tokenHash,
             expires_at: new Date(Date.now() + 3600000), // 1 hour from now
             // used defaults as false
         });
 
-        const resetLink = `${baseURL}/reset-password?token=${token.rawToken}`; //modify
+        const resetLink = `${baseURL}/resetpassword?token=${rawToken}`; //modify
 
         //send email with token
         await sendEmail(
@@ -37,10 +36,3 @@ exports.requestPasswordReset = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
-const createToken = async (req, res) => {
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-    return { rawToken, token_hash: tokenHash };
-};
-

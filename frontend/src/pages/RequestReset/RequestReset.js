@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import MuiCard from "@mui/material/Card";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import Link from "@mui/material/Link";
+import Cookies from "js-cookie";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -13,6 +13,31 @@ import { useNavigate } from "react-router-dom";
 const RequestReset = () => {
     const [emailError, setEmailError] = React.useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
+    const baseURL = process.env.REACT_APP_API_BASE_URL;
+
+    const requestPasswordReset = async (event) => {
+      event.preventDefault();
+      if (emailError) return;
+      const data = new FormData(event.currentTarget);
+      const email = data.get("email");
+      console.log(email);
+      const response = await fetch(`${baseURL}/api/password-reset-tokens/reset/${email}`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.log(response.statusText);
+        console.log(response.json())
+        setEmailError(true);
+        const msg = "Email Does Not Exist";
+        setEmailErrorMessage(msg);
+        return;
+      }
+
+    }
 
     return(
         <Stack className="signInContainer">
@@ -24,6 +49,7 @@ const RequestReset = () => {
               className="loginForm"
               component="form"
               noValidate
+              onSubmit={requestPasswordReset}
             >
             <FormControl>
                 <FormLabel className="emailLabel" htmlFor="email">

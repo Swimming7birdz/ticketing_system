@@ -24,7 +24,7 @@ const routes = [
   { path: "/api/officehours", route: officeHoursRoutes},
   { path: "/api/encrypt", route: encryptionRoutes },
   { path: "/api/email", route: emailRoutes },
-  {path: "/api/password-reset-tokens", route: passwordResetTokenRoutes } 
+  { path: "/api/password-reset-tokens", route: passwordResetTokenRoutes } 
 ];
 
 module.exports = (app) => {
