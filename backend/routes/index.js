@@ -9,6 +9,7 @@ const officeHoursRoutes = require("./officeHoursRoutes");
 const encryptionRoutes = require("./encryptionRoutes");
 const pingRoutes = require("./pingRoutes");
 const emailRoutes = require('./emailRoutes');
+const passwordResetTokenRoutes = require('./passwordResetTokenRoutes');
 
 // Array to simplify route setup
 const routes = [
@@ -22,7 +23,8 @@ const routes = [
   { path: "/api/ping", route: pingRoutes },
   { path: "/api/officehours", route: officeHoursRoutes},
   { path: "/api/encrypt", route: encryptionRoutes },
-  { path: "/api/email", route: emailRoutes }
+  { path: "/api/email", route: emailRoutes },
+  {path: "/api/password-reset-tokens", route: passwordResetTokenRoutes } 
 ];
 
 module.exports = (app) => {
