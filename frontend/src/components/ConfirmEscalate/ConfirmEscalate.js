@@ -25,7 +25,7 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    to: "aapower3@asu.edu",
+                    to: "aapower3@asu.edu", //change to capstone coordinators email before production
                     subject: "Ticket Escalated",
                     text: `Ticket ID ${ticketID} has been escalated. Comments: ${userInput}`,
                 }),

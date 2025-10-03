@@ -36,7 +36,8 @@ const RequestReset = () => {
 
       if (!response.ok) {
         console.log(response.statusText);
-        console.log(response.json())
+        const errorData = await response.json();
+        console.log(errorData);
         setEmailError(true);
         const msg = "Email Does Not Exist";
         setEmailErrorMessage(msg);
