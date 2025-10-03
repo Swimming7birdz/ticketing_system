@@ -4,28 +4,34 @@ import Button from "@mui/material/Button";
 import MuiCard from "@mui/material/Card";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import Cookies from "js-cookie";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 
 const RequestReset = () => {
+    let navigate = useNavigate();  
     const [emailError, setEmailError] = React.useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
     const baseURL = process.env.REACT_APP_API_BASE_URL;
+
+    const handleLogIn = () => {
+      navigate('/login')
+    }
 
     const requestPasswordReset = async (event) => {
       event.preventDefault();
       if (emailError) return;
       const data = new FormData(event.currentTarget);
-      const email = data.get("email");
-      console.log(email);
-      const response = await fetch(`${baseURL}/api/password-reset-tokens/reset/${email}`, {
+      const user_email = data.get("email");
+  
+      const response = await fetch(`${baseURL}/api/password-reset-tokens/reset`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ email: user_email }),
       });
 
       if (!response.ok) {
@@ -35,6 +41,10 @@ const RequestReset = () => {
         const msg = "Email Does Not Exist";
         setEmailErrorMessage(msg);
         return;
+      } else {
+        setEmailError(false);
+        setEmailErrorMessage("");
+        alert("Reset link has been sent.");
       }
 
     }
@@ -77,6 +87,18 @@ const RequestReset = () => {
               >
                 Send Recovery Email
               </Button>
+              <Typography sx={{ mt: 3 }}>
+                Back to Login Page{' '}
+                <span>
+                  <Link
+                    href=""
+                    variant="body2"
+                    onClick={handleLogIn}
+                  >
+                    Log In
+                  </Link>
+                </span>
+              </Typography>
             </Box>
           </MuiCard>
         </Stack>

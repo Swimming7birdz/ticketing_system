@@ -5,18 +5,56 @@ import MuiCard from "@mui/material/Card";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import Stack from "@mui/material/Stack";
+import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 import './ResetPassword.css';
 
 const ResetPassword = () => {
+  let navigate = useNavigate();  
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [showPass, setShowPass] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-    
+  const handleLogIn = () => {
+    navigate('/login')
+  }
+
+  const changePassword = async (event) => {
+    try {
+      event.preventDefault();
+
+      const response = await fetch(`${baseURL}/api/password-reset-tokens/validate`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: new URLSearchParams(window.location.search).get("token"),
+          password: event.target.password.value,
+        }),
+      });
+
+      if (!response.ok) {
+        console.log(response.statusText);
+        console.log(response.json())
+        setPasswordError(true);
+        const msg = "Token Invalid or Expired";
+        setPasswordErrorMessage(msg);
+        return;
+      } else {
+        setPasswordError(false);
+        setPasswordErrorMessage("");
+        alert("Password successfully updated.");
+      }
+
+    } catch (error) {
+      console.error("Error during password reset:", error);
+    }
+  }
+
   return(
     <Stack className="signInContainer">
       <MuiCard className="card" variant="outlined">
@@ -27,6 +65,7 @@ const ResetPassword = () => {
           className="loginForm"
           component="form"
           noValidate
+          onSubmit={changePassword}
         >
           <FormControl>
             <Box className="passwordControls">
@@ -64,6 +103,18 @@ const ResetPassword = () => {
           >
             Reset
           </Button>
+          <Typography sx={{ mt: 3 }}>
+            Go to Login Page{' '}
+            <span>
+              <Link
+                href=""
+                variant="body2"
+                onClick={handleLogIn}
+              >
+                Log In
+              </Link>
+            </span>
+          </Typography>
         </Box>
       </MuiCard>
     </Stack>

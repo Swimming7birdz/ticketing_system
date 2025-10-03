@@ -4,9 +4,13 @@ const passwordResetTokenController = require("../controllers/passwordResetTokenC
 const router = express.Router();
 
 router.post(
-  "/reset/:email",
+  "/reset",
   passwordResetTokenController.requestPasswordReset
 );
 
+router.post(
+  "/validate",
+  passwordResetTokenController.validatePasswordResetToken
+)
 
 module.exports = router;
