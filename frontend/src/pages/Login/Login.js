@@ -51,7 +51,7 @@ export default function SignIn() {
   const [showPass, setShowPass] = React.useState(false);
   const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-  const handleClickOpen = () => setOpen(true);
+  const handleClickOpen = () => navigate("/requestreset");
   const handleClose = () => setOpen(false);
   const handleSignUp = () => navigate("/registration");
 

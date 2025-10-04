@@ -86,6 +86,18 @@ const routes = [
     isProtected: true,
     roles: ["admin", "student", "TA"],
   },
+  {
+    path: '/requestreset',
+    element: <RequestReset />,
+    isProtected: false,
+    roles: [],
+  },
+  {
+    path: "/resetpassword",
+    element: <ResetPassword />,
+    isProtected: false,
+    roles: [],
+  }
 ];
 
 export default routes;
