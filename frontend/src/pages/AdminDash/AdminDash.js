@@ -19,6 +19,8 @@ const AdminDash = () => {
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [totalEscalatedTickets, setTotalEscalatedTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const [totalTAs, setTotalTAs] = useState(0);
   const [statusCounts, setStatusCounts] = useState({});
   const [assignees, setAssignees] = useState([]);
@@ -51,7 +53,7 @@ const AdminDash = () => {
       const users = await usersResponse.json();
       const tas = users.filter((user) => user.role === "TA"); // Filter TAs
       setTotalTAs(tas.length);
-      setTAs(TAs);
+      setTAs(tas);
 
       // Step 2: Fetch all ticket assignments
       const assignmentsResponse = await fetch(
@@ -177,6 +179,15 @@ const AdminDash = () => {
       const escalated = ticketsData.filter(ticket => ticket.escalated === true);
       const limitedTickets = ticketsData.slice(0, 21); // Maybe do this to set how may tickets we want to display
 
+      // Count different ticket types
+      const openCount = ticketsData.filter(ticket => 
+        ticket.status === 'new' || ticket.status === 'ongoing'
+      ).length;
+      
+      const closedCount = ticketsData.filter(ticket => 
+        ticket.status === 'resolved'
+      ).length;
+
       // Grab name from ticket
       const ticketsWithNames = await Promise.all(
         limitedTickets.map(async (ticket) => {
@@ -192,13 +203,15 @@ const AdminDash = () => {
         })
       );
 
-
       // set tickets
       setTickets(ticketsWithNames); // Assuming data is an array of tickets
       setTotalTickets(ticketsData.length);
       // set escalated tickets
       setEscalatedTickets(ticketsWithNamesEscalated);
       setTotalEscalatedTickets(ticketsWithNamesEscalated.length);
+      // set open and closed counts
+      setOpenTickets(openCount);
+      setClosedTickets(closedCount);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching tickets:", error);
@@ -258,15 +271,7 @@ const AdminDash = () => {
         }}
       >
         {/* SECTION HEADER */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 10,
-          }}
-        >
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
           <Avatar>
             <ArticleIcon sx={{ fontSize: "2rem" }} />
           </Avatar>
@@ -277,11 +282,32 @@ const AdminDash = () => {
             >
               {totalTickets}
             </Typography>
-            <Typography
-              variant="p"
-              sx={{ fontSize: "0.8rem", color: theme.palette.text.secondary }}
-            >
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
               Total Tickets
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {openTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Open
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {totalEscalatedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Escalated
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {closedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Closed
             </Typography>
           </div>
           <Button
@@ -292,6 +318,7 @@ const AdminDash = () => {
               color: "white",
               borderRadius: 999,
               fontSize: "0.75rem",
+              width: "15%",
             }}
             onClick={() => navigate("/alltickets")}
           >
