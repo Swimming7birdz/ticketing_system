@@ -33,10 +33,6 @@ const InstructorTickets = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [tickets, activeFilters]);
-
-  useEffect(() => {
-    applyFilters();
   }, [tickets, activeFilters, hideResolved]);
 
   useEffect(() => {
