@@ -1,36 +1,17 @@
-import {
-  Button,
-  CircularProgress,
-  Menu,
-  MenuItem,
-  TextField,
-  Typography,
-  Box
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-import TicketCard from "../../components/TicketCard";
+import { Box, Typography, Avatar, Button, CircularProgress } from "@mui/material";
+import ArticleIcon from "@mui/icons-material/Article";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
+import TicketsViewController from "../../components/TicketsViewController";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-const EscalatedTickets = () => {
-    const theme = useTheme();
-    const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [totalTickets, setTotalTickets] = useState(0);
-    const [filterAnchor, setFilterAnchor] = useState(null); 
-    const [filteredTickets, setFilteredTickets] = useState([]);
-    const [activeFilters, setActiveFilters] = useState({
-    sort: null,
-    status: null,
-    search: "",
-    ticketIdSearch: "", 
-    });
-    
-    useEffect(() => {
-    fetchTickets();
-    }, []);
+export default function EscalatedTickets() {
+  const navigate = useNavigate();
+  const [tickets, setTickets] = useState([]);
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
     useEffect(() => {
     applyFilters();
@@ -88,29 +69,32 @@ const EscalatedTickets = () => {
         setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
     };
 
-    const fetchNameFromId = async (student_id) => {
-        try {
-          const token = Cookies.get("token");
-          const response = await fetch(`${baseURL}/api/users/${student_id}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          });
-    
-          if (!response.ok) {
-            console.warn(`Failed to fetch user name for ticket ${student_id}`);
-            return "Unknown Name"; // Default name if user fetch fails
-          }
-    
-          const data = await response.json();
-          return data.name; // Assuming the API returns { name: "User Name" }
-        } catch (error) {
-          console.error(`Error fetching name for ticket ${student_id}:`, error);
-          return "Unknown Name";
+    const fetchNameFromId = async (student_id) => 
+    {
+      try 
+      {
+        const token = Cookies.get("token");
+        const res = await fetch(`${baseURL}/api/users/${student_id}`, 
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          console.warn(`Failed to fetch user name for student_id=${student_id} (status ${res.status})`);
+          return "Unknown";
         }
-      };
+
+        const data = await res.json();
+        return data?.name || "Unknown";
+      } catch (error) {
+        console.error(`Error fetching name for student_id=${student_id}:`, error);
+        return "Unknown";
+      }
+    };
     
 
     const fetchTickets = async () => {
@@ -168,83 +152,86 @@ const EscalatedTickets = () => {
         </Box>
         );
     }
+  };
 
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoading(true);
+        const token = Cookies.get("token");
+        const res = await fetch(`${baseURL}/api/tickets`, {
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch tickets");
+        const all = await res.json();
+        const onlyEscalated = all.filter((t) => t.escalated === true);
+        const enriched = await Promise.all(
+          onlyEscalated.map(async (t) => ({
+            ...t,
+            userName: await fetchNameFromId(t.student_id),
+          }))
+        );
+        if (!cancelled) {
+          setTickets(enriched);
+          setCount(onlyEscalated.length);
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setTickets([]);
+          setCount(0);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
+  if (loading) {
     return (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            backgroundColor: theme.palette.background.default,
-            p: 6.25,
-            gap: 6.25,
-          }}
-    >
-      <Typography
-        variant="h1"
-        sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
-      >
-        Escalated Tickets
-      </Typography>
+      <Box sx={{ p: 4, display: "grid", placeItems: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ display: "grid", gap: 3, p: 3 }}>
+      {/* Header / Stats */}
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column",
-          gap: 2.5,
-          backgroundColor: theme.palette.background.paper,
-          padding: 2.5,
-          borderRadius: 1,
-          flex: 1,
-          border: `1px solid ${theme.palette.divider}`
+          alignItems: "center",
+          gap: 2,
+          justifyContent: "space-between",
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          p: 2,
+          borderRadius: 2,
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 2.5,
-          }}
-        >
-          <TextField
-            label="Search by Name"
-            variant="outlined"
-            value={activeFilters.search}
-            onChange={(e) =>
-              setActiveFilters({ ...activeFilters, search: e.target.value })
-            }
-            sx={{ flex: 1 }}
-          />
-          <TextField
-            label="Search by Ticket ID"
-            variant="outlined"
-            value={activeFilters.ticketIdSearch}
-            onChange={(e) =>
-              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
-            }
-            sx={{ flex: 1 }}
-          />
-          <Button
-            variant="contained"
-            onClick={handleFilterClick}
-            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
-          >
-            {activeFilters.sort || activeFilters.status
-              ? `Filters: ${activeFilters.sort || ""} ${
-                  activeFilters.status || ""
-                }`
-              : "Add Filter"}
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleClearFilters}
-            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
-          >
-            Clear Filters
-          </Button>
-
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Avatar><ArticleIcon /></Avatar>
+          <Box>
+            <Typography variant="h6">Escalated Tickets</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {count} escalated
+            </Typography>
+          </Box>
         </Box>
+        <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
+      </Box>
 
+<<<<<<< HEAD
         {/* Filter Dropdown */}
         <Menu
           anchorEl={filterAnchor}
@@ -392,10 +379,25 @@ const EscalatedTickets = () => {
             />
           ))}
         </Box>
+=======
+      {/* Tickets */}
+      <Box
+        sx={{
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          p: 2,
+          borderRadius: 2,
+        }}
+      >
+        <TicketsViewController
+          tickets={tickets}
+          defaultView="list"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Escalated</Typography>}
+        />
+>>>>>>> 19afea1 (WIP: before update)
       </Box>
     </Box>
-
-    );
-
+  );
 }
-export default EscalatedTickets;

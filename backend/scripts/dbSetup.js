@@ -6,8 +6,8 @@ require("dotenv").config();
 // Initialize connection pool
 const pool = new Pool({
   connectionString:
-  	"postgresql://ticketing_user:ticketing_pass@127.0.0.1:5432/ticketing_system",
-	//ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
+    "postgresql://ticket_user:Lycan1919!@localhost:5432/ticketing_system",
+  //ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
 });
 
 // Helper function to hash passwords
@@ -16,7 +16,7 @@ async function hashPassword(password) {
   return await bcrypt.hash(password, saltRounds);
 }
 
-faker.seed(123) // so data stays the same even after resetting database
+faker.seed(123); // so data stays the same even after resetting database
 
 // Generate data for Users table
 async function insertUsers() {
@@ -25,20 +25,24 @@ async function insertUsers() {
   const hashedPassword = await hashPassword(defaultPassword);
 
   const userPromises = Array.from({ length: 20 }).map(async (_, i) => {
-
-    // const asu_id = faker.random.alphaNumeric(10);
-
-    const firstName =  faker.person.firstName();
+    const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const name = firstName + " " + lastName; // Corrected name generation
-    const email = i === 0 ? "admin1@asu.edu" : faker.internet.email({firstName: firstName, lastName: lastName, provider: 'asu.edu'}); // Make the first user a specific admin, the rest will be randomly generated with asu emails
+    // Make the first user a specific admin, the rest will be randomly generated with asu emails
+    const email =
+      i === 0
+        ? "admin1@asu.edu"
+        : faker.internet.email({
+            firstName: firstName,
+            lastName: lastName,
+            provider: "asu.edu",
+          });
 
     const role =
       i === 0 ? "admin" : roles[Math.floor(Math.random() * roles.length)];
     return pool.query(
       "INSERT INTO users (name, email, role, password) VALUES ($1, $2, $3, $4)",
-	[name, email, role, hashedPassword]
-      //[name, email, role, hashedPassword, asu_id]
+      [name, email, role, hashedPassword],
     );
   });
 
@@ -60,7 +64,7 @@ async function insertTeams() {
 // Generate data for TeamMembers table
 async function insertTeamMembers() {
   const students = await pool.query(
-    "SELECT user_id FROM users WHERE role = 'student'"
+    "SELECT user_id FROM users WHERE role = 'student'",
   );
   const teams = await pool.query("SELECT team_id FROM teams");
 
@@ -68,7 +72,7 @@ async function insertTeamMembers() {
     const team = teams.rows[Math.floor(Math.random() * teams.rows.length)];
     return pool.query(
       "INSERT INTO teammembers (team_id, user_id) VALUES ($1, $2)",
-      [team.team_id, student.user_id]
+      [team.team_id, student.user_id],
     );
   });
 
@@ -82,7 +86,7 @@ async function insertTickets() {
   const statuses = ["new", "ongoing", "resolved"];
 
   const students = await pool.query(
-    "SELECT user_id FROM users WHERE role = 'student'"
+    "SELECT user_id FROM users WHERE role = 'student'",
   );
   const teams = await pool.query("SELECT team_id FROM teams");
 
@@ -91,11 +95,11 @@ async function insertTickets() {
       students.rows[Math.floor(Math.random() * students.rows.length)];
     const team = teams.rows[Math.floor(Math.random() * teams.rows.length)];
     const issueDescription = faker.lorem.sentence();
-    const issueType = issueTypes[Math.floor(Math.random() * issueTypes.length)];
+    const issueType =
+      issueTypes[Math.floor(Math.random() * issueTypes.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     const sponsorName = "Sponsor Name";
     const section = "My Section";
-    //const asu_id = faker.random.alphaNumeric(10);
     return pool.query(
       "INSERT INTO tickets (student_id, team_id, issue_description, sponsor_name, section, issue_type, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
       [
@@ -106,8 +110,7 @@ async function insertTickets() {
         section,
         issueType,
         status,
-        //asu_id,
-      ]
+      ],
     );
   });
 
@@ -119,7 +122,7 @@ async function insertTickets() {
 async function insertTicketAssignments() {
   const tas = await pool.query("SELECT user_id FROM users WHERE role = 'TA'");
   const students = await pool.query(
-    "SELECT user_id FROM users WHERE role = 'student'"
+    "SELECT user_id FROM users WHERE role = 'student'",
   );
   const tickets = await pool.query("SELECT ticket_id FROM tickets");
 
@@ -134,7 +137,7 @@ async function insertTicketAssignments() {
       eligibleUsers[Math.floor(Math.random() * eligibleUsers.length)];
     return pool.query(
       "INSERT INTO ticketassignments (ticket_id, user_id) VALUES ($1, $2)",
-      [ticket.ticket_id, user.user_id]
+      [ticket.ticket_id, user.user_id],
     );
   });
 
@@ -154,14 +157,16 @@ async function insertTicketCommunications() {
     const message = faker.lorem.paragraph();
     return pool.query(
       "INSERT INTO ticketcommunications (ticket_id, user_id, message) VALUES ($1, $2, $3)",
-      [ticket.ticket_id, user.user_id, message]
+      [ticket.ticket_id, user.user_id, message],
     );
   });
 
   await Promise.all(communicationPromises);
   console.log("Inserted ticket communications");
 }
+
 /*
+// Template for future TA office hours insertion if needed.
 async function insertOfficeHours() {
   const users = await pool.query("SELECT user_id FROM users WHERE role = 'TA'");
 
@@ -170,11 +175,11 @@ async function insertOfficeHours() {
     const office_hours = "Monday: 1:00 PM - 2:00 PM, Tuesday: 3:00 PM - 4:00 PM";
     return pool.query(
       "INSERT INTO officehours (ta_id, schedule) VALUES ($1, $2)",
-      [user.user_id, schedule]
+      [user.user_id, schedule],
     );
   });
 
-  await Promise.all(communicationPromises);
+  await Promise.all(schedulePromises);
   console.log("Inserted TA office hours");
 }
 */
@@ -183,11 +188,11 @@ async function insertOfficeHours() {
 async function generateData() {
   try {
     await insertUsers();
-
     await insertTeams();
     await insertTeamMembers();
     await insertTickets();
     await insertTicketAssignments();
+    // repeating insertTickets and insertTicketAssignments to create more data
     await insertTickets();
     await insertTicketAssignments();
     await insertTickets();
