@@ -14,8 +14,38 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
     const [userInput, setUserInput] = useState('');
     const [error, setError] = useState(false);
     const token = Cookies.get("token");
+
+      
+    const sendEmail = async (event) => {
+        try {
+            const emailMessage = await fetch(`${baseURL}/api/email/send`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    to: process.env.EMAIL_USER, //change to capstone coordinators email before production
+                    subject: "Ticket Escalated",
+                    text: `Ticket ID ${ticketID} has been escalated. Comments: ${userInput}`,
+                }),
+            });
+
+            if (!emailMessage.ok) {
+                console.error(`Failed to send email. Status: ${emailMessage.status}`);
+                console.log("Failed to send email notification. Please try again.");
+            } else {
+                console.log("Email notification sent successfully.");        
+            }
+            console.log("Email response: ", emailMessage);
+
+        } catch (error) {
+            console.log("Error: ", error);
+            setError(true);
+        }
+      }
     
-      const handleUpdate = async (event) => {
+    const handleEscalate = async (event) => {
         try{
             const escalateResponse = await fetch(
                 `${baseURL}/api/tickets/${ticketID}/escalate`,
@@ -33,10 +63,10 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
                 console.error(`${escalateResponse.reason}`);
                 alert("Failed to escalate ticket. Please try again.");
             } else {
-                alert("Ticket was escalated successfully.");        
+                alert("Ticket was escalated successfully.");     
+                sendEmail();   
             }
             
-
         } catch(error) {
             console.log("Error: ", error);
             setError(true);
@@ -45,7 +75,7 @@ const ConfirmEscalate = ({handleOpen, handleClose, ticketID}) => {
 
 
      const handleSubmit = () => {
-        handleUpdate();
+        handleEscalate();
         handleClose();  
     }
 
