@@ -23,14 +23,17 @@ exports.requestPasswordReset = async (req, res) => {
         });
 
         const resetLink = `${baseURL}/resetpassword?token=${rawToken}`; //modify for prod?
-        const devResetLink = `http://localhost:3001/resetpassword?token=${rawToken}`; //remove before prod
-
+        let devResetLinkLine = "";
+        if (process.env.NODE_ENV === "development") {
+            const devResetLink = `http://localhost:3001/resetpassword?token=${rawToken}`;
+            devResetLinkLine = `dev link: ${devResetLink}\n`;
+        }
         await sendEmail(
             user.email,
             "Help Desk Password Reset (Time critical)",
             `Your password reset link: ${resetLink}\n` +
             `This link will expire in 1 hour. If the reset expired, go to the login page to request another password reset.\n` +
-            `dev link: ${devResetLink}` //remove before prod
+            devResetLinkLine
         );
         res.status(200).json({ message: "Password reset email sent." });
     
