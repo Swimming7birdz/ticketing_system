@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
+import { fetchTicketAssignmentsByUserId, fetchTicketById } from "../../services/ticketServices";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const InstructorDash = () => {
@@ -23,8 +24,18 @@ const InstructorDash = () => {
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [totalTAs, setTotalTAs] = useState(0);
+  const [escalatedTickets, setEscalatedTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const [statusCounts, setStatusCounts] = useState({});
   const [assignees, setAssignees] = useState([]);
+  const [filteredTickets, setFilteredTickets] = useState([]);
+  const [activeFilters, setActiveFilters] = useState({
+    sort: null,
+    status: null,
+    search: "",
+  });
+  const [filterAnchor, setFilterAnchor] = useState(null);
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -134,65 +145,62 @@ const InstructorDash = () => {
     }
   };
 
-  const fetchNameFromId = async (student_id) => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/users/${student_id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if (!response.ok) {
-        console.warn(`Failed to fetch user name for ticket ${student_id}`);
-        return "Unknown Name"; // Default name if user fetch fails
+
+  const filterUniqueTickets = (tickets) => { //Avoid duplicate tickets
+    const seen = new Set();
+    return tickets.filter((ticket) => {
+      if (seen.has(ticket.ticket_id)) {
+        return false;
       }
-
-      const data = await response.json();
-      return data.name; // Assuming the API returns { name: "User Name" }
-    } catch (error) {
-      console.error(`Error fetching name for ticket ${student_id}:`, error);
-      return "Unknown Name";
-    }
+      seen.add(ticket.ticket_id);
+      return true; 
+    });
   };
+
+  const sortTicketsById = (tickets) => {
+    return tickets.sort((a, b) =>  a.ticket_id - b.ticket_id);
+  }
 
   const fetchTickets = async () => {
     try {
-      // Get the token from cookies
-      const token = Cookies.get("token");
-	// Get tickets
-      const response = await fetch(`${baseURL}/api/tickets`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },    
-      });   
-              
-      if (!response.ok) {
-        throw new Error("Failed to fetch tickets");
-      }     
-      const ticketsData = await response.json();
-      const limitedTickets = ticketsData.slice(0, 21); // Maybe do this to set how may tickets we want to display
-
-
-      // Grab name from ticket
-      const ticketsWithNames = await Promise.all(
-        limitedTickets.map(async (ticket) => {
-          const userName = await fetchNameFromId(ticket.student_id); // Fetch user name based on ticket ID
-          return { ...ticket, userName }; // Add the userName to the ticket object
+      const instructorTickets = await fetchTicketAssignmentsByUserId();
+      console.log(instructorTickets);
+      const sortedTickets = sortTicketsById(instructorTickets);
+      const uniqueTickets = filterUniqueTickets(sortedTickets);
+     
+      const ticketList = await Promise.all(
+        uniqueTickets.map(async (ticket_) => {
+          const ticketData = await fetchTicketById(ticket_.ticket_id);
+          return { ...ticket_, ticketData };
         })
       );
-
-      // set tickets
-      setTickets(ticketsWithNames); // Assuming data is an array of tickets
-      setTotalTickets(ticketsData.length);
+      
+      // Count different ticket types
+      const escalatedCount = ticketList.filter(ticket => 
+        ticket.ticketData && ticket.ticketData.escalated === true
+      ).length;
+      
+      const openCount = ticketList.filter(ticket => 
+        ticket.ticketData && (ticket.ticketData.status === 'new' || ticket.ticketData.status === 'ongoing')
+      ).length;
+      
+      const closedCount = ticketList.filter(ticket => 
+        ticket.ticketData && ticket.ticketData.status === 'resolved'
+      ).length;
+      
+      // Limit to 21 tickets for dashboard display
+      const limitedTickets = ticketList.slice(0, 21); 
+      
+      setTickets(limitedTickets);
+      setTotalTickets(ticketList.length);
+      setEscalatedTickets(escalatedCount);
+      setOpenTickets(openCount);
+      setClosedTickets(closedCount);
       setLoading(false);
+      
     } catch (error) {
       console.error("Error fetching tickets:", error);
-      //setError("Could not fetch tickets. Please try again later.");
       setLoading(false);
     }
   };
@@ -251,7 +259,7 @@ const InstructorDash = () => {
       >
         {/* SECTION HEADER */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
             <Avatar>
               <ArticleIcon sx={{ fontSize: "2rem" }} />
             </Avatar>
@@ -264,28 +272,36 @@ const InstructorDash = () => {
               </Typography>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>24</Typography>
+              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+                {openTickets}
+              </Typography>
               <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
                 Open
               </Typography>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
-                26
+                {escalatedTickets}
               </Typography>
-              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>Escalated</Typography>
+              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+                Escalated
+              </Typography>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>203</Typography>
-              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>Closed</Typography>
+              <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+                {closedTickets}
+              </Typography>
+              <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+                Closed
+              </Typography>
             </div>
             <Button 
               variant="contained" 
               disableElevation 
               sx={{ backgroundColor: theme.palette.primary.main, color: 'white', borderRadius: 999, fontSize: '0.75rem', width: '15%' }}
-              onClick={() => navigate("/alltickets")}
+              onClick={() => navigate("/instructortickets")}
             >
-              View All
+              View My Tickets
             </Button>
           </div>
 
@@ -303,11 +319,11 @@ const InstructorDash = () => {
           >
             {tickets.map((ticket) => (
               <TicketCard
-                key={ticket.ticket_id}
-                ticketId={ticket.ticket_id}
-                issueDescription={ticket.issue_description}
-                status={ticket.status}
-                name={ticket.userName}
+                key={ticket.ticketData.ticket_id}
+                ticketId={ticket.ticketData.ticket_id}
+                issueDescription={ticket.ticketData.issue_description}
+                status={ticket.ticketData.status}
+                name={ticket.ticketData.student?.name || "Unknown"}
               />
             ))}
           </div>
