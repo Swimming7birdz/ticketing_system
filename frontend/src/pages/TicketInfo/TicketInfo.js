@@ -295,7 +295,7 @@ const TicketInfo = () => {
             </FormControl>
             <Button variant="contained" className="editButton" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
             <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
-            {/* <Button variant="contained" color="error" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
+            {/* (Keep around incase decided to need later) <Button variant="contained" color="error" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
             <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} /> */}
             {userType === "TA" && ticketData.escalated === false && (
               <Button variant="contained" color="warning" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
