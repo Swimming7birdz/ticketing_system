@@ -441,8 +441,8 @@ const InstructorTickets = () => {
               <span style={{ marginRight: 8 }}>✔</span>
             )}
             Status: Resolved
-          </MenuItem>
 
+          </MenuItem>
           {/* Status: Escalated */}
           <MenuItem
             onClick={() => {
