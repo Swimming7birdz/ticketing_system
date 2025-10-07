@@ -328,6 +328,7 @@ const EscalatedTickets = () => {
             } else {
               setActiveFilters({ ...activeFilters, status: "New" })
             }
+            handleFilterClose();
           }}  
         >
           { activeFilters.status === "New" && (
