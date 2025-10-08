@@ -12,16 +12,16 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx)$/,               // Handle JS and JSX files
         exclude: /node_modules/,
         use: "babel-loader",
       },
       {
-        test: /\.css$/,
+        test: /\.css$/,                   // Handle CSS files
         use: ["style-loader", "css-loader"],
       },
       {
-        test: /\.(png|jpg|jpeg|gif|svg|ico)$/,
+        test: /\.(png|jpg|jpeg|gif|svg|ico)$/,      // Handle image files
         type: "asset/resource",
         generator: {
           filename: "assets/[name][ext]",
@@ -30,11 +30,11 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: [".js", ".jsx"],
+    extensions: [".js", ".jsx"],        // Allows importing without specifying file extensions
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./public/index.html",
+      template: "./public/index.html",          // HTML template
       filename: "index.html",
       favicon: "./public/favicon.ico",
     }),
@@ -46,7 +46,7 @@ module.exports = {
     }),
   ],
   devServer: {
-    historyApiFallback: true,
+    historyApiFallback: true,     // For React Router support
     static: {
       directory: path.join(__dirname, "public"),
     },

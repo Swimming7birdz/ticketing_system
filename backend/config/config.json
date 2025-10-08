@@ -1,9 +1,9 @@
 
 {
     "development": {
-      "username": "ticket_user",
-      "password": "Lycan1919!",
-      "database": "ticketing_system",
+      "username": "postgres",
+      "password": null,
+      "database": "ticketing_system_db",
       "host": "127.0.0.1",
       "dialect": "postgres", 
       "_comment": "This is a comment and will be ignored by code",

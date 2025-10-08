@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Avatar, Button, CircularProgress } from "@mui/material";
+import { Box, Typography, Avatar, Button, CircularProgress, Menu, MenuItem, TextField } from "@mui/material";
 import ArticleIcon from "@mui/icons-material/Article";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,15 @@ export default function EscalatedTickets() {
   const [tickets, setTickets] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [filteredTickets, setFilteredTickets] = useState([]);
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({
+    sort: null,
+    status: null,
+    search: "",
+    ticketIdSearch: "",
+  });
+  const [hideResolved, setHideResolved] = useState(true);
 
   // helper: get student name for avatar/title
   const fetchNameFromId = async (student_id) => {
@@ -81,6 +90,64 @@ export default function EscalatedTickets() {
     };
   }, []);
 
+  useEffect(() => {
+    let filtered = [...tickets];
+
+    if (activeFilters.sort === "newest") {
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (activeFilters.sort === "oldest") {
+      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (activeFilters.sort === "id-asc") {
+      filtered.sort((a, b) => a.ticket_id - b.ticket_id);
+    } else if (activeFilters.sort === "id-desc") {
+      filtered.sort((a, b) => b.ticket_id - a.ticket_id);
+    }
+
+    if (activeFilters.status) {
+      filtered = filtered.filter(
+        (ticket) => ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
+      );
+    }
+
+    if (activeFilters.search) {
+      filtered = filtered.filter((ticket) =>
+        ticket.userName?.toLowerCase().includes(activeFilters.search.toLowerCase())
+      );
+    }
+
+    if (activeFilters.ticketIdSearch) {
+      filtered = filtered.filter(
+        (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
+      );
+    }
+
+    if (hideResolved) {
+      filtered = filtered.filter(
+        (ticket) => ticket.status.toLowerCase() !== "resolved"
+      );
+    }
+
+    setFilteredTickets(filtered);
+  }, [tickets, activeFilters, hideResolved]);
+
+  useEffect(() => {
+    if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
+      setHideResolved(false);
+    }
+  }, [activeFilters.status]);
+
+  const handleFilterClick = (event) => {
+    setFilterAnchor(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchor(null);
+  };
+
+  const handleClearFilters = () => {
+    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
+  };
+
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
 
   if (loading) {
@@ -116,7 +183,38 @@ export default function EscalatedTickets() {
             </Typography>
           </Box>
         </Box>
-        <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <TextField
+            label="Search by Name"
+            variant="outlined"
+            value={activeFilters.search}
+            onChange={(e) =>
+              setActiveFilters({ ...activeFilters, search: e.target.value })
+            }
+            size="small"
+          />
+          <TextField
+            label="Search by Ticket ID"
+            variant="outlined"
+            value={activeFilters.ticketIdSearch}
+            onChange={(e) =>
+              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
+            }
+            size="small"
+          />
+          <Button variant="contained" onClick={handleFilterClick}>
+            {activeFilters.sort || activeFilters.status
+              ? `Filters: ${activeFilters.sort || ""} ${activeFilters.status || ""}`
+              : "Add Filter"}
+          </Button>
+          <Button variant="outlined" onClick={handleClearFilters}>
+            Clear Filters
+          </Button>
+          <Button variant="outlined" onClick={() => setHideResolved((p) => !p)}>
+            {hideResolved ? "Include Resolved Tickets" : "Hide Resolved Tickets"}
+          </Button>
+          <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
+        </Box>
       </Box>
 
       {/* Tickets */}
@@ -130,12 +228,106 @@ export default function EscalatedTickets() {
         }}
       >
         <TicketsViewController
-          tickets={tickets}
+          tickets={filteredTickets}
           defaultView="list"
           onOpenTicket={openTicket}
           header={<Typography variant="subtitle2">Escalated</Typography>}
         />
       </Box>
+
+      <Menu anchorEl={filterAnchor} open={Boolean(filterAnchor)} onClose={handleFilterClose}>
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.sort === "newest") {
+              setActiveFilters({ ...activeFilters, sort: null });
+            } else {
+              setActiveFilters({ ...activeFilters, sort: "newest" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.sort === "newest" && <span style={{ marginRight: 8 }}>✔</span>}
+          Newest
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.sort === "oldest") {
+              setActiveFilters({ ...activeFilters, sort: null });
+            } else {
+              setActiveFilters({ ...activeFilters, sort: "oldest" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.sort === "oldest" && <span style={{ marginRight: 8 }}>✔</span>}
+          Oldest
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.sort === "id-asc") {
+              setActiveFilters({ ...activeFilters, sort: null });
+            } else {
+              setActiveFilters({ ...activeFilters, sort: "id-asc" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.sort === "id-asc" && <span style={{ marginRight: 8 }}>✔</span>}
+          Sort by ID: Ascending
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.sort === "id-desc") {
+              setActiveFilters({ ...activeFilters, sort: null });
+            } else {
+              setActiveFilters({ ...activeFilters, sort: "id-desc" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.sort === "id-desc" && <span style={{ marginRight: 8 }}>✔</span>}
+          Sort by ID: Descending
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.status === "New") {
+              setActiveFilters({ ...activeFilters, status: null });
+            } else {
+              setActiveFilters({ ...activeFilters, status: "New" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.status === "New" && <span style={{ marginRight: 8 }}>✔</span>}
+          Status: New
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.status === "Ongoing") {
+              setActiveFilters({ ...activeFilters, status: null });
+            } else {
+              setActiveFilters({ ...activeFilters, status: "Ongoing" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.status === "Ongoing" && <span style={{ marginRight: 8 }}>✔</span>}
+          Status: Ongoing
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (activeFilters.status === "Resolved") {
+              setActiveFilters({ ...activeFilters, status: null });
+            } else {
+              setActiveFilters({ ...activeFilters, status: "Resolved" });
+            }
+            handleFilterClose();
+          }}
+        >
+          {activeFilters.status === "Resolved" && <span style={{ marginRight: 8 }}>✔</span>}
+          Status: Resolved
+        </MenuItem>
+      </Menu>
     </Box>
   );
 }

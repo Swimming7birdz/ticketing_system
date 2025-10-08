@@ -1,125 +1,428 @@
-import React, { useEffect, useState } from "react";
-import { Box, Typography, Avatar, Button, CircularProgress } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  Menu,
+  MenuItem,
+  TextField,
+  Typography,
+  Box,
+  Avatar,
+} from "@mui/material";
 import ArticleIcon from "@mui/icons-material/Article";
+import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-export default function AllTickets() {
+const AllTickets = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
-  const [totalTickets, setTotalTickets] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [totalTickets, setTotalTickets] = useState(0);
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const [filteredTickets, setFilteredTickets] = useState([]);
+  const [activeFilters, setActiveFilters] = useState({
+    sort: null,
+    status: null,
+    search: "",
+    ticketIdSearch: "",
+  });
+
+  const [hideResolved, setHideResolved] = useState(true);
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [tickets, activeFilters]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [tickets, activeFilters, hideResolved]);
+
+  useEffect(() => {
+    if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
+      setHideResolved(false);
+    }
+  }, [activeFilters.status]);
+
+  const applyFilters = () => {
+    let filtered = [...tickets];
+
+    // Apply sort filter
+    if (activeFilters.sort === "newest") {
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (activeFilters.sort === "oldest") {
+      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (activeFilters.sort === "id-asc") {
+      filtered.sort((a, b) => a.ticket_id - b.ticket_id);
+    } else if (activeFilters.sort === "id-desc") {
+      filtered.sort((a, b) => b.ticket_id - a.ticket_id);
+    }
+
+    // Apply status filter
+    if (activeFilters.status) {
+      filtered = filtered.filter(
+        (ticket) =>
+          ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
+      );
+    }
+
+    // Apply search filter
+    if (activeFilters.search) {
+      filtered = filtered.filter((ticket) =>
+        ticket.userName
+          .toLowerCase()
+          .includes(activeFilters.search.toLowerCase())
+      );
+    }
+
+    // Search by ticket ID
+    if (activeFilters.ticketIdSearch) {
+      filtered = filtered.filter(
+        (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
+      );
+    }
+
+    if (hideResolved) {
+      filtered = filtered.filter(
+        (ticket) => ticket.status.toLowerCase() !== "resolved"
+      );
+    }
+
+    setFilteredTickets(filtered);
+  };
+
+  const handleFilterClick = (event) => {
+    setFilterAnchor(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchor(null);
+  };
+
+  const handleClearFilters = () => {
+    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
+  };
 
   const fetchNameFromId = async (student_id) => {
     try {
       const token = Cookies.get("token");
-      const res = await fetch(`${baseURL}/api/users/${student_id}`, {
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      const response = await fetch(`${baseURL}/api/users/${student_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
-      if (!res.ok) return "Unknown";
-      const data = await res.json();
-      return data.name || "Unknown";
-    } catch {
-      return "Unknown";
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch user name for ticket ${student_id}`);
+        return "Unknown Name";
+      }
+
+      const data = await response.json();
+      return data.name;
+    } catch (error) {
+      console.error(`Error fetching name for ticket ${student_id}:`, error);
+      return "Unknown Name";
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
+  const fetchTickets = async () => {
+    try {
+      const token = Cookies.get("token");
 
-    (async () => {
-      try {
-        setLoading(true);
-        const token = Cookies.get("token");
-        const res = await fetch(`${baseURL}/api/tickets`, {
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch tickets");
-        const data = await res.json();
-        const enriched = await Promise.all(
-          data.map(async (t) => ({
-            ...t,
-            userName: await fetchNameFromId(t.student_id),
-          }))
-        );
-        if (!cancelled) {
-          setTickets(enriched);
-          setTotalTickets(data.length);
-        }
-      } catch (e) {
-        console.error(e);
-        if (!cancelled) {
-          setTickets([]);
-          setTotalTickets(0);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+      const response = await fetch(`${baseURL}/api/tickets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch tickets");
       }
-    })();
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      const ticketsData = await response.json();
+
+      const ticketsWithNames = await Promise.all(
+        ticketsData.map(async (ticket) => {
+          const userName = await fetchNameFromId(ticket.student_id);
+          return { ...ticket, userName };
+        })
+      );
+
+      setTickets(ticketsWithNames);
+      setTotalTickets(ticketsData.length);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      setLoading(false);
+    }
+  };
+
+  const toggleHideResolved = () => {
+    setHideResolved((prev) => !prev);
+  };
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
 
   if (loading) {
     return (
-      <Box sx={{ p: 4, display: "grid", placeItems: "center" }}>
-        <CircularProgress />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: theme.palette.background.default,
+          flexDirection: "column",
+          gap: 2.5,
+        }}
+      >
+        <CircularProgress size={80} thickness={4} />
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
+          Loading, please wait...
+        </Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ display: "grid", gap: 3, p: 3 }}>
-      {/* Header / Stats */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: theme.palette.background.default,
+        padding: 6.25,
+        gap: 6.25,
+      }}
+    >
+      <Typography
+        variant="h1"
+        sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
+      >
+        All Tickets
+      </Typography>
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
-          gap: 2,
-          justifyContent: "space-between",
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-          p: 2,
-          borderRadius: 2,
+          flexDirection: "column",
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
+          flex: 1,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Avatar><ArticleIcon /></Avatar>
-          <Box>
-            <Typography variant="h6">All Tickets</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {totalTickets} total
-            </Typography>
-          </Box>
-        </Box>
-        <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
-      </Box>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 20,
+          }}
+        >
+          <TextField
+            label="Search by Name"
+            variant="outlined"
+            value={activeFilters.search}
+            onChange={(e) =>
+              setActiveFilters({ ...activeFilters, search: e.target.value })
+            }
+            sx={{ flex: 1 }}
+          />
+          <TextField
+            label="Search by Ticket ID"
+            variant="outlined"
+            value={activeFilters.ticketIdSearch}
+            onChange={(e) =>
+              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
+            }
+            sx={{ flex: 1 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleFilterClick}
+            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
+          >
+            {activeFilters.sort || activeFilters.status
+              ? `Filters: ${activeFilters.sort || ""} ${
+                  activeFilters.status || ""
+                }`
+              : "Add Filter"}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={handleClearFilters}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
+          >
+            Clear Filters
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setHideResolved(prev => !prev)}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
+          >
+            {hideResolved ? "Include Resolved Tickets" : "Hide Resolved Tickets"}
+          </Button>
+        </div>
 
-      {/* Tickets */}
-      <Box
-        sx={{
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-          p: 2,
-          borderRadius: 2,
-        }}
-      >
-        <TicketsViewController
-          tickets={tickets}
-          defaultView="list"
-          onOpenTicket={openTicket}
-          header={<Typography variant="subtitle2">Tickets</Typography>}
-        />
+        {/* Filter Dropdown */}
+        <Menu
+          anchorEl={filterAnchor}
+          open={Boolean(filterAnchor)}
+          onClose={handleFilterClose}
+        >
+          {/* Sort: Newest */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.sort === "newest") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "newest" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.sort === "newest" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Newest
+          </MenuItem>
+
+          {/* Sort: Oldest */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.sort === "oldest") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "oldest" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.sort === "oldest" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Oldest
+          </MenuItem>
+
+          {/* Sort: ID Ascending */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.sort === "id-asc") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "id-asc" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.sort === "id-asc" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Sort by ID: Ascending
+          </MenuItem>
+
+          {/* Sort: ID Descending */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.sort === "id-desc") {
+                setActiveFilters({ ...activeFilters, sort: null });
+              } else {
+                setActiveFilters({ ...activeFilters, sort: "id-desc" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.sort === "id-desc" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Sort by ID: Descending
+          </MenuItem>
+
+          {/* Status: New */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.status === "New") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "New" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.status === "New" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Status: New
+          </MenuItem>
+
+          {/* Status: Ongoing */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.status === "Ongoing") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "Ongoing" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.status === "Ongoing" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Status: Ongoing
+          </MenuItem>
+
+          {/* Status: Resolved */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.status === "Resolved") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "Resolved" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.status === "Resolved" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Status: Resolved
+          </MenuItem>
+        </Menu>
+
+        {/* Tickets */}
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            p: 2,
+            borderRadius: 2,
+          }}
+        >
+          <TicketsViewController
+            tickets={filteredTickets}
+            defaultView="list"
+            onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
+            header={<Typography variant="subtitle2">Tickets</Typography>}
+          />
+        </Box>
       </Box>
     </Box>
   );
-}
+};
+
+export default AllTickets;
