@@ -6,27 +6,30 @@ import {
   TextField,
   Typography,
   Box,
+  Avatar,
 } from "@mui/material";
+import ArticleIcon from "@mui/icons-material/Article";
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-import TicketCard from "../../components/TicketCard";
-import CheckIcon from "@mui/icons-material/Check";
+import { useNavigate } from "react-router-dom";
+import TicketsViewController from "../../components/TicketsViewController";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AllTickets = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
-  const [filterAnchor, setFilterAnchor] = useState(null); 
+  const [filterAnchor, setFilterAnchor] = useState(null);
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState({
     sort: null,
     status: null,
     search: "",
-    ticketIdSearch: "", 
+    ticketIdSearch: "",
   });
 
   const [hideResolved, setHideResolved] = useState(true);
@@ -44,10 +47,10 @@ const AllTickets = () => {
   }, [tickets, activeFilters, hideResolved]);
 
   useEffect(() => {
-  if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
-    setHideResolved(false);
-  }
-}, [activeFilters.status]);
+    if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
+      setHideResolved(false);
+    }
+  }, [activeFilters.status]);
 
   const applyFilters = () => {
     let filtered = [...tickets];
@@ -58,7 +61,7 @@ const AllTickets = () => {
     } else if (activeFilters.sort === "oldest") {
       filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     } else if (activeFilters.sort === "id-asc") {
-    filtered.sort((a, b) => a.ticket_id - b.ticket_id);
+      filtered.sort((a, b) => a.ticket_id - b.ticket_id);
     } else if (activeFilters.sort === "id-desc") {
       filtered.sort((a, b) => b.ticket_id - a.ticket_id);
     }
@@ -83,10 +86,10 @@ const AllTickets = () => {
     // Search by ticket ID
     //Can repurpose this section for Team Name filter
     if (activeFilters.ticketIdSearch) {
-    filtered = filtered.filter(
-      (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
-    );
-  }
+      filtered = filtered.filter(
+        (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
+      );
+    }
 
     if (hideResolved) {
       filtered = filtered.filter(
@@ -106,7 +109,7 @@ const AllTickets = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "" });
+    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
   };
 
   const fetchNameFromId = async (student_id) => {
@@ -122,11 +125,11 @@ const AllTickets = () => {
 
       if (!response.ok) {
         console.warn(`Failed to fetch user name for ticket ${student_id}`);
-        return "Unknown Name"; // Default name if user fetch fails
+        return "Unknown Name";
       }
 
       const data = await response.json();
-      return data.name; // Assuming the API returns { name: "User Name" }
+      return data.name;
     } catch (error) {
       console.error(`Error fetching name for ticket ${student_id}:`, error);
       return "Unknown Name";
@@ -170,6 +173,8 @@ const AllTickets = () => {
   const toggleHideResolved = () => {
     setHideResolved((prev) => !prev);
   };
+
+  const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
 
   if (loading) {
     return (
@@ -272,7 +277,6 @@ const AllTickets = () => {
           >
             {hideResolved ? "Include Resolved Tickets" : "Hide Resolved Tickets"}
           </Button>
-
         </div>
 
         {/* Filter Dropdown */}
@@ -292,7 +296,6 @@ const AllTickets = () => {
               handleFilterClose();
             }}
           >
-            {/* Show a check if "newest" is the active sort */}
             {activeFilters.sort === "newest" && (
               <span style={{ marginRight: 8 }}>✔</span>
             )}
@@ -402,27 +405,23 @@ const AllTickets = () => {
           </MenuItem>
         </Menu>
 
-
-        {/* Tickets Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "20px",
-            maxHeight: "calc(100vh - 400px)",
-            overflowY: "auto",
+        {/* Tickets */}
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            p: 2,
+            borderRadius: 2,
           }}
         >
-          {filteredTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status}
-              name={ticket.userName}
-            />
-          ))}
-        </div>
+          <TicketsViewController
+            tickets={filteredTickets}
+            defaultView="list"
+            onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
+            header={<Typography variant="subtitle2">Tickets</Typography>}
+          />
+        </Box>
       </Box>
     </Box>
   );

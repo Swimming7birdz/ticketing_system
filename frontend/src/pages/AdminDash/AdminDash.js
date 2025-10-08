@@ -7,7 +7,8 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
-import TicketCard from "../../components/TicketCard";
+import TicketsViewController from "../../components/TicketsViewController";
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AdminDash = () => {
@@ -100,7 +101,7 @@ const AdminDash = () => {
         ticketCounts[ta.user_id] = {
           name: ta.name, // Store the TA's name
           counts: { new: 0, ongoing: 0, resolved: 0 },
-	  //userId: ta.user_id,
+          //userId: ta.user_id,
         };
 
         // Filter assignments for this TA
@@ -196,7 +197,7 @@ const AdminDash = () => {
         })
       );
 
-       const ticketsWithNamesEscalated = await Promise.all(
+      const ticketsWithNamesEscalated = await Promise.all(
         escalated.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id); // Fetch user name based on ticket ID
           return { ...ticket, userName }; // Add the userName to the ticket object
@@ -242,6 +243,8 @@ const AdminDash = () => {
     );
   }
 
+  const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
   return (
     <Box
       sx={{
@@ -258,6 +261,7 @@ const AdminDash = () => {
       >
         Admin Dashboard
       </Typography>
+
       {/* TICKET SECTION CONTAINER */}
       <Box
         sx={{
@@ -325,28 +329,14 @@ const AdminDash = () => {
             View All
           </Button>
         </div>
+
         {/* TICKETS */}
-        <div
-          style={{
-            display: "grid", // Use grid layout for better alignment
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Responsive columns
-            gap: "20px", // Space between cards
-            justifyContent: "center", // Center-align cards
-            padding: "5px", // Add padding around the grid
-            maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-            overflowY: "hidden",
-          }}
-        >
-          {tickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status}
-              name={ticket.userName}
-            />
-          ))}
-        </div>
+        <TicketsViewController
+          tickets={tickets}
+          defaultView="list"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Latest Tickets</Typography>}
+        />
       </Box>
 
       {/* Escalated TICKET SECTION CONTAINER */}
@@ -379,7 +369,7 @@ const AdminDash = () => {
               variant="h1"
               sx={{ fontWeight: "bold", fontSize: "2rem" }}
             >
-              {totalEscalatedTickets} 
+              {totalEscalatedTickets}
             </Typography>
             <Typography
               variant="p"
@@ -402,28 +392,14 @@ const AdminDash = () => {
             View
           </Button>
         </div>
+
         {/* TICKETS */}
-        <div
-          style={{
-            display: "grid", // Use grid layout for better alignment
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Responsive columns
-            gap: "20px", // Space between cards
-            justifyContent: "center", // Center-align cards
-            padding: "5px", // Add padding around the grid
-            maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-            overflowY: "hidden",
-          }}
-        >
-          {escalatedTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status}
-              name={ticket.userName}
-            />
-          ))}
-        </div>
+        <TicketsViewController
+          tickets={escalatedTickets}
+          defaultView="list"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Escalated Tickets</Typography>}
+        />
       </Box>
 
       {/* TA SECTION CONTAINER */}
@@ -479,6 +455,7 @@ const AdminDash = () => {
             View All
           </Button>
         </div>
+
         {/* TICKETS */}
         <div
           style={{
@@ -491,12 +468,12 @@ const AdminDash = () => {
             overflowY: "hidden",
           }}
         >
-          {Object.entries(TACounts).map(([id,ta]) => (
+          {Object.entries(TACounts).map(([id, ta]) => (
             <InstructorCard
               key={id}
               name={ta.name || "Unknown"}
               counts={ta.counts}
-	      userId={id} //doesn't work when its ta.user_id ????
+              userId={id} //doesn't work when its ta.user_id ????
             />
           ))}
         </div>
