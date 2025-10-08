@@ -8,6 +8,8 @@ const ticketAssignmentRoutes = require("./ticketAssignmentRoutes");
 const officeHoursRoutes = require("./officeHoursRoutes");
 const encryptionRoutes = require("./encryptionRoutes");
 const pingRoutes = require("./pingRoutes");
+const emailRoutes = require('./emailRoutes');
+const passwordResetTokenRoutes = require('./passwordResetTokenRoutes');
 
 const taticketRoutes = require("./taticketRoutes");
 const taticketAssignmentRoutes = require("./taticketAssignmentRoutes");
@@ -25,6 +27,8 @@ const routes = [
   { path: "/api/ping", route: pingRoutes },
   { path: "/api/officehours", route: officeHoursRoutes},
   { path: "/api/encrypt", route: encryptionRoutes },
+  { path: "/api/email", route: emailRoutes },
+  { path: "/api/password-reset-tokens", route: passwordResetTokenRoutes },
 
     { path: "/api/tatickets", route: taticketRoutes },
     { path: "/api/taticketassignments", route: taticketAssignmentRoutes},

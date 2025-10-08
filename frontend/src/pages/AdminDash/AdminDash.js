@@ -7,7 +7,8 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
-import TicketCard from "../../components/TicketCard";
+import TicketsViewController from "../../components/TicketsViewController";
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AdminDash = () => {
@@ -19,6 +20,8 @@ const AdminDash = () => {
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [totalEscalatedTickets, setTotalEscalatedTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const [totalTAs, setTotalTAs] = useState(0);
   const [statusCounts, setStatusCounts] = useState({});
   const [assignees, setAssignees] = useState([]);
@@ -51,7 +54,7 @@ const AdminDash = () => {
       const users = await usersResponse.json();
       const tas = users.filter((user) => user.role === "TA"); // Filter TAs
       setTotalTAs(tas.length);
-      setTAs(TAs);
+      setTAs(tas);
 
       // Step 2: Fetch all ticket assignments
       const assignmentsResponse = await fetch(
@@ -98,7 +101,7 @@ const AdminDash = () => {
         ticketCounts[ta.user_id] = {
           name: ta.name, // Store the TA's name
           counts: { new: 0, ongoing: 0, resolved: 0 },
-	  //userId: ta.user_id,
+          //userId: ta.user_id,
         };
 
         // Filter assignments for this TA
@@ -177,6 +180,15 @@ const AdminDash = () => {
       const escalated = ticketsData.filter(ticket => ticket.escalated === true);
       const limitedTickets = ticketsData.slice(0, 21); // Maybe do this to set how may tickets we want to display
 
+      // Count different ticket types
+      const openCount = ticketsData.filter(ticket => 
+        ticket.status === 'new' || ticket.status === 'ongoing'
+      ).length;
+      
+      const closedCount = ticketsData.filter(ticket => 
+        ticket.status === 'resolved'
+      ).length;
+
       // Grab name from ticket
       const ticketsWithNames = await Promise.all(
         limitedTickets.map(async (ticket) => {
@@ -185,13 +197,12 @@ const AdminDash = () => {
         })
       );
 
-       const ticketsWithNamesEscalated = await Promise.all(
+      const ticketsWithNamesEscalated = await Promise.all(
         escalated.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id); // Fetch user name based on ticket ID
           return { ...ticket, userName }; // Add the userName to the ticket object
         })
       );
-
 
       // set tickets
       setTickets(ticketsWithNames); // Assuming data is an array of tickets
@@ -199,6 +210,9 @@ const AdminDash = () => {
       // set escalated tickets
       setEscalatedTickets(ticketsWithNamesEscalated);
       setTotalEscalatedTickets(ticketsWithNamesEscalated.length);
+      // set open and closed counts
+      setOpenTickets(openCount);
+      setClosedTickets(closedCount);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching tickets:", error);
@@ -229,6 +243,8 @@ const AdminDash = () => {
     );
   }
 
+  const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
   return (
     <Box
       sx={{
@@ -245,6 +261,7 @@ const AdminDash = () => {
       >
         Admin Dashboard
       </Typography>
+
       {/* TICKET SECTION CONTAINER */}
       <Box
         sx={{
@@ -258,15 +275,7 @@ const AdminDash = () => {
         }}
       >
         {/* SECTION HEADER */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 10,
-          }}
-        >
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
           <Avatar>
             <ArticleIcon sx={{ fontSize: "2rem" }} />
           </Avatar>
@@ -277,11 +286,32 @@ const AdminDash = () => {
             >
               {totalTickets}
             </Typography>
-            <Typography
-              variant="p"
-              sx={{ fontSize: "0.8rem", color: theme.palette.text.secondary }}
-            >
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
               Total Tickets
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {openTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Open
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {totalEscalatedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Escalated
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {closedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Closed
             </Typography>
           </div>
           <Button
@@ -292,34 +322,21 @@ const AdminDash = () => {
               color: "white",
               borderRadius: 999,
               fontSize: "0.75rem",
+              width: "15%",
             }}
             onClick={() => navigate("/alltickets")}
           >
             View All
           </Button>
         </div>
+
         {/* TICKETS */}
-        <div
-          style={{
-            display: "grid", // Use grid layout for better alignment
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Responsive columns
-            gap: "20px", // Space between cards
-            justifyContent: "center", // Center-align cards
-            padding: "5px", // Add padding around the grid
-            maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-            overflowY: "hidden",
-          }}
-        >
-          {tickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status}
-              name={ticket.userName}
-            />
-          ))}
-        </div>
+        <TicketsViewController
+          tickets={tickets}
+          defaultView="list"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Latest Tickets</Typography>}
+        />
       </Box>
 
       {/* Escalated TICKET SECTION CONTAINER */}
@@ -352,7 +369,7 @@ const AdminDash = () => {
               variant="h1"
               sx={{ fontWeight: "bold", fontSize: "2rem" }}
             >
-              {totalEscalatedTickets} 
+              {totalEscalatedTickets}
             </Typography>
             <Typography
               variant="p"
@@ -375,28 +392,14 @@ const AdminDash = () => {
             View
           </Button>
         </div>
+
         {/* TICKETS */}
-        <div
-          style={{
-            display: "grid", // Use grid layout for better alignment
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Responsive columns
-            gap: "20px", // Space between cards
-            justifyContent: "center", // Center-align cards
-            padding: "5px", // Add padding around the grid
-            maxHeight: "950px", // CHANGED HERE: Limits height to approximately 3 rows (adjust as needed)
-            overflowY: "hidden",
-          }}
-        >
-          {escalatedTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status}
-              name={ticket.userName}
-            />
-          ))}
-        </div>
+        <TicketsViewController
+          tickets={escalatedTickets}
+          defaultView="list"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Escalated Tickets</Typography>}
+        />
       </Box>
 
       {/* TA SECTION CONTAINER */}
@@ -452,6 +455,7 @@ const AdminDash = () => {
             View All
           </Button>
         </div>
+
         {/* TICKETS */}
         <div
           style={{
@@ -464,12 +468,12 @@ const AdminDash = () => {
             overflowY: "hidden",
           }}
         >
-          {Object.entries(TACounts).map(([id,ta]) => (
+          {Object.entries(TACounts).map(([id, ta]) => (
             <InstructorCard
               key={id}
               name={ta.name || "Unknown"}
               counts={ta.counts}
-	      userId={id} //doesn't work when its ta.user_id ????
+              userId={id} //doesn't work when its ta.user_id ????
             />
           ))}
         </div>

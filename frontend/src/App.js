@@ -25,6 +25,8 @@ import StudentTickets from "./pages/StudentTickets/StudentTickets";
 import InstructorTickets from "./pages/InstructorTickets/InstructorTickets";
 import InstructorProfile from "./pages/InstructorProfile/InstructorProfile"; 
 import EscalatedTickets from "./pages/EscalatedTickets/EscalatedTickets";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import RequestReset from "./pages/RequestReset/RequestReset";
 import TaRequestTickets from "./pages/InstructorTickets/TaRequestTickets";
 import TaTicketView from "./components/TicketView/TaTicketView";
 import TaTicketInfo from "./pages/TicketInfo/TaTicketInfo";
@@ -35,6 +37,8 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/registration" element={<Registration />} />
+      <Route path="/resetpassword" element={<ResetPassword />} />
+      <Route path="/requestreset" element={<RequestReset />} />
 
       {/*Verify that user is logged in before rendering any of these routes*/}
       <Route
