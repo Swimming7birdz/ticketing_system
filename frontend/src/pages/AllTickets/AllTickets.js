@@ -11,6 +11,7 @@ import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import TicketCard from "../../components/TicketCard";
+import TaTicketCard from "../../components/TaTicketCard";
 import CheckIcon from "@mui/icons-material/Check";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -132,39 +133,58 @@ const AllTickets = () => {
     }
   };
 
-  const fetchTickets = async () => {
-    try {
-      const token = Cookies.get("token");
+    const fetchTickets = async () => {
+        try {
+            const token = Cookies.get("token");
+            const headers = {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            };
 
-      const response = await fetch(`${baseURL}/api/tickets`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+            // 1. Create promises for both fetch requests
+            const ticketsPromise = fetch(`${baseURL}/api/tickets`, { method: "GET", headers });
+            const taTicketsPromise = fetch(`${baseURL}/api/tatickets`, { method: "GET", headers });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch tickets");
-      }
+            // 2. Await both promises to resolve concurrently
+            const [ticketsResponse, taTicketsResponse] = await Promise.all([
+                ticketsPromise,
+                taTicketsPromise,
+            ]);
 
-      const ticketsData = await response.json();
+            // Check if either request failed
+            if (!ticketsResponse.ok || !taTicketsResponse.ok) {
+                throw new Error("Failed to fetch one or more ticket lists");
+            }
 
-      const ticketsWithNames = await Promise.all(
-        ticketsData.map(async (ticket) => {
-          const userName = await fetchNameFromId(ticket.student_id);
-          return { ...ticket, userName };
-        })
-      );
+            // 3. Get the JSON data from both responses
+            const ticketsData = await ticketsResponse.json();
+            const taTicketsData = await taTicketsResponse.json();
 
-      setTickets(ticketsWithNames);
-      setTotalTickets(ticketsData.length);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-      setLoading(false);
-    }
-  };
+            // Add a 'source' property to each ticket from the regular endpoint
+            const sourcedTickets = ticketsData.map(ticket => ({ ...ticket, source: 'regular' }));
+
+            // Add a 'source' property to each ticket from the TA endpoint
+            const sourcedTaTickets = taTicketsData.map(ticket => ({ ...ticket, source: 'ta' }));
+
+            // 4. Combine the two arrays into one
+            const allTicketsData = [...sourcedTickets, ...sourcedTaTickets];
+
+            // The rest of the logic remains the same, but operates on the combined array
+            const ticketsWithNames = await Promise.all(
+                allTicketsData.map(async (ticket) => {
+                    const userName = await fetchNameFromId(ticket.student_id);
+                    return { ...ticket, userName };
+                })
+            );
+
+            setTickets(ticketsWithNames);
+            setTotalTickets(allTicketsData.length); // Use the combined length
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching tickets:", error);
+            setLoading(false);
+        }
+    };
 
   const toggleHideResolved = () => {
     setHideResolved((prev) => !prev);
@@ -411,15 +431,26 @@ const AllTickets = () => {
             overflowY: "auto",
           }}
         >
-          {filteredTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status}
-              name={ticket.userName}
-            />
-          ))}
+            {filteredTickets.map((ticket) =>
+                // Check the source property here
+                ticket.source === 'ta' ? (
+                    <TaTicketCard
+                        key={ticket.ticket_id}
+                        ticketId={ticket.ticket_id}
+                        issueDescription={ticket.issue_description}
+                        status={ticket.status}
+                        name={ticket.userName}
+                    />
+                ) : (
+                    <TicketCard
+                        key={ticket.ticket_id}
+                        ticketId={ticket.ticket_id}
+                        issueDescription={ticket.issue_description}
+                        status={ticket.status}
+                        name={ticket.userName}
+                    />
+                )
+            )}
         </div>
       </Box>
     </Box>
