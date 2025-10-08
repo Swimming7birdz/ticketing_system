@@ -1,95 +1,144 @@
-import React, { useEffect, useState } from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography, Box } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import React, { useEffect, useMemo, useState } from "react";
+import { Box, Typography, Avatar, Button, CircularProgress } from "@mui/material";
+import ArticleIcon from "@mui/icons-material/Article";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";  // Make sure this import is correct!
-import { fetchTicketsByUserId } from "../../services/ticketServices";
+import { useNavigate } from "react-router-dom";
+import TicketsViewController from "../../components/TicketsViewController";
 
-const MyTickets = () => {
-  const theme = useTheme();
-  const [ticketsForUser, setTicketsForUser] = useState([]);
+const baseURL = process.env.REACT_APP_API_BASE_URL;
+
+// Decode a JWT to get user_id (no secret needed; we only read payload)
+function getUserIdFromToken() {
+  try {
+    const token = Cookies.get("token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1] || ""));
+    return payload?.user_id || payload?.id || null;
+  } catch {
+    return null;
+  }
+}
+
+export default function MyTickets() {
+  const navigate = useNavigate();
+  const userId = useMemo(getUserIdFromToken, []);
+  const [tickets, setTickets] = useState([]);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchStudentTickets();
-  }, []);
-
-  const fetchStudentTickets = async () => {
+  const fetchNameFromId = async (student_id) => {
     try {
       const token = Cookies.get("token");
-      if (!token) {
-        console.error("No token found!");
-        return;
-      }
-
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.id; // Get logged-in student ID
-
-      const studentTickets = await fetchTicketsByUserId(userId); // Fetch tickets directly
-      setTicketsForUser(studentTickets);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching student tickets:", error);
-      setError("Could not fetch tickets. Please try again later.");
-      setLoading(false);
+      const res = await fetch(`${baseURL}/api/users/${student_id}`, {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return "Unknown";
+      const data = await res.json();
+      return data.name || "Unknown";
+    } catch {
+      return "Unknown";
     }
   };
 
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setLoading(true);
+        const token = Cookies.get("token");
+        // Uses backend controller getTicketsByUserId
+        const res = await fetch(`${baseURL}/api/tickets/user/${userId}`, {
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch my tickets");
+        const data = await res.json();
+        const enriched = await Promise.all(
+          data.map(async (t) => ({
+            ...t,
+            userName: await fetchNameFromId(t.student_id),
+          }))
+        );
+        if (!cancelled) {
+          setTickets(enriched);
+          setCount(enriched.length);
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setTickets([]);
+          setCount(0);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: theme.palette.background.default,
-          flexDirection: "column",
-          gap: 2.5,
-        }}
-      >
-        <CircularProgress size={80} thickness={4} />
-        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
-          Loading, please wait...
-        </Typography>
+      <Box sx={{ p: 4, display: "grid", placeItems: "center" }}>
+        <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh", padding: 2 }}>
-      <TableContainer component={Paper} sx={{ backgroundColor: theme.palette.background.paper }}>
-        <Table sx={{ minWidth: 650 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Number</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell>Team</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {ticketsForUser.map((ticket) => (
-            <TableRow key={ticket.ticket_id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-              <TableCell component="th" scope="row">{ticket.ticket_id}</TableCell>
-              <TableCell sx={{
-                color: ticket.status === "ongoing" ? "blue" : ticket.status === "escalated" ? "red" : "green",
-              }}>
-                {ticket.status}
-              </TableCell>
-              <TableCell>{ticket.issue_description}</TableCell>
-              <TableCell>{ticket.student_name}</TableCell>
-              <TableCell>{ticket.team_name}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        </Table>
-      </TableContainer>
+    <Box sx={{ display: "grid", gap: 3, p: 3 }}>
+      {/* Header / Stats */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          justifyContent: "space-between",
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          p: 2,
+          borderRadius: 2,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Avatar><ArticleIcon /></Avatar>
+          <Box>
+            <Typography variant="h6">My Tickets</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {count} total
+            </Typography>
+          </Box>
+        </Box>
+        <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
+      </Box>
+
+      {/* Tickets */}
+      <Box
+        sx={{
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          p: 2,
+          borderRadius: 2,
+        }}
+      >
+        <TicketsViewController
+          tickets={tickets}
+          defaultView="list"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Tickets</Typography>}
+        />
+      </Box>
     </Box>
   );
-};
-
-export default MyTickets;
-
+}
