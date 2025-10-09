@@ -139,19 +139,43 @@ const TicketInfo = () => {
                 },
             }
         );
-    
+
         if (!deescalateResponse.ok) {
             console.error(`Failed to de-escalate ticket. Status: ${deescalateResponse.status}`);
             console.error(`${deescalateResponse.reason}`);
             alert("Failed to de-escalate ticket. Please try again.");
         } else {
-            alert("Ticket was de-escalated successfully.");        
+            alert("Ticket was de-escalated successfully.");
         }
-        
+
 
     } catch(error) {
         console.log("Error: ", error);
         setError(true);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/tickets/${ticketId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete ticket");
+      }
+
+      console.log("Ticket deleted successfully");
+      setDeleteOpen(false);
+      navigate(-1); // Go back to previous page
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      alert("Failed to delete ticket. Please try again.");
     }
   };
 
@@ -296,7 +320,7 @@ const TicketInfo = () => {
             <Button variant="contained" className="editButton" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
             <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
             <Button variant="contained" color="error" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
-            <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} />
+            <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} onConfirmDelete={handleDelete} />
             {userType === "TA" && ticketData.escalated === false && (
               <Button variant="contained" color="warning" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
             )}
