@@ -18,7 +18,7 @@ export default function EscalatedTickets() {
     sort: null,
     status: null,
     search: "",
-    ticketIdSearch: "",
+    teamNameSearch: "",
   });
   const [hideResolved, setHideResolved] = useState(true);
 
@@ -47,6 +47,30 @@ export default function EscalatedTickets() {
     }
   };
 
+  const fetchTeamNameFromId = async (team_id) => {
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.warn(`Failed to fetch user name for team_id=${team_id} (status ${res.status})`);
+        return "Unknown";
+      }
+
+      const data = await res.json();
+      return data?.team_name || "Unknown";
+    } catch (error) {
+      console.error(`Error fetching name for team_id=${team_id}:`, error);
+      return "Unknown";
+    }
+  };
+
   // load escalated tickets and enrich with userName
   useEffect(() => {
     let cancelled = false;
@@ -60,11 +84,6 @@ export default function EscalatedTickets() {
         });
         if (!res.ok) throw new Error("Failed to fetch tickets");
 
-        // Search by ticket ID
-        //Can repurpose this section for Team Name filter
-        if (activeFilters.ticketIdSearch) {
-        filtered = filtered.filter(
-        (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
         const all = await res.json();
         const onlyEscalated = all.filter((t) => t.escalated === true);
 
@@ -72,6 +91,7 @@ export default function EscalatedTickets() {
           onlyEscalated.map(async (t) => ({
             ...t,
             userName: await fetchNameFromId(t.student_id),
+            teamName: await fetchTeamNameFromId(t.team_id),
           }))
         );
 
@@ -126,6 +146,12 @@ export default function EscalatedTickets() {
       );
     }
 
+    if (activeFilters.teamNameSearch) {
+      filtered = filtered.filter((ticket) =>
+        ticket.teamName?.toLowerCase().includes(activeFilters.teamNameSearch.toLowerCase())
+      );
+    }
+
     if (hideResolved) {
       filtered = filtered.filter(
         (ticket) => ticket.status.toLowerCase() !== "resolved"
@@ -150,7 +176,7 @@ export default function EscalatedTickets() {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
+    setActiveFilters({ sort: null, status: null, search: "", teamNameSearch: "" });
   };
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
@@ -198,22 +224,13 @@ export default function EscalatedTickets() {
             }
             size="small"
           />
-          {/*Can repurpose Textfield to be used for searching by Team Name*/}
-          {/* <TextField
-            label="Search by Ticket ID"
+          <TextField
+            label="Search by Team Name"
             variant="outlined"
-            value={activeFilters.ticketIdSearch}
+            value={activeFilters.teamNameSearch}
             onChange={(e) =>
-              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
+              setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
             }
-            sx={{ flex: 1 }}
-          /> */
-          /*Can repurpose Textfield to be used for searching by Team Name*/}
-          <Button
-            variant="contained"
-            onClick={handleFilterClick}
-            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
-          >
             size="small"
           />
           <Button variant="contained" onClick={handleFilterClick}>

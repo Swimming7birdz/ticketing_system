@@ -29,7 +29,7 @@ const AllTickets = () => {
     sort: null,
     status: null,
     search: "",
-    ticketIdSearch: "",
+    teamNameSearch: "",
   });
 
   const [hideResolved, setHideResolved] = useState(true);
@@ -84,10 +84,17 @@ const AllTickets = () => {
     }
 
     // Search by ticket ID
-    //Can repurpose this section for Team Name filter
     if (activeFilters.ticketIdSearch) {
       filtered = filtered.filter(
         (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
+      );
+    }
+
+    if (activeFilters.teamNameSearch) {
+      filtered = filtered.filter((ticket) =>
+        ticket.teamName
+          .toLowerCase()
+          .includes(activeFilters.teamNameSearch.toLowerCase())
       );
     }
 
@@ -109,7 +116,7 @@ const AllTickets = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
+    setActiveFilters({ sort: null, status: null, search: "", teamIdSearch: "" });
   };
 
   const fetchNameFromId = async (student_id) => {
@@ -136,6 +143,30 @@ const AllTickets = () => {
     }
   };
 
+  const fetchTeamNameFromId = async (team_id) => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch team name for ticket ${team_id}`);
+        return "Unknown Name";
+      }
+
+      const data = await response.json();
+      return data.team_name;
+    } catch (error) {
+      console.error(`Error fetching name for ticket ${team_id}:`, error);
+      return "Unknown Name";
+    }
+  };
+
   const fetchTickets = async () => {
     try {
       const token = Cookies.get("token");
@@ -157,9 +188,11 @@ const AllTickets = () => {
       const ticketsWithNames = await Promise.all(
         ticketsData.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id);
-          return { ...ticket, userName };
+          const teamName = await fetchTeamNameFromId(ticket.team_id);
+          return { ...ticket, userName, teamName };
         })
       );
+      
 
       setTickets(ticketsWithNames);
       setTotalTickets(ticketsData.length);
@@ -242,16 +275,16 @@ const AllTickets = () => {
             }
             sx={{ flex: 1 }}
           />
-          {/*Can repurpose Textfield to be used for searching by Team Name; I'll do it next*/}
-          {/* <TextField
-            label="Search by Ticket ID"
+          
+          <TextField
+            label="Search by Team Name"
             variant="outlined"
-            value={activeFilters.ticketIdSearch}
+            value={activeFilters.teamNameSearch}
             onChange={(e) =>
-              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
+              setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
             }
             sx={{ flex: 1 }}
-          /> */}
+          />
           <Button
             variant="contained"
             onClick={handleFilterClick}
