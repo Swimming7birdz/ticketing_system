@@ -324,6 +324,7 @@ const InstructorDash = () => {
                 issueDescription={ticket.ticketData.issue_description}
                 status={ticket.ticketData.status}
                 name={ticket.ticketData.student?.name || "Unknown"}
+                escalated={ticket.ticketData.escalated}
               />
             ))}
           </div>
