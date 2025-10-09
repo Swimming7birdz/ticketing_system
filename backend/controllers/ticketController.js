@@ -153,6 +153,17 @@ exports.deleteTicket = async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.ticket_id);
     if (ticket) {
+      // Delete associated ticket assignments first
+      await TicketAssignment.destroy({
+        where: { ticket_id: req.params.ticket_id }
+      });
+
+      // Delete associated communications
+      await Communication.destroy({
+        where: { ticket_id: req.params.ticket_id }
+      });
+
+      // Now delete the ticket
       await ticket.destroy();
       res.status(204).json();
     } else {
