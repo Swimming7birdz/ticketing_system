@@ -23,6 +23,15 @@ const TicketSubject = "Sponsor Isn’t Responding";
 
 const TicketInfo = () => {
     const theme = useTheme();
+  
+  // Set body background immediately to prevent white flash
+  React.useEffect(() => {
+    document.body.style.backgroundColor = theme.palette.background.default;
+    return () => {
+      // Clean up on unmount if needed
+      document.body.style.backgroundColor = '';
+    };
+  }, [theme.palette.background.default]);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editFormOpen, setEditFormOpen] = useState(false);
@@ -285,81 +294,169 @@ const TicketInfo = () => {
   
   if (loadingTicketData) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0", flexDirection: "column", gap: "20px" }}>
-        <CircularProgress size={80} thickness={4} />
-        <Typography variant="h6" sx={{ color: "#8C1D40" }}>Loading, please wait...</Typography>
-      </div>
+      <Box sx={{ 
+        display: "flex", 
+        justifyContent: "center", 
+        alignItems: "center", 
+        height: "100vh", 
+        backgroundColor: theme.palette.background.default,
+        flexDirection: "column", 
+        gap: 3 
+      }}>
+        <CircularProgress size={80} thickness={4} sx={{ color: theme.palette.primary.main }} />
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>Loading, please wait...</Typography>
+      </Box>
     );
   }
 
   return (
+    <Box sx={{ 
+      backgroundColor: theme.palette.background.default, 
+      minHeight: '100vh',
+      p: 4, 
+      pt: 4
+    }}>
+      <Box sx={{backgroundColor: theme.palette.background.paper, p: 1, borderRadius: 1, flex: 1 }}>
+        <Stack className="ticketInfo" sx={{ backgroundColor: theme.palette.background.paper }}>
+          
+          <Button variant="text" className="backButton" onClick={handleBack} startIcon={<ArrowBackIosNewIcon />} sx={{ mb: 1, alignSelf: 'flex-start' }}>Back</Button>
+          
+          {/* NEW CLEAN HORIZONTAL HEADER */}
+          <Box className="ticket-header" sx={{ 
+            backgroundColor: theme.palette.background.paper,
+            p: 3, 
+            mb: 2,
+            borderRadius: 1,
+            border: `1px solid ${theme.palette.divider}`
+          }}>
+            {/* Title Row */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
+                Capstone Ticket
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
+                  {userType === 'admin' || userType === 'TA' ? ticketId : 'ST' + String(ticketId).padStart(4, '0')}
+                </Typography>
+                <TicketStatusIndicator status={ticketStatus.toUpperCase() || "UNKNOWN"} />
+                {ticketData.escalated && <TicketStatusIndicator status={"ESCALATED"} />}
+              </Box>
+            </Box>
 
-    <Box sx={{ backgroundColor: theme.palette.background.default, p: 6}}>
-      <Box sx={{backgroundColor: theme.palette.background.paper, p: 3, borderRadius: 1, flex: 1 }}>
-        <Stack className="ticketInfo" sx={{ backgroundColor: theme.palette.background.paper, border: `5px solid ${theme.palette.divider}`}}>
-          <Button variant="text" className="backButton" onClick={handleBack} startIcon={<ArrowBackIosNewIcon />}>Back</Button>
-            <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
-                Capstone Ticket - {ticketId}
-            </Typography>
-            <Typography variant="h6" component="div" color="text.secondary">
-                {issueTypeDisplay[ticketData.issue_type] || "Unknown issue type"}
-            </Typography>
+            {/* Single Row Info Grid */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(6, 1fr)', 
+              gap: 3,
+              mb: 2
+            }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>
+                  STUDENT
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500', color: theme.palette.text.primary }}>
+                  {ticketData.student_name}
+                </Typography>
+              </Box>
+              
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>
+                  TEAM
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500', color: theme.palette.text.primary }}>
+                  {ticketData.team_name}
+                </Typography>
+              </Box>
+              
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>
+                  SPONSOR
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500', color: theme.palette.text.primary }}>
+                  {ticketData.sponsor_name}
+                </Typography>
+              </Box>
+              
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>
+                  ISSUE TYPE
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500', color: theme.palette.text.primary }}>
+                  {issueTypeDisplay[ticketData.issue_type] || "Unknown"}
+                </Typography>
+              </Box>
+              
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>
+                  ASSIGNED TA
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500', color: theme.palette.text.primary }}>
+                  {idToNameMap[AssignedID] || 'Unassigned'}
+                </Typography>
+              </Box>
+              
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>
+                  CREATED
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500', color: theme.palette.text.primary }}>
+                  {ticketData.created_at ? new Date(ticketData.created_at).toLocaleDateString() : "N/A"}
+                </Typography>
+              </Box>
+            </Box>
 
-          <Stack direction="row" className="statusButtons">
-            <TicketStatusIndicator status={ticketStatus.toUpperCase() || "UNKNOWN"} />
-            {ticketData.escalated && <TicketStatusIndicator status={"ESCALATED"} />}
-            <FormControl sx={{ minWidth: 150, ml: 2, mt: 1 }}>
-              <InputLabel sx={{ top: "-5px" }}>Status</InputLabel>
-              <Select value={ticketStatus} onChange={handleStatusChange} sx={{ padding: "10px", height: "40px" }}>
-                <MenuItem value="new">New</MenuItem>
-                <MenuItem value="ongoing">Ongoing</MenuItem>
-                <MenuItem value="resolved">Resolved</MenuItem>
-                {/*<MenuItem value="Escalated">Escalated</MenuItem>*/}
-              </Select>
-            </FormControl>
-            <Button variant="contained" className="editButton" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
-            <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
-            <Button variant="contained" color="error" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>
-            <ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} onConfirmDelete={handleDelete} />
-            {userType === "TA" && ticketData.escalated === false && (
-              <Button variant="contained" color="warning" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
-            )}
-            <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
-            {userType === "admin" && ticketData.escalated && (
-              <Button variant="contained" color="success" className="deEscalateButton" onClick={() => resolveEscalation()}>Resolve Escalation</Button>
-            )}
-
-          </Stack>
-
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Description:</Typography>
-            <Typography variant="body1">{ticketData.issue_description}</Typography>
-
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Student - ID:</Typography>
-            <Typography variant="body1">{ticketData.student_name} - {ticketData.student_id}</Typography>
-
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>TA:</Typography>
-            <Box className="ticketAsset">
-            {idToNameMap[AssignedID]}&nbsp;
-            {userType === "admin" && (
-              <Button variant="contained" className="reassignButton" style={{ marginTop: "10px" }} onClick={() => setReassignOpen(true)}>Reassign</Button>
-            )}
-            <ConfirmReassign handleOpen={reassignOpen} handleClose={() => setReassignOpen(false)} ticketID={ticketId} oldTAID={AssignedID} idNameMap={idToNameMap} updateTA={(newTAID) => setAssignedID(newTAID)} />
+            {/* Action Buttons Row */}
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel sx={{ 
+                  fontSize: '14px', 
+                  transform: 'translate(14px, -9px) scale(0.75)',
+                  backgroundColor: theme.palette.background.paper,
+                  padding: '0 4px'
+                }}>Status</InputLabel>
+                <Select value={ticketStatus} onChange={handleStatusChange} size="small" sx={{ 
+                  height: "40px"
+                }}>
+                  <MenuItem value="new">New</MenuItem>
+                  <MenuItem value="ongoing">Ongoing</MenuItem>
+                  <MenuItem value="resolved">Resolved</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <Button variant="contained" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
+              <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
+              
+              <Button variant="outlined" color="error" onClick={() => handleStatusChange({ target: { value: 'resolved' } })}>Close Ticket</Button>
+              
+              {userType === "TA" && ticketData.escalated === false && (
+                <Button variant="contained" color="warning" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
+              )}
+              <ConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
+              
+              {userType === "admin" && ticketData.escalated && (
+                <Button variant="contained" color="success" onClick={() => resolveEscalation()}>Resolve Escalation</Button>
+              )}
+              
+              {userType === "admin" && (
+                <Button variant="outlined" onClick={() => setReassignOpen(true)}>Reassign</Button>
+              )}
+              <ConfirmReassign handleOpen={reassignOpen} handleClose={() => setReassignOpen(false)} ticketID={ticketId} oldTAID={AssignedID} idNameMap={idToNameMap} updateTA={(newTAID) => setAssignedID(newTAID)} />
+            </Box>
           </Box>
 
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Sponsor:</Typography>
-            <Typography variant="body1">{ticketData.sponsor_name}</Typography>
+          {/* TICKET DESCRIPTION */}
+          <Box sx={{ mb: 2, backgroundColor: theme.palette.background.paper, p: 2, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold", color: theme.palette.text.primary }}>Description:</Typography>
+            <Typography variant="body1" sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+              {ticketData.issue_description}
+            </Typography>
+          </Box>
 
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Project - ID:</Typography>
-            <Typography variant="body1">{ticketData.team_name} - {ticketData.team_id}</Typography>
+          {/* CONVERSATION SECTION */}
+          <Box sx={{ mb: 2, backgroundColor: theme.palette.background.paper, p: 2, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+            <ReplySection />
+          </Box>
 
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Created at:</Typography>
-            <Typography variant="body1">{ticketData.created_at ? new Date(ticketData.created_at).toLocaleString() : "N/A"}</Typography>
-
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Last Updated:</Typography>
-            <Typography variant="body1">{ticketData.updated_at ? new Date(ticketData.updated_at).toLocaleString() : "N/A"}</Typography>
-
-            <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Replies:</Typography>
-          <ReplySection />
         </Stack>
       </Box>
       {editFormOpen && <EditTicket ticketId={ticketId} onClose={() => setEditFormOpen(false)} handleSaveEdit={handleSaveEdit} />}
