@@ -1,4 +1,4 @@
-import { Button, Stack, TextField } from "@mui/material";
+import { Button, Stack, TextField, Typography } from "@mui/material";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
@@ -99,13 +99,40 @@ const ReplySection = () => {
     <>
       {!loadingRepliesData ? (
         <Stack className="replySection" direction="column">
+          {/* Previous Replies */}
+          {repliesData.length > 0 && (
+            <>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>Conversation History:</Typography>
+              {repliesData.map((reply) => (
+                <ReplyBox
+                  key={reply.communication_id}
+                  className="reply"
+                  reply={reply.message}
+                  author={reply.user_name}
+                  time={reply.created_at}
+                ></ReplyBox>
+              ))}
+            </>
+          )}
+          
+          {/* Post New Reply Section */}
           <TextField
             id="outlined-multiline-static"
             multiline
-            rows={4}
+            rows={2}
             label="Enter Your Reply Here"
             value={newReplyText}
             onChange={handleChange}
+            sx={{
+              mb: 1,
+              mt: repliesData.length > 0 ? 3 : 0,
+              '& .MuiInputLabel-root': {
+                transform: 'translate(14px, 16px) scale(1)',
+                '&.Mui-focused, &.MuiFormLabel-filled': {
+                  transform: 'translate(14px, -9px) scale(0.75)'
+                }
+              }
+            }}
           />
           <Button
             className="postButton"
@@ -114,15 +141,6 @@ const ReplySection = () => {
           >
             Post Reply
           </Button>
-          {repliesData.map((reply) => (
-            <ReplyBox
-              key={reply.communication_id}
-              className="reply"
-              reply={reply.message}
-              author={reply.user_name}
-              time={reply.created_at}
-            ></ReplyBox>
-          ))}
         </Stack>
       ) : (
         <div>Loading Replies </div>

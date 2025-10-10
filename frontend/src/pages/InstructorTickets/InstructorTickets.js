@@ -8,6 +8,8 @@ import TicketCard from "../../components/TicketCard";
 import { fetchTicketAssignmentsByUserId, fetchTicketById } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom";
 
+const baseURL = process.env.REACT_APP_API_BASE_URL;
+
 const InstructorTickets = () => {
   const theme = useTheme();
   const [tickets, setTickets] = useState([]);
@@ -22,7 +24,7 @@ const InstructorTickets = () => {
     sort: null,
     status: null,
     search: "",
-    ticketIdSearch: "",
+    teamNameSearch: "",
   });
   const [hideResolved, setHideResolved] = useState(true);
   let navigate = useNavigate();
@@ -85,6 +87,14 @@ const InstructorTickets = () => {
       );
     }
 
+    // Apply search filter (search by team name)
+    if (activeFilters.teamNameSearch) {
+      filtered = filtered.filter((ticket) =>
+        ticket.teamName
+        ?.toLowerCase().includes(activeFilters.teamNameSearch.toLowerCase())
+      );
+    }
+
     // Hide resolved tickets if toggle is active
     if (hideResolved) {
       filtered = filtered.filter(
@@ -104,7 +114,31 @@ const InstructorTickets = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
+    setActiveFilters({ sort: null, status: null, search: "", teamNameSearch: "" });
+  };
+
+  const fetchTeamNameFromId = async (team_id) => {
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.warn(`Failed to fetch user name for team_id=${team_id} (status ${res.status})`);
+        return "Unknown";
+      }
+
+      const data = await res.json();
+      return data?.team_name || "Unknown";
+    } catch (error) {
+      console.error(`Error fetching name for team_id=${team_id}:`, error);
+      return "Unknown";
+    }
   };
 
     const filterUniqueTickets = (tickets) => { //Avoid duplicate tickets
@@ -132,7 +166,8 @@ const InstructorTickets = () => {
         const ticketList = await Promise.all(
             uniqueTickets.map(async (ticket_) => {
                 const ticketData = await fetchTicketById(ticket_.ticket_id);
-                return { ...ticket_, ticketData };
+                const teamName = await fetchTeamNameFromId(ticketData.team_id);
+                return { ...ticket_, ticketData, teamName };
             })
         );
         
@@ -283,11 +318,11 @@ const InstructorTickets = () => {
             sx={{ flex: 1 }}
           />
           <TextField
-            label="Search by Ticket ID"
+            label="Search by Team Name"
             variant="outlined"
-            value={activeFilters.ticketIdSearch}
+            value={activeFilters.teamNameSearch}
             onChange={(e) =>
-              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
+              setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
             }
             sx={{ flex: 1 }}
           />

@@ -8,17 +8,22 @@ import { Stack } from '@mui/material';
 import './ConfirmDelete.css'
 
 
-const ConfirmDelete = ({handleOpen, handleClose}) => {
+const ConfirmDelete = ({handleOpen, handleClose, onConfirmDelete}) => {
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (onConfirmDelete) {
+            onConfirmDelete();
+        }
+        handleClose();
+    };
+
     return(
         <Dialog
         open={handleOpen}
         onClose={handleClose}
         PaperProps={{
             component: 'form',
-            onSubmit: (event) => {
-            event.preventDefault();
-            handleClose();
-            },
+            onSubmit: handleSubmit,
         }}
         >
             <DialogContent>

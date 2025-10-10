@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TicketCard from "../../components/TicketCard";
 import ArticleIcon from "@mui/icons-material/Article";
 import PeopleIcon from "@mui/icons-material/People";
@@ -58,38 +58,60 @@ const InstructorProfile = () => {
   const location = useLocation();
   const urlParameters = new URLSearchParams(location.search);
   const userId = urlParameters.get("user");
-  
+  const latestUserIdRef = useRef(userId);
+
   useEffect(() => {
-    fetchTicketsAssigned();
-  }, []);
+    latestUserIdRef.current = userId;
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      // Reset state when userId changes to prevent showing stale data
+      setLoading(true);
+      setTickets([]);
+      setFilteredTickets([]);
+      setTA(null);
+      setTotalTickets(0);
+      setTATickets([]);
+      setIsUser(false);
+
+      // Fetch fresh data for the new TA
+      fetchTicketsAssigned();
+      fetchTADetails();
+      fetchOfficeHours();
+    }
+  }, [userId]);
 
   useEffect(() => {
     applyFilters();
   }, [tickets, activeFilters]);
 
-  useEffect(() => {
-    fetchTADetails();
-    fetchOfficeHours();
-  }, [userId]);
-
   const fetchOfficeHours = async () => {
+    const requestedUserId = userId;
     try {
       const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/officehours/users/${userId}`,{
+      const response = await fetch(`${baseURL}/api/officehours/users/${requestedUserId}`,{
         headers: {
         'Authorization': `Bearer ${token}`,
       },
       });
       
       const data = await response.json();
+
+      if (latestUserIdRef.current !== requestedUserId) {
+        return;
+      }
       
       console.log("response okay?: ", response.ok, "data?: ", data) 
       if (response.ok && data.office_hours) { // if ta is found in table and office_hours is not null
         setTime(data.office_hours);
         console.log("fetched office hours:", time);
-      } else if (data) {setTime(time);} // to stop error from ta not being in table yet. ta's office hours are added in same fashion as ticket communications right now
+      }
       
     } catch (err) {
+      if (latestUserIdRef.current !== requestedUserId) {
+        return;
+      }
       console.error("error fetching office hours:", err);
     }
   };
@@ -157,9 +179,10 @@ const InstructorProfile = () => {
   };
 
   const fetchTADetails = async () => {
+    const requestedUserId = userId;
     try {
     const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/users/${userId}`, {
+      const response = await fetch(`${baseURL}/api/users/${requestedUserId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -172,13 +195,19 @@ const InstructorProfile = () => {
       }
 
       const taData = await response.json();
+      if (latestUserIdRef.current !== requestedUserId) {
+        return;
+      }
       setTA(taData);
       const decodedToken = jwtDecode(token);
       console.log("token",decodedToken.id)
-      if (decodedToken.id === taData.user_id) {setIsUser(true);} //set logged in user for edit function on office hours
+      setIsUser(decodedToken.id === taData.user_id); //set logged in user for edit function on office hours
       console.log("TA data: ", taData);
       setLoading(false);
     } catch (error) {
+      if (latestUserIdRef.current !== requestedUserId) {
+        return;
+      }
       console.error("Error fetching TA details:", error);
       setLoading(false);
     }
@@ -274,9 +303,10 @@ const InstructorProfile = () => {
   };
 
   const fetchTicketsAssigned = async () => {
+    const requestedUserId = userId;
     try {
       const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/ticketassignments/users/${userId}`, {
+      const response = await fetch(`${baseURL}/api/ticketassignments/users/${requestedUserId}`, {
         method: "GET",
         headers: {
         "Content-Type": "application/json",
@@ -289,6 +319,9 @@ const InstructorProfile = () => {
     }
 
     const ticketsAssigned = await response.json();
+    if (latestUserIdRef.current !== requestedUserId) {
+      return;
+    }
     setTATickets(ticketsAssigned);
     // get ticket_ids from the ticketsAssigned data
     const ticketIds = ticketsAssigned.map((assignment) => assignment.ticket_id);
@@ -297,12 +330,12 @@ const InstructorProfile = () => {
     const ticketDetailsPromises = ticketIds.map((ticketId) => fetchTicketDetails(ticketId));
 
     const ticketDetails = await Promise.all(ticketDetailsPromises);
-    let uniqueTickets = [...new Map(ticketDetails.map((ticket) => [ticket.ticket_id, ticket])).values()];
+    const validTicketDetails = ticketDetails.filter(Boolean);
+    let uniqueTickets = [...new Map(validTicketDetails.map((ticket) => [ticket.ticket_id, ticket])).values()];
     //console.log("unique tickets:", ticketIds);
     
     // temporary way of making students only view their own tickets -- change it to check authentication instead, like studentdash/studenttickets
     const decodedToken = jwtDecode(token);
-    const checkId = decodedToken.id; // Extract user ID from JWT
     //console.log("token role:",decodedToken.role);
 
     //console.log("rolecheck:", roleCheck);
@@ -316,11 +349,17 @@ const InstructorProfile = () => {
           return { ...ticket, userName };
         })
       );
+      if (latestUserIdRef.current !== requestedUserId) {
+        return;
+      }
       setTickets(ticketsWithNames);
       setTotalTickets(uniqueTickets.length);
     
     setLoading(false);
   } catch (error) {
+      if (latestUserIdRef.current !== requestedUserId) {
+        return;
+      }
       console.error("Error fetching Ticket Assignment details:", error);
       setLoading(false);
     }
