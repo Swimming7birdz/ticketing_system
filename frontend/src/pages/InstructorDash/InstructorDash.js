@@ -2,7 +2,7 @@
 import { Avatar, Button, Typography, Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import ArticleIcon from '@mui/icons-material/Article';
-import TicketCard from '../../components/TicketCard';
+import TicketsViewController from '../../components/TicketsViewController';
 import SideBar from '../../components/SideBar/SideBar'; //to make the sidebar highlight when clicking view all button in dashboard
 // pasted from AdminDash
 import PeopleIcon from "@mui/icons-material/People";
@@ -37,6 +37,8 @@ const InstructorDash = () => {
   });
   const [filterAnchor, setFilterAnchor] = useState(null);
   let navigate = useNavigate();
+
+  const openTicket = (ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`);
 
   useEffect(() => {
     fetchTickets();
@@ -172,21 +174,28 @@ const InstructorDash = () => {
       const ticketList = await Promise.all(
         uniqueTickets.map(async (ticket_) => {
           const ticketData = await fetchTicketById(ticket_.ticket_id);
-          return { ...ticket_, ticketData };
+          //return { ...ticket_, ticketData };
+          // Format data for TicketsViewController - flatten the structure
+          return {
+            ...ticketData,
+            userName: ticketData.student?.name || "Unknown",
+            // Keep original nested structure for backward compatibility
+            ticketData: ticketData
+          };
         })
       );
       
       // Count different ticket types
       const escalatedCount = ticketList.filter(ticket => 
-        ticket.ticketData && ticket.ticketData.escalated === true
+        ticket.escalated === true
       ).length;
       
       const openCount = ticketList.filter(ticket => 
-        ticket.ticketData && (ticket.ticketData.status === 'new' || ticket.ticketData.status === 'ongoing')
+        ticket.status === 'new' || ticket.status === 'ongoing'
       ).length;
       
       const closedCount = ticketList.filter(ticket => 
-        ticket.ticketData && ticket.ticketData.status === 'resolved'
+        ticket.status === 'resolved'
       ).length;
       
       // Limit to 21 tickets for dashboard display
@@ -306,28 +315,12 @@ const InstructorDash = () => {
           </div>
 
           {/* TICKETS */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: "20px",
-              justifyContent: "center",
-              padding: "5px",
-              maxHeight: "950px",
-              overflowY: "hidden",
-            }}
-          >
-            {tickets.map((ticket) => (
-              <TicketCard
-                key={ticket.ticketData.ticket_id}
-                ticketId={ticket.ticketData.ticket_id}
-                issueDescription={ticket.ticketData.issue_description}
-                status={ticket.ticketData.status}
-                name={ticket.ticketData.student?.name || "Unknown"}
-                escalated={ticket.ticketData.escalated}
-              />
-            ))}
-          </div>
+          <TicketsViewController
+            tickets={tickets}
+            defaultView="grid"
+            onOpenTicket={openTicket}
+            header={<Typography variant="subtitle2">Latest Tickets</Typography>}
+          />
         </div>
       </Box>
 
