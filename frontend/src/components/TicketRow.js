@@ -6,7 +6,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 const statusChip = (s = "unknown") => {
   const m = {
     ongoing:   { label: "Ongoing",   sx: { bgcolor: "#A0C0F0", color: "#1965D8" } },
-    escalated: { label: "Escalated", sx: { bgcolor: "#A9CDEB", color: "#326D94" } },
+    //escalated: { label: "Escalated", sx: { bgcolor: "#A9CDEB", color: "#326D94" } },
     new:       { label: "New",       sx: { bgcolor: "#F89795", color: "#D00505" } },
     resolved:  { label: "Resolved",  sx: { bgcolor: "#ADE1BE", color: "#1C741F" } },
     unknown:   { label: "Unknown",   sx: { bgcolor: "#D3D3D3", color: "#000" } },
@@ -22,7 +22,7 @@ function initials(name = "") {
   return (a + b).toUpperCase();
 }
 
-export default function TicketRow({ ticket, onOpen }) {
+export default function TicketRow({ ticket, onOpen, escalated }) {
   const {
     ticket_id,
     issue_description,
@@ -58,10 +58,19 @@ export default function TicketRow({ ticket, onOpen }) {
 
       <Stack spacing={0.25} sx={{ minWidth: 0 }}>
         {}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography variant="body2" fontWeight={600} noWrap title={userName}>
           {userName}
         </Typography>
-
+        {escalated && (
+          <Chip 
+            label="Escalated"
+            size="small"
+            sx={{ bgcolor: "#D00505", color: "white", fontSize: "0.7rem", height:"18px", fontWeight:"bold"}}
+          />
+        )}
+        </Box>
+        
         <Typography
           variant="body2"
           color="text.secondary"

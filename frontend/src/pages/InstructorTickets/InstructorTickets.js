@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import ArticleIcon from "@mui/icons-material/Article";
 import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
-import TicketCard from "../../components/TicketCard";
+import TicketsViewController from "../../components/TicketsViewController";
 import { fetchTicketAssignmentsByUserId, fetchTicketById } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom";
 
@@ -29,6 +29,8 @@ const InstructorTickets = () => {
   const [hideResolved, setHideResolved] = useState(true);
   let navigate = useNavigate();
 
+  const openTicket = (ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`);
+
   useEffect(() => {
     loadTickets();
   }, []);
@@ -48,27 +50,33 @@ const InstructorTickets = () => {
 
     // Apply sort filter
     if (activeFilters.sort === "newest") {
-      filtered.sort((a, b) => new Date(b.ticketData?.created_at) - new Date(a.ticketData?.created_at));
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (activeFilters.sort === "oldest") {
-      filtered.sort((a, b) => new Date(a.ticketData?.created_at) - new Date(b.ticketData?.created_at));
+      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     } else if (activeFilters.sort === "id-asc") {
-      filtered.sort((a, b) => a.ticketData?.ticket_id - b.ticketData?.ticket_id);
+      filtered.sort((a, b) => a.ticket_id - b.ticket_id);
     } else if (activeFilters.sort === "id-desc") {
-      filtered.sort((a, b) => b.ticketData?.ticket_id - a.ticketData?.ticket_id);
+      filtered.sort((a, b) => b.ticket_id - a.ticket_id);
     }
 
     // Apply status filter
     if (activeFilters.status) {
-      filtered = filtered.filter(
+      if (activeFilters.status.toLowerCase() === "escalated") {
+        filtered = filtered.filter(
+          (ticket) => ticket.escalated === true
+        );
+      } else {
+        filtered = filtered.filter(
         (ticket) =>
-          ticket.ticketData?.status?.toLowerCase() === activeFilters.status.toLowerCase()
-      );
+          ticket.status?.toLowerCase() === activeFilters.status.toLowerCase()
+        );
+      }
     }
 
     // Apply search filter (search by student name)
     if (activeFilters.search) {
       filtered = filtered.filter((ticket) =>
-        ticket.ticketData?.student?.name
+        ticket.userName
           ?.toLowerCase()
           .includes(activeFilters.search.toLowerCase())
       );
@@ -77,7 +85,7 @@ const InstructorTickets = () => {
     // Search by ticket ID
     if (activeFilters.ticketIdSearch) {
       filtered = filtered.filter(
-        (ticket) => ticket.ticketData?.ticket_id?.toString() === activeFilters.ticketIdSearch
+        (ticket) => ticket.ticket_id?.toString() === activeFilters.ticketIdSearch
       );
     }
 
@@ -92,7 +100,7 @@ const InstructorTickets = () => {
     // Hide resolved tickets if toggle is active
     if (hideResolved) {
       filtered = filtered.filter(
-        (ticket) => ticket.ticketData?.status?.toLowerCase() !== "resolved"
+        (ticket) => ticket.status?.toLowerCase() !== "resolved"
       );
     }
 
@@ -161,21 +169,29 @@ const InstructorTickets = () => {
             uniqueTickets.map(async (ticket_) => {
                 const ticketData = await fetchTicketById(ticket_.ticket_id);
                 const teamName = await fetchTeamNameFromId(ticketData.team_id);
-                return { ...ticket_, ticketData, teamName };
+                //return { ...ticket_, ticketData, teamName };
+                // Format data for TicketsViewController - flatten the structure
+                return {
+                    ...ticketData,
+                    userName: ticketData.student?.name || "Unknown",
+                    teamName: teamName,
+                    // Keep original nested structure for backward compatibility
+                    ticketData: ticketData
+                };
             })
         );
         
         // Count different ticket types
         const escalatedCount = ticketList.filter(ticket => 
-          ticket.ticketData && ticket.ticketData.escalated === true
+          ticket.escalated === true
         ).length;
         
         const openCount = ticketList.filter(ticket => 
-          ticket.ticketData && (ticket.ticketData.status === 'new' || ticket.ticketData.status === 'ongoing')
+          ticket.status === 'new' || ticket.status === 'ongoing'
         ).length;
         
         const closedCount = ticketList.filter(ticket => 
-          ticket.ticketData && ticket.ticketData.status === 'resolved'
+          ticket.status === 'resolved'
         ).length;
         
         setTickets(ticketList);
@@ -470,30 +486,32 @@ const InstructorTickets = () => {
               <span style={{ marginRight: 8 }}>✔</span>
             )}
             Status: Resolved
+
+          </MenuItem>
+          {/* Status: Escalated */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.status === "Escalated") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "Escalated"});
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.status === "Escalated" && (
+              <span style={{ marginRight: 8}} >✔</span>
+            )}
+            Status: Escalated
           </MenuItem>
         </Menu>
 
-        <div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: "20px",
-    justifyContent: "center",
-    padding: "5px",
-    overflowY: "auto", //  Allows scrolling for more tickets
-  }}
->
-
-          {filteredTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticketData.ticket_id}
-              ticketId={ticket.ticketData.ticket_id}
-              issueDescription={ticket.ticketData.issue_description}
-              status={ticket.ticketData.status} 
-              name={ticket.ticketData.student?.name || "Unknown"}
-            />
-          ))}
-        </div>
+        <TicketsViewController
+          tickets={filteredTickets}
+          defaultView="grid"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Tickets</Typography>}
+        />
       </Box>
     </Box>
   );
