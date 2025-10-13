@@ -491,7 +491,7 @@ const InstructorTickets = () => {
           {/* Status: Escalated */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status == "Escalated") {
+              if (activeFilters.status === "Escalated") {
                 setActiveFilters({ ...activeFilters, status: null });
               } else {
                 setActiveFilters({ ...activeFilters, status: "Escalated"});
