@@ -41,6 +41,7 @@ const defaultProps = {
     ticketId: "12345",
     issueDescription: "Test Description",
     status: "Ongoing",
+    escalated: false,
     name: "No Name",
 };
 
@@ -48,6 +49,7 @@ const TaTicketCard = ({
                         ticketId = defaultProps.ticketId,
                         issueDescription = defaultProps.issueDescription,
                         status = defaultProps.status,
+                        escalated = defaultProps.escalated,
                         name = defaultProps.name,
                     }) => {
     const theme = useTheme();
@@ -62,6 +64,7 @@ const TaTicketCard = ({
     };
 
     const normalizedStatus = status ? status.toLowerCase() : "unknown";
+    const isEscalated = escalated === true;
 
 
     return (
@@ -132,29 +135,39 @@ const TaTicketCard = ({
                 </Typography>
 
                 {/* STATUS */}
-                {/* STATUS */}
-                <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                        Status:
-                    </Typography>
-                    {(normalizedStatus === "ongoing") && (
-                        <Chip label="Ongoing" size="small" sx={{ backgroundColor: "#A0C0F0" , color: "#1965D8"}} />
-                    )}
-                    {normalizedStatus === "escalated" && (
-                        <Chip label="Escalated" size="small" sx={{ backgroundColor: "#A9CDEB", color:"#326D94"  }} />
-                    )}
-                    {normalizedStatus === "new" && (
-                        <Chip label="New" size="small" sx={{ backgroundColor:  "#F89795", color: "#D00505" }} />
-                    )}
-                    {normalizedStatus === "resolved" && (
-                        <Chip label="Resolved" size="small" sx={{ backgroundColor: "#ADE1BE", color:  "#1C741F" }} />
-                    )}
-                    {normalizedStatus === "unknown" && (
-                        <Chip label="Unknown" size="small" sx={{ backgroundColor: "#D3D3D3", color: "#000000" }} />
-                    )}
+                <div style={{ display: "flex", flexDirection: "column", gap:5}}>
+                    <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
+                        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                            Status:
+                        </Typography>
+                        {(normalizedStatus === "ongoing") && (
+                            <Chip label="Ongoing" size="small" sx={{ backgroundColor: "#A0C0F0" , color: "#1965D8"}} />
+                        )}
+                        {/*{normalizedStatus === "escalated" && (
+              <Chip label="Escalated" size="small" sx={{ backgroundColor: "#A9CDEB", color:"#326D94"  }} />
+            )}*/}
+                        {normalizedStatus === "new" && (
+                            <Chip label="New" size="small" sx={{ backgroundColor:  "#F89795", color: "#D00505" }} />
+                        )}
+                        {normalizedStatus === "resolved" && (
+                            <Chip label="Resolved" size="small" sx={{ backgroundColor: "#ADE1BE", color:  "#1C741F" }} />
+                        )}
+                        {normalizedStatus === "unknown" && (
+                            <Chip label="Unknown" size="small" sx={{ backgroundColor: "#D3D3D3", color: "#000000" }} />
+                        )}
+                    </div>
 
+                    {/* Escalated Status Indicator */}
+                    {isEscalated && (
+                        <div style={{display: "flex", flexDirection: "row", gap: 10 }}>
+                            <Typography variant = "body2" sx={{ fontWeight: "bold", color: "#D00505" }}>
+                                Priority:
+                            </Typography>
+                            <Chip label="Escalated" size="small" sx={{ backgroundColor: "#D00505", color: "white"}}
+                            />
+                        </div>
+                    )}
                 </div>
-
 
                 {/* NAME */}
                 <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>

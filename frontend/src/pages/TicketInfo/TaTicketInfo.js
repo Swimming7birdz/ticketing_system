@@ -8,57 +8,49 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import ConfirmDelete from "../../components/ConfirmDelete/ConfirmDelete";
 import ConfirmEdit from "../../components/ConfirmEdit/ConfirmEdit";
 import TaEditTicket from "../../components/EditTicket/TaEditTicket";
-import ConfirmReassign from "../../components/ConfirmReassign/ConfirmReassign";
-import ConfirmEscalate from "../../components/ConfirmEscalate/ConfirmEscalate";
-import ReplySection from "../../components/ReplySection/ReplySection";
-import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
-import { issueTypeDisplay } from "../../constants/IssueTypes";
-import "./TicketInfo.css";
 import TaConfirmEscalate from "../../components/ConfirmEscalate/TaConfirmEscalate";
 import TaConfirmReassign from "../../components/ConfirmReassign/TaConfirmReassign";
 import TaConfirmAssign from "../../components/ConfirmReassign/TaConfirmAssign";
 import TaReplySection from "../../components/ReplySection/TaReplySection";
-
-
-
+import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
+import { issueTypeDisplay } from "../../constants/IssueTypes";
+import "./TicketInfo.css";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
-const TicketSubject = "Sponsor Isn’t Responding";
 
 const TaTicketInfo = () => {
     const theme = useTheme();
-    const [deleteOpen, setDeleteOpen] = useState(false);
+
+    // State Management
     const [editOpen, setEditOpen] = useState(false);
     const [editFormOpen, setEditFormOpen] = useState(false);
     const [reassignOpen, setReassignOpen] = useState(false);
     const [escalateOpen, setEscalateOpen] = useState(false);
+    const [assignOpen, setAssignOpen] = useState(false);
     const [ticketData, setTicketData] = useState(null);
-    const [ticketStatus, setTicketStatus] = useState("");
     const [loadingTicketData, setLoadingTicketData] = useState(true);
     const [unauthorized, setUnauthorized] = useState(false);
     const [error, setError] = useState(false);
-    const [AssignedID, setAssignedID] = useState([]);
+    const [AssignedID, setAssignedID] = useState(null);
     const [idToNameMap, setIdToNameMap] = useState({});
 
+    // Hooks and URL Params
     const navigate = useNavigate();
     const location = useLocation();
     const token = Cookies.get("token");
     const decodedToken = jwtDecode(token);
     const userType = decodedToken.role;
     const userId = decodedToken.id;
-
     const urlParameters = new URLSearchParams(location.search);
     const ticketId = urlParameters.get("ticket");
 
-    const [assignOpen, setAssignOpen] = useState(false);
-
+    // Data Fetching
     const fetchData = async () => {
         try {
             const token = Cookies.get("token");
-            const ticketDataResponse = await fetch(`${baseURL}/api/tatickets/info/${ticketId}`, {
+            const response = await fetch(`${baseURL}/api/tatickets/info/${ticketId}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -66,47 +58,83 @@ const TaTicketInfo = () => {
                 },
             });
 
-            if (!ticketDataResponse.ok) {
+            if (!response.ok) {
                 setUnauthorized(true);
-                throw new Error("Failed to fetch tickets");
-
-            } else {
-                const data = await ticketDataResponse.json();
-                setTicketData(data);
-                setTicketStatus(data.status);
-                setLoadingTicketData(false);
+                throw new Error("Failed to fetch ticket data");
             }
 
+            const data = await response.json();
+            setTicketData(data);
+            setLoadingTicketData(false);
         } catch (err) {
-            console.error("Error: ", err);
+            console.error("Error fetching data:", err);
             setError(true);
+            setLoadingTicketData(false);
         }
     };
 
+    const fetchAssignedTaID = async () => {
+        try {
+            const token = Cookies.get("token");
+            const response = await fetch(`${baseURL}/api/taticketassignments/ticket/${ticketId}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            });
+            if (response.ok) {
+                const list = await response.json();
+                // Handle multiple assignees gracefully, but UI currently uses the first one
+                const taId = list.length > 0 ? list[0].user_id : null;
+                setAssignedID(taId);
+            }
+        } catch (err) {
+            console.error("Error fetching assigned TA:", err);
+        }
+    };
+
+    const fetchTaMap = async () => {
+        try {
+            const token = Cookies.get("token");
+            const response = await fetch(`${baseURL}/api/users/role/TA`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            });
+            if (response.ok) {
+                const list = await response.json();
+                const map = list.reduce((acc, obj) => {
+                    acc[obj.user_id] = obj.name;
+                    return acc;
+                }, {});
+                setIdToNameMap(map);
+            }
+        } catch (err) {
+            console.error("Error fetching TA map:", err);
+        }
+    };
+
+    useEffect(() => {
+        if (ticketId) {
+            fetchData();
+            fetchAssignedTaID();
+            fetchTaMap();
+        }
+    }, [ticketId]);
+
+    // Handlers
     const handleSaveEdit = async () => {
         setEditOpen(false);
         try {
             const token = Cookies.get("token");
-            console.log("Editing Ticket: ", ticketId);
-
             const response = await fetch(`${baseURL}/api/tatickets/${ticketId}/edit`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    status: "Updated",
-                }),
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ status: "Updated" }), // Example body, adjust as needed
             });
 
-            if (!response.ok) {
-                throw new Error("Failed to edit ticket");
-            }
+            if (!response.ok) throw new Error("Failed to edit ticket");
 
             console.log("Ticket successfully updated!");
             setEditFormOpen(false);
-            fetchData();
+            fetchData(); // Refresh data
         } catch (error) {
             console.error("Error editing ticket:", error);
         }
@@ -118,18 +146,14 @@ const TaTicketInfo = () => {
             const token = Cookies.get("token");
             const response = await fetch(`${baseURL}/api/tatickets/${ticketId}/status`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ status: newStatus }),
             });
 
             if (!response.ok) throw new Error("Failed to update status");
 
-            const updated = await response.json();
-            setTicketStatus(updated.status);
-            setTicketData(updated);
+            const updatedTicket = await response.json();
+            setTicketData(updatedTicket); // Single source of truth update
             window.dispatchEvent(new Event("ticketUpdated"));
         } catch (error) {
             console.error("Error updating ticket status:", error);
@@ -137,241 +161,155 @@ const TaTicketInfo = () => {
     };
 
     const resolveEscalation = async () => {
-        try{
-            const deescalateResponse = await fetch(
-                `${baseURL}/api/tatickets/${ticketId}/deescalate`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+        try {
+            const token = Cookies.get("token");
+            const response = await fetch(`${baseURL}/api/tatickets/${ticketId}/deescalate`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            });
 
-            if (!deescalateResponse.ok) {
-                console.error(`Failed to de-escalate ticket. Status: ${deescalateResponse.status}`);
-                console.error(`${deescalateResponse.reason}`);
+            if (!response.ok) {
                 alert("Failed to de-escalate ticket. Please try again.");
             } else {
                 alert("Ticket was de-escalated successfully.");
+                fetchData(); // Refresh data
             }
-
-
-        } catch(error) {
-            console.log("Error: ", error);
-            setError(true);
+        } catch (error) {
+            console.error("Error resolving escalation:", error);
         }
     };
 
-    useEffect(() => {
-        fetchData();
-    }, [ticketId]);
-
-    //TICKET ASSIGNMENTS: from ticket_id get user_id (database has multiple users assigned to same ticket?)
-    const fetchAssignedTaID = async () => {
-        try {
-            const token = Cookies.get("token");
-
-            const getResponse = await fetch(
-                `${baseURL}/api/taticketassignments/ticket/${ticketId}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-
-            //console.log("Assigned TA ID: ", getResponse);
-
-            if (!getResponse.ok) {
-                console.error(`Failed to get assigned TAs ID. Status: ${getResponse.status}`);
-                console.error(`${getResponse.reason}`);
-            }
-
-            const list = await getResponse.json();
-            console.log("Assigned TA ID: ", list);
-            const TA_id = list.map(obj => obj.user_id)[0]; //if tickets have multiple TAs, only get the first one
-            setAssignedID(TA_id);
-
-        } catch (err) {
-            console.log("Error: ", err);
-            setError(true);
-        }
-    }
-
-    const convertToMap = (list) => {
-        return list.reduce((acc, obj) => { //map ID to name
-            acc[obj.user_id] = obj.name;
-            return acc;
-        }, {});
-    };
-
-    const fetchTaMap = async () => {
-        try {
-            const token = Cookies.get("token");
-
-            const getResponse = await fetch(
-                `${baseURL}/api/users/role/TA`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-
-            if (!getResponse.ok) {
-                console.error(`Failed to get TAs. Status: ${getResponse.status}`);
-                console.error(`${getResponse.reason}`);
-            }
-
-            const list = await getResponse.json();
-            console.log("all ID: ", list);
-            const idToNameMap = convertToMap(list);
-            setIdToNameMap(idToNameMap);
-
-        } catch (err) {
-            console.log("Error: ", error);
-            setError(true);
-        }
-    }
-
-    useEffect(() => {
-        fetchTaMap();
-        fetchAssignedTaID();
-    }, []);
-
-
-    if (error) {
-        // navigate("/unauthorized");
-    }
-
-    //Robert Naff: Need to have Back button do something
-    const handleBack = () => {
-        console.log("Back Button Clicked");
-        navigate(-1);
-    };
-
+    const handleBack = () => navigate(-1);
     const editPopupClose = () => setEditOpen(false);
     const handleConfirmEdit = () => {
         setEditOpen(false);
         setEditFormOpen(true);
     };
 
-    if (unauthorized){
+    // Conditional Rendering for loading/error states
+    if (unauthorized) {
         return (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0" }}>
-                <Typography variant="h6" sx={{ color: "#8C1D40" }}>Sorry, you are not authorized to view this ticket</Typography>
-            </div>
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                <Typography variant="h6" color="error">Sorry, you are not authorized to view this ticket</Typography>
+            </Box>
         );
     }
 
     if (loadingTicketData) {
         return (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f0f0", flexDirection: "column", gap: "20px" }}>
-                <CircularProgress size={80} thickness={4} />
-                <Typography variant="h6" sx={{ color: "#8C1D40" }}>Loading, please wait...</Typography>
-            </div>
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", flexDirection: "column", gap: 3 }}>
+                <CircularProgress size={80} />
+                <Typography variant="h6">Loading, please wait...</Typography>
+            </Box>
         );
     }
 
+    if (error || !ticketData) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                <Typography variant="h6" color="error">Could not load ticket data. Please try again later.</Typography>
+            </Box>
+        )
+    }
+
+    // Main Component Render
     return (
+        <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: '100vh', p: 4, pt: 4 }}>
+            <Box sx={{ backgroundColor: theme.palette.background.paper, p: 1, borderRadius: 1 }}>
+                <Stack className="ticketInfo" sx={{ backgroundColor: theme.palette.background.paper }}>
+                    <Button variant="text" onClick={handleBack} startIcon={<ArrowBackIosNewIcon />} sx={{ mb: 1, alignSelf: 'flex-start' }}>
+                        Back
+                    </Button>
 
-        <Box sx={{ backgroundColor: theme.palette.background.default, p: 6}}>
-            <Box sx={{backgroundColor: theme.palette.background.paper, p: 3, borderRadius: 1, flex: 1 }}>
-                <Stack className="ticketInfo" sx={{ backgroundColor: theme.palette.background.paper, border: `5px solid ${theme.palette.divider}`}}>
-                    <Button variant="text" className="backButton" onClick={handleBack} startIcon={<ArrowBackIosNewIcon />}>Back</Button>
-                    <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
-                        Capstone Ticket - {ticketId}
-                    </Typography>
-                    <Typography variant="h6" component="div" color="text.secondary">
-                        {issueTypeDisplay[ticketData.issue_type] || "Unknown issue type"}
-                    </Typography>
+                    {/* --- NEW MODERN UI HEADER --- */}
+                    <Box className="ticket-header" sx={{
+                        backgroundColor: theme.palette.background.paper,
+                        p: 3,
+                        mb: 2,
+                        borderRadius: 1,
+                        border: `1px solid ${theme.palette.divider}`
+                    }}>
+                        {/* Title Row */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
+                                Capstone Ticket
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
+                                    {ticketId}
+                                </Typography>
+                                <TicketStatusIndicator status={ticketData?.status?.toUpperCase() || "UNKNOWN"} />
+                                {ticketData.escalated && <TicketStatusIndicator status={"ESCALATED"} />}
+                            </Box>
+                        </Box>
 
-                    <Stack direction="row" className="statusButtons">
-                        <TicketStatusIndicator status={ticketStatus.toUpperCase() || "UNKNOWN"} />
-                        {ticketData.escalated && <TicketStatusIndicator status={"ESCALATED"} />}
-                        <FormControl sx={{ minWidth: 150, ml: 2, mt: 1 }}>
-                            <InputLabel sx={{ top: "-5px" }}>Status</InputLabel>
-                            <Select value={ticketStatus} onChange={handleStatusChange} sx={{ padding: "10px", height: "40px" }}>
-                                <MenuItem value="new">New</MenuItem>
-                                <MenuItem value="ongoing">Ongoing</MenuItem>
-                                <MenuItem value="resolved">Resolved</MenuItem>
-                                {/*<MenuItem value="Escalated">Escalated</MenuItem>*/}
-                            </Select>
-                        </FormControl>
-                        <Button variant="contained" className="editButton" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
-                        <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
-                        {/*<Button variant="contained" color="error" className="deleteButton" onClick={() => setDeleteOpen(true)}>Delete Ticket</Button>*/}
-                        {/*<ConfirmDelete handleOpen={deleteOpen} handleClose={() => setDeleteOpen(false)} />*/}
-                        {userType === "TA" && userId !== ticketData.ta_id && ticketData.escalated === false && (
-                            <Button variant="contained" color="warning" className="escalateButton" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
-                        )}
-                        <TaConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
-                        {userType === "admin" && ticketData.escalated && (
-                            <Button variant="contained" color="success" className="deEscalateButton" onClick={() => resolveEscalation()}>Resolve Escalation</Button>
-                        )}
+                        {/* Single Row Info Grid */}
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 3, mb: 2 }}>
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>CREATOR</Typography>
+                                <Typography variant="body1" sx={{ fontWeight: '500' }}>{ticketData.ta_name || 'N/A'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>ISSUE TYPE</Typography>
+                                <Typography variant="body1" sx={{ fontWeight: '500' }}>{issueTypeDisplay[ticketData.issue_type] || "Unknown"}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>ASSIGNED TA</Typography>
+                                <Typography variant="body1" sx={{ fontWeight: '500' }}>{AssignedID ? (idToNameMap[AssignedID] || 'Unknown') : 'Unassigned'}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: theme.palette.text.secondary, mb: 0.5, fontSize: '0.75rem' }}>CREATED</Typography>
+                                <Typography variant="body1" sx={{ fontWeight: '500' }}>{new Date(ticketData.created_at).toLocaleDateString()}</Typography>
+                            </Box>
+                        </Box>
 
-                    </Stack>
-
-                    <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Description:</Typography>
-                    <Typography variant="body1">{ticketData.issue_description}</Typography>
-
-                    <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Student - ID:</Typography>
-                    <Typography variant="body1">{ticketData.ta_name} - {ticketData.ta_id}</Typography>
-
-                    <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>TA:</Typography>
-                    <Box className="ticketAsset">
-                        {/* Check if a TA ID exists */}
-                        {AssignedID ? (
-                            // If YES, render the Reassign logic
-                            <>
-                                {idToNameMap[AssignedID]}&nbsp;
-                                {userType === "admin" && (
-                                    <Button variant="contained" className="reassignButton" style={{ marginTop: "10px" }} onClick={() => setReassignOpen(true)}>
-                                        Reassign
-                                    </Button>
-                                )}
-                                <TaConfirmReassign
-                                    handleOpen={reassignOpen}
-                                    handleClose={() => setReassignOpen(false)}
-                                    ticketID={ticketId}
-                                    oldTAID={AssignedID}
-                                    idNameMap={idToNameMap}
-                                    updateTA={(newTAID) => setAssignedID(newTAID)}
-                                />
-                            </>
-                        ) : (
-                            // If NO, render the Assign logic
-                            <>
-                                Unassigned&nbsp;
-                                {userType === "admin" && (
-                                    <Button variant="contained" className="assignButton" style={{ marginTop: "10px" }} onClick={() => setAssignOpen(true)}>
-                                        Assign
-                                    </Button>
-                                )}
-                                {/* Make sure TaConfirmAssign component accepts these props */}
-                                <TaConfirmAssign
-                                    handleOpen={assignOpen}
-                                    handleClose={() => setAssignOpen(false)}
-                                    ticketID={ticketId}
-                                    idNameMap={idToNameMap}
-                                    updateTA={(newTAID) => setAssignedID(newTAID)}
-                                />
-                            </>
-                        )}
+                        {/* Action Buttons Row */}
+                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                            <FormControl sx={{ minWidth: 150 }}>
+                                <InputLabel sx={{ fontSize: '14px', transform: 'translate(14px, -9px) scale(0.75)', backgroundColor: theme.palette.background.paper, padding: '0 4px' }}>Status</InputLabel>
+                                <Select value={ticketData?.status || ''} onChange={handleStatusChange} size="small" sx={{ height: "40px" }}>
+                                    <MenuItem value="new">New</MenuItem>
+                                    <MenuItem value="ongoing">Ongoing</MenuItem>
+                                    <MenuItem value="resolved">Resolved</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <Button variant="contained" onClick={() => setEditOpen(true)}>Edit Ticket</Button>
+                            <ConfirmEdit handleOpen={editOpen} handleClose={editPopupClose} onConfirmEdit={handleConfirmEdit} />
+                            <Button variant="outlined" color="error" onClick={() => handleStatusChange({ target: { value: 'resolved' } })}>Close Ticket</Button>
+                            {userType === "TA" && userId !== ticketData.ta_id && !ticketData.escalated && (
+                                <Button variant="contained" color="warning" onClick={() => setEscalateOpen(true)}>Escalate Ticket</Button>
+                            )}
+                            <TaConfirmEscalate handleOpen={escalateOpen} handleClose={() => setEscalateOpen(false)} ticketID={ticketId} />
+                            {userType === "admin" && ticketData.escalated && (
+                                <Button variant="contained" color="success" onClick={resolveEscalation}>Resolve Escalation</Button>
+                            )}
+                            {userType === "admin" && (
+                                AssignedID ? (
+                                    <>
+                                        <Button variant="outlined" onClick={() => setReassignOpen(true)}>Reassign</Button>
+                                        <TaConfirmReassign handleOpen={reassignOpen} handleClose={() => setReassignOpen(false)} ticketID={ticketId} oldTAID={AssignedID} idNameMap={idToNameMap} updateTA={setAssignedID} />
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button variant="outlined" onClick={() => setAssignOpen(true)}>Assign</Button>
+                                        <TaConfirmAssign handleOpen={assignOpen} handleClose={() => setAssignOpen(false)} ticketID={ticketId} idNameMap={idToNameMap} updateTA={setAssignedID} />
+                                    </>
+                                )
+                            )}
+                        </Box>
                     </Box>
 
-                    <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Created at:</Typography>
-                    <Typography variant="body1">{ticketData.created_at ? new Date(ticketData.created_at).toLocaleString() : "N/A"}</Typography>
+                    {/* Description Section */}
+                    <Box sx={{ mb: 2, p: 2, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+                        <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>Description:</Typography>
+                        <Typography variant="body1" sx={{ lineHeight: 1.6 }}>{ticketData.issue_description}</Typography>
+                    </Box>
 
-                    <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Last Updated:</Typography>
-                    <Typography variant="body1">{ticketData.updated_at ? new Date(ticketData.updated_at).toLocaleString() : "N/A"}</Typography>
+                    {/* Replies Section */}
+                    <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+                        <TaReplySection />
+                    </Box>
 
-                    <Typography variant="h6" sx={{ mt: 2, fontWeight: "bold", }}>Replies:</Typography>
-                    <TaReplySection/>
                 </Stack>
             </Box>
             {editFormOpen && <TaEditTicket ticketId={ticketId} onClose={() => setEditFormOpen(false)} handleSaveEdit={handleSaveEdit} />}
@@ -380,7 +318,3 @@ const TaTicketInfo = () => {
 };
 
 export default TaTicketInfo;
-
-
-//github tracking
-

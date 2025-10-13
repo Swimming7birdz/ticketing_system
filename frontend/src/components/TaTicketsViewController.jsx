@@ -53,6 +53,7 @@ export default function TicketsViewController({
                                 issueDescription={t.issue_description}
                                 status={t.status}
                                 name={t.userName || t.name}
+                                escalated={t.escalated}
                             />
                         </Grid>
                     ))}
