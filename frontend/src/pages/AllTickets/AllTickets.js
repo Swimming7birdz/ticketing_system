@@ -14,6 +14,7 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
+import TaTicketsViewController from "../../components/TaTicketsViewController";
 
 import TicketCard from "../../components/TicketCard";
 import TaTicketCard from "../../components/TaTicketCard";
@@ -32,6 +33,7 @@ const AllTickets = () => {
   const [activeFilters, setActiveFilters] = useState({
     sort: null,
     status: null,
+    source: null,
     search: "",
     ticketIdSearch: "",
   });
@@ -99,6 +101,19 @@ const AllTickets = () => {
         (ticket) => ticket.status.toLowerCase() !== "resolved"
       );
     }
+      // Apply source filter
+    if (activeFilters.source) {
+        const source_type = activeFilters.source === 'student' ? 'regular' : 'ta';
+          filtered = filtered.filter(
+              (ticket) => ticket.source === source_type
+          );
+    }
+
+    if (hideResolved) {
+        filtered = filtered.filter(
+            (ticket) => ticket.status.toLowerCase() !== "resolved"
+          );
+    }
 
     setFilteredTickets(filtered);
   };
@@ -112,32 +127,42 @@ const AllTickets = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
+    setActiveFilters({ sort: null, status: null, source: null, search: "", ticketIdSearch: "" });
   };
 
-  const fetchNameFromId = async (student_id) => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/users/${student_id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const fetchUserNameForTicket = async (ticket) => {
+        // 1. Determine which ID to use based on the ticket's source
+        const userId = ticket.source === 'ta' ? ticket.ta_id : ticket.student_id;
 
-      if (!response.ok) {
-        console.warn(`Failed to fetch user name for ticket ${student_id}`);
-        return "Unknown Name";
-      }
+        // 2. Handle cases where the ticket might not have an ID
+        if (!userId) {
+            console.warn("Ticket object is missing a valid ID.", ticket);
+            return "Unknown Name";
+        }
 
-      const data = await response.json();
-      return data.name;
-    } catch (error) {
-      console.error(`Error fetching name for ticket ${student_id}:`, error);
-      return "Unknown Name";
-    }
-  };
+        try {
+            const token = Cookies.get("token");
+            // 3. Use the determined userId in the API call
+            const response = await fetch(`${baseURL}/api/users/${userId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                console.warn(`Failed to fetch user name for ID: ${userId}`);
+                return "Unknown Name";
+            }
+
+            const data = await response.json();
+            return data.name;
+        } catch (error) {
+            console.error(`Error fetching name for ID ${userId}:`, error);
+            return "Unknown Name";
+        }
+    };
 
     const fetchTickets = async () => {
         try {
@@ -178,7 +203,7 @@ const AllTickets = () => {
             // The rest of the logic remains the same, but operates on the combined array
             const ticketsWithNames = await Promise.all(
                 allTicketsData.map(async (ticket) => {
-                    const userName = await fetchNameFromId(ticket.student_id);
+                    const userName = await fetchUserNameForTicket(ticket); // New call
                     return { ...ticket, userName };
                 })
             );
@@ -197,6 +222,14 @@ const AllTickets = () => {
   };
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
+    // Add this logic before the return statement
+    const studentTickets = filteredTickets.filter(
+        (ticket) => ticket.source === 'regular'
+    );
+    const taTickets = filteredTickets.filter(
+        (ticket) => ticket.source === 'ta'
+    );
 
   if (loading) {
     return (
@@ -424,25 +457,86 @@ const AllTickets = () => {
             )}
             Status: Resolved
           </MenuItem>
+
+            {/* Source: Student */}
+            <MenuItem
+                onClick={() => {
+                    setActiveFilters({
+                        ...activeFilters,
+                        source: activeFilters.source === "student" ? null : "student",
+                    });
+                    handleFilterClose();
+                }}
+            >
+                {activeFilters.source === "student" && (
+                    <span style={{ marginRight: 8 }}>✔</span>
+                )}
+                Source: Student
+            </MenuItem>
+
+            {/* Source: TA */}
+            <MenuItem
+                onClick={() => {
+                    setActiveFilters({
+                        ...activeFilters,
+                        source: activeFilters.source === "ta" ? null : "ta",
+                    });
+                    handleFilterClose();
+                }}
+            >
+                {activeFilters.source === "ta" && (
+                    <span style={{ marginRight: 8 }}>✔</span>
+                )}
+                Source: TA
+            </MenuItem>
         </Menu>
 
         {/* Tickets */}
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            border: "1px solid",
-            borderColor: "divider",
-            p: 2,
-            borderRadius: 2,
-          }}
-        >
-          <TicketsViewController
-            tickets={filteredTickets}
-            defaultView="list"
-            onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
-            header={<Typography variant="subtitle2">Tickets</Typography>}
-          />
-        </Box>
+          <Box
+              sx={{
+                  bgcolor: "background.paper",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  p: 2,
+                  borderRadius: 2,
+              }}
+          >
+              {/* Render Student Tickets Section */}
+              {studentTickets.length > 0 && (
+                  <>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                          Student Tickets
+                      </Typography>
+                      <TicketsViewController
+                          tickets={studentTickets}
+                          defaultView="list"
+                          onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
+                      />
+                  </>
+              )}
+
+              {/* Render TA Tickets Section */}
+              {taTickets.length > 0 && (
+                  <>
+                      <Typography
+                          variant="h6"
+                          sx={{ mb: 1, mt: studentTickets.length > 0 ? 4 : 0 }}
+                      >
+                          TA Tickets
+                      </Typography>
+                      <TaTicketsViewController
+                          tickets={taTickets}
+                          defaultView="list"
+                          onOpenTicket={(t) => navigate(`/taticketinfo?ticket=${t.ticket_id}`)}
+                      />
+                  </>
+              )}
+
+              {/* Display a message if no tickets match the filters */}
+              {filteredTickets.length === 0 && (
+                  <Typography>No tickets to display.</Typography>
+              )}
+          </Box>
       </Box>
     </Box>
   );

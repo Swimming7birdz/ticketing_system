@@ -4,6 +4,7 @@ import ArticleIcon from "@mui/icons-material/Article";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
+import TaTicketsViewController from "../../components/TaTicketsViewController";
 
 import TicketCard from "../../components/TicketCard";
 import TaTicketCard from "../../components/TaTicketCard";
@@ -20,78 +21,98 @@ export default function EscalatedTickets() {
   const [activeFilters, setActiveFilters] = useState({
     sort: null,
     status: null,
+    source : null,
     search: "",
     ticketIdSearch: "",
   });
   const [hideResolved, setHideResolved] = useState(true);
 
   // helper: get student name for avatar/title
-  const fetchNameFromId = async (student_id) => {
-    try {
-      const token = Cookies.get("token");
-      const res = await fetch(`${baseURL}/api/users/${student_id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        console.warn(`Failed to fetch user name for student_id=${student_id} (status ${res.status})`);
-        return "Unknown";
-      }
-
-      const data = await res.json();
-      return data?.name || "Unknown";
-    } catch (error) {
-      console.error(`Error fetching name for student_id=${student_id}:`, error);
-      return "Unknown";
-    }
-  };
+    const fetchUserNameForTicket = async (ticket) => {
+        const userId = ticket.source === 'ta' ? ticket.ta_id : ticket.student_id;
+        if (!userId) {
+            console.warn("Ticket object is missing a valid ID.", ticket);
+            return "Unknown Name";
+        }
+        try {
+            const token = Cookies.get("token");
+            const res = await fetch(`${baseURL}/api/users/${userId}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) {
+                console.warn(`Failed to fetch user name for ID: ${userId}`);
+                return "Unknown Name";
+            }
+            const data = await res.json();
+            return data.name;
+        } catch (error) {
+            console.error(`Error fetching name for ID ${userId}:`, error);
+            return "Unknown Name";
+        }
+    };
 
   // load escalated tickets and enrich with userName
-  useEffect(() => {
-    let cancelled = false;
+    useEffect(() => {
+        let cancelled = false;
 
-    (async () => {
-      try {
-        setLoading(true);
-        const token = Cookies.get("token");
-        const res = await fetch(`${baseURL}/api/tickets`, {
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch tickets");
+        const fetchTickets = async () => {
+            try {
+                setLoading(true);
+                const token = Cookies.get("token");
+                const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
-        const all = await res.json();
-        const onlyEscalated = all.filter((t) => t.escalated === true);
+                const ticketsPromise = fetch(`${baseURL}/api/tickets`, { headers });
+                const taTicketsPromise = fetch(`${baseURL}/api/tatickets`, { headers });
 
-        const enriched = await Promise.all(
-          onlyEscalated.map(async (t) => ({
-            ...t,
-            userName: await fetchNameFromId(t.student_id),
-          }))
-        );
+                const [ticketsResponse, taTicketsResponse] = await Promise.all([
+                    ticketsPromise,
+                    taTicketsPromise,
+                ]);
 
-        if (!cancelled) {
-          setTickets(enriched);
-          setCount(onlyEscalated.length);
-        }
-      } catch (e) {
-        console.error(e);
-        if (!cancelled) {
-          setTickets([]);
-          setCount(0);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
+                if (!ticketsResponse.ok || !taTicketsResponse.ok) {
+                    throw new Error("Failed to fetch one or more ticket lists");
+                }
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+                const ticketsData = await ticketsResponse.json();
+                const taTicketsData = await taTicketsResponse.json();
+
+                const allTickets = [
+                    ...ticketsData.map(t => ({ ...t, source: 'regular' })),
+                    ...taTicketsData.map(t => ({ ...t, source: 'ta' })),
+                ];
+
+                // *** Key change: Filter for escalated tickets here ***
+                const onlyEscalated = allTickets.filter((t) => t.escalated === true);
+
+                const enriched = await Promise.all(
+                    onlyEscalated.map(async (t) => ({
+                        ...t,
+                        userName: await fetchUserNameForTicket(t),
+                    }))
+                );
+
+                if (!cancelled) {
+                    setTickets(enriched);
+                    setCount(enriched.length);
+                }
+            } catch (e) {
+                console.error(e);
+                if (!cancelled) {
+                    setTickets([]);
+                    setCount(0);
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        fetchTickets();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
   useEffect(() => {
     let filtered = [...tickets];
@@ -129,8 +150,15 @@ export default function EscalatedTickets() {
         (ticket) => ticket.status.toLowerCase() !== "resolved"
       );
     }
+    if (activeFilters.source) {
+        const source_type = activeFilters.source === 'student' ? 'regular' : 'ta';
+          filtered = filtered.filter(
+              (ticket) => ticket.source === source_type
+          );
+    }
 
-    setFilteredTickets(filtered);
+
+      setFilteredTickets(filtered);
   }, [tickets, activeFilters, hideResolved]);
 
   useEffect(() => {
@@ -148,10 +176,17 @@ export default function EscalatedTickets() {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "", ticketIdSearch: "" });
+      setActiveFilters({ sort: null, status: null, source: null, search: "", ticketIdSearch: "" });
   };
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
+    const studentTickets = filteredTickets.filter(
+        (ticket) => ticket.source === 'regular'
+    );
+    const taTickets = filteredTickets.filter(
+        (ticket) => ticket.source === 'ta'
+    );
 
   if (loading) {
     return (
@@ -221,22 +256,41 @@ export default function EscalatedTickets() {
       </Box>
 
       {/* Tickets */}
-      <Box
-        sx={{
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-          p: 2,
-          borderRadius: 2,
-        }}
-      >
-        <TicketsViewController
-          tickets={filteredTickets}
-          defaultView="list"
-          onOpenTicket={openTicket}
-          header={<Typography variant="subtitle2">Escalated</Typography>}
-        />
-      </Box>
+        <Box
+            sx={{
+                bgcolor: "background.paper",
+                border: "1px solid",
+                borderColor: "divider",
+                p: 2,
+                borderRadius: 2,
+            }}
+        >
+            {studentTickets.length > 0 && (
+                <>
+                    <Typography variant="h6" sx={{ mb: 1 }}>Student Tickets</Typography>
+                    <TicketsViewController
+                        tickets={studentTickets}
+                        defaultView="list"
+                        onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
+                    />
+                </>
+            )}
+            {taTickets.length > 0 && (
+                <>
+                    <Typography variant="h6" sx={{ mb: 1, mt: studentTickets.length > 0 ? 4 : 0 }}>
+                        TA Tickets
+                    </Typography>
+                    <TaTicketsViewController
+                        tickets={taTickets}
+                        defaultView="list"
+                        onOpenTicket={(t) => navigate(`/taticketinfo?ticket=${t.ticket_id}`)}
+                    />
+                </>
+            )}
+            {filteredTickets.length === 0 && (
+                <Typography>No escalated tickets match the current filters.</Typography>
+            )}
+        </Box>
 
       <Menu anchorEl={filterAnchor} open={Boolean(filterAnchor)} onClose={handleFilterClose}>
         <MenuItem
@@ -330,6 +384,29 @@ export default function EscalatedTickets() {
           {activeFilters.status === "Resolved" && <span style={{ marginRight: 8 }}>✔</span>}
           Status: Resolved
         </MenuItem>
+          {/* New MenuItems for source filter */}
+          <MenuItem
+              onClick={() => {
+                  if(activeFilters.source === "student"){
+                      setActiveFilters({ ...activeFilters, source: null});
+                  } else {
+                      setActiveFilters({ ...activeFilters, source: "Student"});
+                  }
+                  handleFilterClose();
+              }}
+          >
+              {activeFilters.source === "student" && <span style={{ marginRight: 8 }}>✔</span>}
+              Source: Student
+          </MenuItem>
+          <MenuItem
+              onClick={() => {
+                  setActiveFilters({ ...activeFilters, source: activeFilters.source === "ta" ? null : "ta" });
+                  handleFilterClose();
+              }}
+          >
+              {activeFilters.source === "ta" && <span style={{ marginRight: 8 }}>✔</span>}
+              Source: TA
+          </MenuItem>
       </Menu>
     </Box>
   );

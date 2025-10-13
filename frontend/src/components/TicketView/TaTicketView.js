@@ -145,7 +145,7 @@ const TaTicketView = ({ ticketId, onClose }) => {
                     <strong>Ticket ID:</strong> {ticket.ticket_id}
                 </Typography>
                 <Typography sx={{ mb: 1 }}>
-                    <strong>Student ID:</strong> {ticket.ta_id}
+                    <strong>TA ID:</strong> {ticket.ta_id}
                 </Typography>
                 <Typography sx={{ mb: 1 }}>
                     <strong>Issue Description:</strong> {ticket.issue_description}

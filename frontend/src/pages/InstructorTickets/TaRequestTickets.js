@@ -21,12 +21,12 @@ const TaTickets = () => {
 
     const loadTickets = async () => {
         try {
-            const studentTickets = await fetchTaTicketsByUserId();
-            setTickets(studentTickets);
-            setTotalTickets(studentTickets.length);
+            const taTickets = await fetchTaTicketsByUserId();
+            setTickets(taTickets);
+            setTotalTickets(taTickets.length);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching student tickets:", error);
+            console.error("Error fetching TA tickets:", error);
             setLoading(false);
         }
     };
@@ -115,7 +115,7 @@ const TaTickets = () => {
                             borderRadius: 999,
                             fontSize: "0.75rem",
                         }}
-                        onClick={() => navigate("/studentdash")}
+                        onClick={() => navigate("/instructordash")}
                     >
                         Back to Dashboard
                     </Button>
@@ -138,7 +138,7 @@ const TaTickets = () => {
                             ticketId={ticket.ticket_id}
                             issueDescription={ticket.issue_description}
                             status={ticket.status}
-                            name={ticket.ta_name || "Unknown"}
+                            name={ticket.ta_name}
                         />
                     ))}
                 </div>

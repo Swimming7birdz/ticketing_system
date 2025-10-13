@@ -124,7 +124,7 @@ const SideBar = () => {
                       <ListItemIcon>
                           <ListIcon className="iconStyle" />
                       </ListItemIcon>
-                      <ListItemText className="fontStyle" primary="Assign Tickets" />
+                      <ListItemText className="fontStyle" primary="Assigned Tickets" />
                   </ListItemButton>
 
               <ListItemButton

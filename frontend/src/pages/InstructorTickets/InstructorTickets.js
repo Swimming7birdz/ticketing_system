@@ -192,7 +192,7 @@ const InstructorTickets = () => {
         variant="h1"
         sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
       >
-        My Tickets
+        Assigned Tickets
       </Typography>
 
       <Box
