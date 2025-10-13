@@ -42,7 +42,7 @@ export default function TicketsViewController({
 
           {tickets.length === 0
             ? <Box sx={{ p:4, textAlign:"center", color:"text.secondary" }}>No tickets yet</Box>
-            : tickets.map((t) => <TicketRow key={t.ticket_id ?? t.id} ticket={t} onOpen={onOpenTicket} />)}
+            : tickets.map((t) => <TicketRow key={t.ticket_id ?? t.id} ticket={t} onOpen={onOpenTicket} escalated={t.escalated} />)}
         </Box>
       ) : (
         <Grid container spacing={2}>
@@ -53,6 +53,7 @@ export default function TicketsViewController({
                 issueDescription={t.issue_description}
                 status={t.status}
                 name={t.userName || t.name}
+                escalated={t.escalated}
               />
             </Grid>
           ))}

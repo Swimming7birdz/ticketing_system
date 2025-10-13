@@ -4,7 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import ArticleIcon from "@mui/icons-material/Article";
 import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
-import TicketCard from "../../components/TicketCard";
+import TicketsViewController from "../../components/TicketsViewController";
 import { fetchTicketsByUserId } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom"; // ✅ Import navigation
 
@@ -17,6 +17,8 @@ const StudentDash = () => {
   const [totalTickets, setTotalTickets] = useState(0);
   const navigate = useNavigate(); // ✅ Initialize navigation function
 
+  const openTicket = (ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`);
+
   useEffect(() => {
     loadTickets();
   }, []);
@@ -24,8 +26,13 @@ const StudentDash = () => {
   const loadTickets = async () => {
     try {
       const studentTickets = await fetchTicketsByUserId();
-      setTickets(studentTickets);
-      setTotalTickets(studentTickets.length);
+      // Add userName property for TicketsViewController consistency
+      const ticketsWithUserName = studentTickets.map(ticket => ({
+        ...ticket,
+        userName: ticket.student_name || "Unknown"
+      }));
+      setTickets(ticketsWithUserName);
+      setTotalTickets(ticketsWithUserName.length);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching student tickets:", error);
@@ -126,27 +133,12 @@ const StudentDash = () => {
         </div>
 
         {/* TICKETS */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "20px",
-            justifyContent: "center",
-            padding: "5px",
-            maxHeight: "950px",
-            overflowY: "hidden",
-          }}
-        >
-          {tickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status} 
-              name={ticket.student_name || "Unknown"}
-            />
-          ))}
-        </div>
+        <TicketsViewController
+          tickets={tickets}
+          defaultView="grid"
+          onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">Tickets</Typography>}
+        />
       </Box>
     </Box>
   );

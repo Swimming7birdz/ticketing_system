@@ -11,7 +11,7 @@ import {
 import ArticleIcon from "@mui/icons-material/Article";
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
 import TaTicketsViewController from "../../components/TaTicketsViewController";
@@ -28,6 +28,9 @@ const AllTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
+  const [escalatedTickets, setEscalatedTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const [filterAnchor, setFilterAnchor] = useState(null);
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState({
@@ -35,7 +38,7 @@ const AllTickets = () => {
     status: null,
     source: null,
     search: "",
-    ticketIdSearch: "",
+    teamNameSearch: "",
   });
 
   const [hideResolved, setHideResolved] = useState(true);
@@ -73,11 +76,16 @@ const AllTickets = () => {
     }
 
     // Apply status filter
-    if (activeFilters.status) {
-      filtered = filtered.filter(
-        (ticket) =>
-          ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
-      );
+    if(activeFilters.status) {
+      if (activeFilters.status.toLowerCase() === "escalated") {
+        filtered = filtered.filter(
+          (ticket) => ticket.escalated === true
+        );
+      } else {
+        filtered = filtered.filter(
+          (ticket) => ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
+        );
+      }
     }
 
     // Apply search filter
@@ -93,6 +101,14 @@ const AllTickets = () => {
     if (activeFilters.ticketIdSearch) {
       filtered = filtered.filter(
         (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
+      );
+    }
+
+    if (activeFilters.teamNameSearch) {
+      filtered = filtered.filter((ticket) =>
+        ticket.teamName
+          .toLowerCase()
+          .includes(activeFilters.teamNameSearch.toLowerCase())
       );
     }
 
@@ -127,7 +143,7 @@ const AllTickets = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, source: null, search: "", ticketIdSearch: "" });
+    setActiveFilters({ sort: null, status: null, source: null, search: "", teamIdSearch: "" });
   };
 
     const fetchUserNameForTicket = async (ticket) => {
@@ -163,6 +179,30 @@ const AllTickets = () => {
             return "Unknown Name";
         }
     };
+
+  const fetchTeamNameFromId = async (team_id) => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch team name for ticket ${team_id}`);
+        return "Unknown Name";
+      }
+
+      const data = await response.json();
+      return data.team_name;
+    } catch (error) {
+      console.error(`Error fetching name for ticket ${team_id}:`, error);
+      return "Unknown Name";
+    }
+  };
 
     const fetchTickets = async () => {
         try {
@@ -204,13 +244,29 @@ const AllTickets = () => {
             const ticketsWithNames = await Promise.all(
                 allTicketsData.map(async (ticket) => {
                     const userName = await fetchUserNameForTicket(ticket); // New call
-                    return { ...ticket, userName };
-                })
-            );
+                    const teamName = await fetchTeamNameFromId(ticket.team_id);
+          return { ...ticket, userName, teamName };
+        })
+      );
+
+
+      // Calculate ticket counts
+      const escalatedCount = ticketsWithNames.filter(ticket =>
+        ticket.escalated === true
+      ).length;
+
+      const openCount = ticketsWithNames.filter(ticket =>
+        ticket.status === "new" || ticket.status === "ongoing"
+      ).length;
+                const closedCount = ticketsWithNames.filter(ticket =>
+            ticket.status === "resolved"
+      ).length;
 
             setTickets(ticketsWithNames);
             setTotalTickets(allTicketsData.length); // Use the combined length
-            setLoading(false);
+            setEscalatedTickets(escalatedCount);
+      setOpenTickets(openCount);
+      setClosedTickets(closedCount);setLoading(false);
         } catch (error) {
             console.error("Error fetching tickets:", error);
             setLoading(false);
@@ -268,6 +324,56 @@ const AllTickets = () => {
       >
         All Tickets
       </Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+          <Avatar>
+            <ArticleIcon sx={{ fontSize: "2rem" }} />
+          </Avatar>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {totalTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Total Tickets
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {openTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Open
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {escalatedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Escalated
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {closedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Closed
+            </Typography>
+          </div>
+        </div>
+      </Box>
+
       <Box
         sx={{
           display: "flex",
@@ -297,12 +403,13 @@ const AllTickets = () => {
             }
             sx={{ flex: 1 }}
           />
+
           <TextField
-            label="Search by Ticket ID"
+            label="Search by Team Name"
             variant="outlined"
-            value={activeFilters.ticketIdSearch}
+            value={activeFilters.teamNameSearch}
             onChange={(e) =>
-              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
+              setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
             }
             sx={{ flex: 1 }}
           />
@@ -456,6 +563,22 @@ const AllTickets = () => {
               <span style={{ marginRight: 8 }}>✔</span>
             )}
             Status: Resolved
+          </MenuItem>
+          {/* Status: Escalated */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.status === "Escalated") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "Escalated" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.status === "Escalated" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Status: Escalated
           </MenuItem>
 
             {/* Source: Student */}

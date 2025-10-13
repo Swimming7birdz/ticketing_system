@@ -23,7 +23,7 @@ export default function EscalatedTickets() {
     status: null,
     source : null,
     search: "",
-    ticketIdSearch: "",
+    teamNameSearch: "",
   });
   const [hideResolved, setHideResolved] = useState(true);
 
@@ -51,6 +51,30 @@ export default function EscalatedTickets() {
             return "Unknown Name";
         }
     };
+
+  const fetchTeamNameFromId = async (team_id) => {
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.warn(`Failed to fetch user name for team_id=${team_id} (status ${res.status})`);
+        return "Unknown";
+      }
+
+      const data = await res.json();
+      return data?.team_name || "Unknown";
+    } catch (error) {
+      console.error(`Error fetching name for team_id=${team_id}:`, error);
+      return "Unknown";
+    }
+  };
 
   // load escalated tickets and enrich with userName
     useEffect(() => {
@@ -89,7 +113,7 @@ export default function EscalatedTickets() {
                     onlyEscalated.map(async (t) => ({
                         ...t,
                         userName: await fetchUserNameForTicket(t),
-                    }))
+                    teamName: await fetchTeamNameFromId(t.team_id),}))
                 );
 
                 if (!cancelled) {
@@ -145,6 +169,12 @@ export default function EscalatedTickets() {
       );
     }
 
+    if (activeFilters.teamNameSearch) {
+      filtered = filtered.filter((ticket) =>
+        ticket.teamName?.toLowerCase().includes(activeFilters.teamNameSearch.toLowerCase())
+      );
+    }
+
     if (hideResolved) {
       filtered = filtered.filter(
         (ticket) => ticket.status.toLowerCase() !== "resolved"
@@ -176,7 +206,7 @@ export default function EscalatedTickets() {
   };
 
   const handleClearFilters = () => {
-      setActiveFilters({ sort: null, status: null, source: null, search: "", ticketIdSearch: "" });
+      setActiveFilters({ sort: null, status: null, source: null, search: "", teamNameSearch: "" });
   };
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
@@ -232,11 +262,11 @@ export default function EscalatedTickets() {
             size="small"
           />
           <TextField
-            label="Search by Ticket ID"
+            label="Search by Team Name"
             variant="outlined"
-            value={activeFilters.ticketIdSearch}
+            value={activeFilters.teamNameSearch}
             onChange={(e) =>
-              setActiveFilters({ ...activeFilters, ticketIdSearch: e.target.value })
+              setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
             }
             size="small"
           />

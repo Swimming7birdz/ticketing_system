@@ -20,6 +20,7 @@ import CreateTicket from "../CreateTicket/CreateTicket";
 import InstructorCreateTicket from "../CreateTicket/InstructorCreateTicket";
 import "./SideBar.css";
 
+
 const SideBar = () => {
   const [selectedPage, setSelectedPage] = React.useState(0);
   const [showModal, setShowModal] = useState(false);

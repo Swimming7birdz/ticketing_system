@@ -130,7 +130,8 @@ const AllAssignees = () => {
           <InstructorCard
             key={ta.user_id}
             name={ta.name}
-            counts={{}} // You can pass counts or other data if needed
+            counts={{}} // TODO: populate with real counts if available
+            userId={ta.user_id}
           />
         ))}
       </Box>
