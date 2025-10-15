@@ -90,7 +90,9 @@ export default function SignIn() {
       const decoded = jwtDecode(token);
       const userType = decoded.role;
       const userId = decoded.id;
+      const userName = decoded.name;
       Cookies.set("user_id", userId, { secure: true, sameSite: "Strict" });
+      Cookies.set("name", userName, { secure: true, sameSite: "Strict" });
 
       try {
         window.dispatchEvent(new CustomEvent('userChanged'));

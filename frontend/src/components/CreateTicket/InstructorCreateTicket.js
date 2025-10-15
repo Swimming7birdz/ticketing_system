@@ -11,76 +11,23 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const InstructorCreateTicket = ({ onClose }) => {
     const theme = useTheme();
-    const [instructorName, setInstructorName] = useState("");
-    // const [teamName, setTeamName] = useState("");
-    // const [sponsorName, setSponsorName] = useState("");
-    // const [section, setSection] = useState("");
-    // const [instructorName, setInstructorName] = useState("");
+    const [instructorName, setInstructorName] = useState(Cookies.get("name") || "");
     const [issueType, setIssueType] = useState("");
     const [description, setDescription] = useState("");
-    // const [taList, setTaList] = useState([]); // Initialize as empty array
-    // const [teamList, setTeamList] = useState([]); // Initialize as empty array for teams
-    // // const [asuId, setAsuId] = useState("");
-    // useEffect(() => {
-    //     fetchTAs();
-    //     fetchTeams();
-    // }, []);
-    //
-    // // Fetch TA users from the API
-    // const fetchTAs = async () => {
-    //     try {
-    //         const token = Cookies.get("token");
-    //         const response = await fetch(`${baseURL}/api/users/role/TA`, {
-    //             method: "GET",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 Authorization: `Bearer ${token}`,
-    //             },
-    //         });
-    //         const data = await response.json();
-    //         setTaList(Array.isArray(data) ? data : []);
-    //     } catch (error) {
-    //         console.error("Failed to fetch TAs:", error);
-    //         setTaList([]); // Fallback to empty array
-    //     }
-    // };
-    //
-    // // Fetch Teams from the API
-    // const fetchTeams = async () => {
-    //     try {
-    //         const token = Cookies.get("token");
-    //         const response = await fetch(`${baseURL}/api/teams`, {
-    //             method: "GET",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 Authorization: `Bearer ${token}`,
-    //             },
-    //         });
-    //         const data = await response.json();
-    //         setTeamList(Array.isArray(data) ? data : []);
-    //     } catch (error) {
-    //         console.error("Failed to fetch teams:", error);
-    //         setTeamList([]); // Fallback to empty array
-    //     }
-    // };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         const submittedData = {
             instructorName,
-            // teamName,
-            // sponsorName,
-            // section,
-            // instructorName,
             issueType,
             description,
-            // asuId,
         };
 
         try {
             const token = Cookies.get("token");
             const id = Cookies.get("user_id");
+            const name = Cookies.get("name");
 
             // Step 2: Create the ticket
             const ticketResponse = await fetch(`${baseURL}/api/tatickets`, {
@@ -90,13 +37,9 @@ const InstructorCreateTicket = ({ onClose }) => {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    // team_id: teamName, // Use the team ID selected from the dropdown
                      ta_id: id,
-                    // sponsor_name: submittedData.sponsorName,
-                    // section: submittedData.section,
                     issue_type: submittedData.issueType,
                     issue_description: submittedData.description,
-                    // asu_id: submittedData.asuId,
 
                 }),
             });
@@ -107,39 +50,14 @@ const InstructorCreateTicket = ({ onClose }) => {
 
             const ticket = await ticketResponse.json();
 
-            // // Step 3: Assign the TA to the ticket
-            // const assignResponse = await fetch(
-            //     `${baseURL}/api/ticketassignments/ticket/${ticket.ticket_id}`,
-            //     {
-            //         method: "POST",
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //             Authorization: `Bearer ${token}`,
-            //         },
-            //         body: JSON.stringify({
-            //             user_id: submittedData.instructorName, // TA ID
-            //         }),
-            //     }
-            // );
-            //
-            // if (!assignResponse.ok) {
-            //     throw new Error("Failed to assign ticket to TA.");
-            // }
-            //
-            // const a = await assignResponse.json();
+
             alert("Ticket submitted successfully!");
             console.log("Ticket created:", ticket);
-            // console.log("Assignment", a);
 
             // Reset the form
             setInstructorName("");
-            // setTeamName("");
-            // setSponsorName("");
-            // setSection("");
-            // setInstructorName("");
             setIssueType("");
             setDescription("");
-            // setAsuId("");
 
             if (onClose) onClose(); // Close modal if `onClose` is provided
             window.location.reload();
@@ -213,69 +131,12 @@ const InstructorCreateTicket = ({ onClose }) => {
                     <TextField
                         label="Your Name"
                         variant="outlined"
-                        placeholder="Enter your name"
                         value={instructorName}
-                        onChange={(e) => setInstructorName(e.target.value)}
                         required
                         fullWidth
+                        disabled
                     />
-                    {/* <label>ASU ID:</label>
-          <input
-            type="text"
-            placeholder="10-digit ASU ID"
-            value={asuId}
-            onChange={(e) => setAsuId(e.target.value)}
-            required
-            maxLength={10}
-          /> */}
-{/*                    <TextField
-                        label="Section"
-                        variant="outlined"
-                        placeholder="Enter your section"
-                        value={section}
-                        onChange={(e) => setSection(e.target.value)}
-                        required
-                        fullWidth
-                    />
-                    <FormControl fullWidth required>
-                        <InputLabel>Team</InputLabel>
-                        <Select
-                            value={teamName}
-                            label="Team"
-                            placeholder="Select a team"
-                            onChange={(e) => setTeamName(e.target.value)}
-                        >
-                            {teamList.map((team) => (
-                                <MenuItem key={team.team_id} value={team.team_id}>
-                                    {team.team_name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        label="Sponsor Name"
-                        variant="outlined"
-                        placeholder="Enter your Sponsor's name"
-                        value={sponsorName}
-                        onChange={(e) => setSponsorName(e.target.value)}
-                        required
-                        fullWidth
-                    />*/}
- {/*                   <FormControl fullWidth required>
-                        <InputLabel>Instructor (TA)</InputLabel>
-                        <Select
-                            value={instructorName}
-                            label="Instructor (TA)"
-                            placeholder="Select a instructor (TA)"
-                            onChange={(e) => setInstructorName(e.target.value)}
-                        >
-                            {taList.map((ta) => (
-                                <MenuItem key={ta.user_id} value={ta.user_id}>
-                                    {ta.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>*/}
+
                     <FormControl fullWidth required>
                         <InputLabel>Issue Type</InputLabel>
                         <Select
