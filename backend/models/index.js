@@ -3,7 +3,7 @@ const Team = require("./Team");
 const Ticket = require("./Ticket");
 const TeamMember = require("./TeamMember");
 const TicketAssignment = require("./TicketAssignment");
-const PasswordResetToken = require("./passwordresettoken");
+const PasswordResetToken = require("./PasswordResetToken");
 
 // Define associations
 User.hasMany(TeamMember, { foreignKey: "user_id" });
