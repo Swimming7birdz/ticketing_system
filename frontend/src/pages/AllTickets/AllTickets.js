@@ -16,10 +16,6 @@ import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
 import TaTicketsViewController from "../../components/TaTicketsViewController";
 
-import TicketCard from "../../components/TicketCard";
-import TaTicketCard from "../../components/TaTicketCard";
-import CheckIcon from "@mui/icons-material/Check";
-
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AllTickets = () => {

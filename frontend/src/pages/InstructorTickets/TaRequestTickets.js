@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import { Avatar, Button, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ArticleIcon from "@mui/icons-material/Article";
@@ -7,144 +7,148 @@ import Cookies from "js-cookie";
 import TaTicketCard from "../../components/TaTicketCard";
 import { fetchTaTicketsByUserId } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom";
+import TaTicketsViewController from "../../components/TaTicketsViewController";
+import TicketsViewController from "../../components/TicketsViewController";
 
-const TaTickets = () => {
-    const theme = useTheme();
+const baseURL = process.env.REACT_APP_API_BASE_URL;
+
+// Read user_id from JWT (no secret; just decode payload)
+function getUserIdFromToken() {
+    try {
+        const token = Cookies.get("token");
+        if (!token) return null;
+        const payload = JSON.parse(atob(token.split(".")[1] || ""));
+        return payload?.user_id || payload?.id || null;
+    } catch {
+        return null;
+    }
+}
+
+const TaRequestTickets = () => {
+    const navigate = useNavigate();
+    const userId = useMemo(getUserIdFromToken, []);
     const [tickets, setTickets] = useState([]);
+    const [count, setCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [totalTickets, setTotalTickets] = useState(0);
-    let navigate = useNavigate();
 
-    useEffect(() => {
-        loadTickets();
-    }, []);
-
-    const loadTickets = async () => {
+    const fetchNameFromId = async (student_id) => {
         try {
-            const taTickets = await fetchTaTicketsByUserId();
-            setTickets(taTickets);
-            setTotalTickets(taTickets.length);
-            setLoading(false);
-        } catch (error) {
-            console.error("Error fetching TA tickets:", error);
-            setLoading(false);
+            const token = Cookies.get("token");
+            const res = await fetch(`${baseURL}/api/users/${student_id}`, {
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) return "Unknown";
+            const data = await res.json();
+            return data.name || "Unknown";
+        } catch {
+            return "Unknown";
         }
     };
 
+    useEffect(() => {
+        if (!userId) {
+            setLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                setLoading(true);
+                const token = Cookies.get("token");
+
+                // Backend: ticketController.getTicketsByUserId
+                const res = await fetch(`${baseURL}/api/tatickets/user/${userId}`, {
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error("Failed to fetch TA tickets");
+                const data = await res.json();
+
+                const enriched = await Promise.all(
+                    data.map(async (t) => ({
+                        ...t,
+                        userName: await fetchNameFromId(t.ta_id),
+                    }))
+                );
+
+                if (!cancelled) {
+                    setTickets(enriched);
+                    setCount(enriched.length);
+                }
+            } catch (e) {
+                console.error(e);
+                if (!cancelled) {
+                    setTickets([]);
+                    setCount(0);
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [userId]);
+
+    const openTicket = (t) => navigate(`/taticketinfo?ticket=${t.ticket_id}`);
+
     if (loading) {
         return (
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100vh",
-                    backgroundColor: theme.palette.background.default,
-                    flexDirection: "column",
-                    gap: 2.5,
-                }}
-            >
-                <CircularProgress size={80} thickness={4} />
-                <Typography variant="h6" sx={{ color: theme.palette.primary.main }}>
-                    Loading, please wait...
-                </Typography>
+            <Box sx={{ p: 4, display: "grid", placeItems: "center" }}>
+                <CircularProgress />
             </Box>
         );
     }
 
     return (
-        <Box
-            sx={{
-                display: "flex",
-                flexDirection: "column",
-                backgroundColor: theme.palette.background.default,
-                padding: 6.25,
-                gap: 6.25,
-            }}
-        >
-            <Typography
-                variant="h1"
-                sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
-            >
-                My Tickets
-            </Typography>
-
+        <Box sx={{ display: "grid", gap: 3, p: 3 }}>
+            {/* Header / Stats */}
             <Box
                 sx={{
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 2.5,
-                    backgroundColor: theme.palette.background.paper,
-                    padding: 2.5,
-                    borderRadius: 1,
-                    flex: 1,
+                    alignItems: "center",
+                    gap: 2,
+                    justifyContent: "space-between",
+                    bgcolor: "background.paper",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    p: 2,
+                    borderRadius: 2,
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: 10,
-                    }}
-                >
-                    <Avatar>
-                        <ArticleIcon sx={{ fontSize: "2rem" }} />
-                    </Avatar>
-                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                        <Typography
-                            variant="h1"
-                            sx={{ fontWeight: "bold", fontSize: "2rem" }}
-                        >
-                            {totalTickets}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar><ArticleIcon /></Avatar>
+                    <Box>
+                        <Typography variant="h6">My Tickets</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {count} total
                         </Typography>
-                        <Typography
-                            variant="p"
-                            sx={{ fontSize: "0.8rem", color: theme.palette.text.secondary }}
-                        >
-                            Total Tickets
-                        </Typography>
-                    </div>
-                    <Button
-                        variant="contained"
-                        disableElevation
-                        sx={{
-                            backgroundColor: theme.palette.primary.main,
-                            color: "white",
-                            borderRadius: 999,
-                            fontSize: "0.75rem",
-                        }}
-                        onClick={() => navigate("/instructordash")}
-                    >
-                        Back to Dashboard
-                    </Button>
-                </div>
+                    </Box>
+                </Box>
+                <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
+            </Box>
 
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                        gap: "20px",
-                        justifyContent: "center",
-                        padding: "5px",
-                        overflowY: "auto", //  Allows scrolling for more tickets
-                    }}
-                >
-
-                    {tickets.map((ticket) => (
-                        <TaTicketCard
-                            key={ticket.ticket_id}
-                            ticketId={ticket.ticket_id}
-                            issueDescription={ticket.issue_description}
-                            status={ticket.status}
-                            name={ticket.ta_name}
-                        />
-                    ))}
-                </div>
+            {/* Tickets */}
+            <Box
+                sx={{
+                    bgcolor: "background.paper",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    p: 2,
+                    borderRadius: 2,
+                }}
+            >
+                <TaTicketsViewController
+                    tickets={tickets}
+                    defaultView="list"
+                    onOpenTicket={openTicket}
+                    header={<Typography variant="subtitle2">Tickets</Typography>}
+                />
             </Box>
         </Box>
     );
-};
+}
 
-export default TaTickets;
+export default TaRequestTickets;
