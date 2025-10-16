@@ -150,7 +150,7 @@ const InstructorTickets = () => {
                 return false;
             }
             seen.add(ticket.ticket_id);
-            return true; 
+            return true;
         });
     };
 
@@ -164,7 +164,7 @@ const InstructorTickets = () => {
         console.log(instructorTickets);
         const sortedTickets = sortTicketsById(instructorTickets);
         const uniqueTickets = filterUniqueTickets(sortedTickets);
-       
+
         const ticketList = await Promise.all(
             uniqueTickets.map(async (ticket_) => {
                 const ticketData = await fetchTicketById(ticket_.ticket_id);
@@ -180,20 +180,20 @@ const InstructorTickets = () => {
                 };
             })
         );
-        
+
         // Count different ticket types
-        const escalatedCount = ticketList.filter(ticket => 
+        const escalatedCount = ticketList.filter(ticket =>
           ticket.escalated === true
         ).length;
-        
-        const openCount = ticketList.filter(ticket => 
+
+        const openCount = ticketList.filter(ticket =>
           ticket.status === 'new' || ticket.status === 'ongoing'
         ).length;
-        
-        const closedCount = ticketList.filter(ticket => 
+
+        const closedCount = ticketList.filter(ticket =>
           ticket.status === 'resolved'
         ).length;
-        
+
         setTickets(ticketList);
         setFilteredTickets(ticketList); // Initialize filtered tickets
         setTotalTickets(ticketList.length);
@@ -201,7 +201,7 @@ const InstructorTickets = () => {
         setOpenTickets(openCount);
         setClosedTickets(closedCount);
         setLoading(false);
-        
+
     } catch (error) {
         console.error("Error fetching instructor tickets:", error);
         setLoading(false);

@@ -154,3 +154,14 @@ export const deleteTeam = async (teamId) => {
   return apiFetch(url, "DELETE");
 };
 
+// Fetch tickets by user ID
+export const fetchTaTicketsByUserId = async () => {
+    const token = Cookies.get("token");
+    if (!token) throw new Error("No token found");
+
+    const decodedToken = jwtDecode(token);
+    const userId = decodedToken.id; // Extract user ID from JWT
+
+    const url = `${baseURL}/api/tatickets/user/${userId}`;
+    return apiFetch(url);
+};
