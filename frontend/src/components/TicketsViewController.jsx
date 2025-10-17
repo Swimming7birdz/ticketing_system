@@ -3,12 +3,13 @@ import { Box, Grid, Typography } from "@mui/material";
 import ViewToggle from "./viewToggle";
 import TicketRow from "./TicketRow";
 import TicketCard from "./TicketCard";
+import TaTicketCard from "./TaTicketCard";
 
 export default function TicketsViewController({
   tickets = [],
   defaultView = "list",           // list by default, as requested
   onOpenTicket,                   // function(ticket)
-  header = "THIS IS A TESTS",
+  header = "",
   gridBreakpoints = { xs:12, sm:6, md:4, lg:3 },
 }) {
   const [view, setView] = React.useState(() => localStorage.getItem("tickets:view") || defaultView);

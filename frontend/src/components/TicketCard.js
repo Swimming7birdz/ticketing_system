@@ -168,9 +168,6 @@ const TicketCard = ({
         )}
         </div>
 
-
-
-
         {/* NAME */}
         <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
           <Typography variant="body2" sx={{ fontWeight: "bold" }}>

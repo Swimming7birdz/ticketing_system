@@ -27,6 +27,9 @@ import InstructorProfile from "./pages/InstructorProfile/InstructorProfile";
 import EscalatedTickets from "./pages/EscalatedTickets/EscalatedTickets";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import RequestReset from "./pages/RequestReset/RequestReset";
+import TaRequestTickets from "./pages/InstructorTickets/TaRequestTickets";
+import TaTicketView from "./components/TicketView/TaTicketView";
+import TaTicketInfo from "./pages/TicketInfo/TaTicketInfo";
 
 function App() {
   return (
@@ -55,7 +58,9 @@ function App() {
         <Route path="/tasettings" element={<TASettings />} />
         <Route path="/studentsettings" element={<StudentSettings />} />
         <Route path="/ticketview" element={<TicketView />} />
-	      <Route path="/instructorprofile" element={<InstructorProfile />} /> 
+	      <Route path="/instructorprofile" element={<InstructorProfile />} />
+          <Route path="/taticketview" element={<TaTicketView />} />
+          <Route path="/taticketinfo" element={<TaTicketInfo />} />
         <Route 
           path="/escalatedtickets" 
           element={<ProtectedRoute
@@ -69,6 +74,7 @@ function App() {
         {/* Change user_id to the user's id */}
         <Route path="/mytickets" element={<StudentTickets />} />
         <Route path="/instructortickets" element={<InstructorTickets />} />
+        <Route path="/TaRequestTickets" element={<TaRequestTickets />} />
         <Route path="/ta-info" element={<TAinfo />} />
 
         {/*Verify the correct user type for dashboards*/}
