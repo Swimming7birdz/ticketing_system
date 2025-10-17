@@ -11,6 +11,10 @@ const pingRoutes = require("./pingRoutes");
 const emailRoutes = require('./emailRoutes');
 const passwordResetTokenRoutes = require('./passwordResetTokenRoutes');
 
+const taticketRoutes = require("./taticketRoutes");
+const taticketAssignmentRoutes = require("./taticketAssignmentRoutes");
+const tacommunicationRoutes = require("./tacommunicationRoutes");
+
 // Array to simplify route setup
 const routes = [
   { path: "/api/users", route: userRoutes },
@@ -24,7 +28,12 @@ const routes = [
   { path: "/api/officehours", route: officeHoursRoutes},
   { path: "/api/encrypt", route: encryptionRoutes },
   { path: "/api/email", route: emailRoutes },
-  { path: "/api/password-reset-tokens", route: passwordResetTokenRoutes } 
+  { path: "/api/password-reset-tokens", route: passwordResetTokenRoutes },
+
+    { path: "/api/tatickets", route: taticketRoutes },
+    { path: "/api/taticketassignments", route: taticketAssignmentRoutes},
+    { path: "/api/tacommunications", route: tacommunicationRoutes},
+
 ];
 
 module.exports = (app) => {

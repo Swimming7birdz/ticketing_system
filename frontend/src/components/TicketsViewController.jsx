@@ -3,12 +3,13 @@ import { Box, Grid, Typography } from "@mui/material";
 import ViewToggle from "./viewToggle";
 import TicketRow from "./TicketRow";
 import TicketCard from "./TicketCard";
+import TaTicketCard from "./TaTicketCard";
 
 export default function TicketsViewController({
   tickets = [],
   defaultView = "list",           // list by default, as requested
   onOpenTicket,                   // function(ticket)
-  header = "THIS IS A TESTS",
+  header = "",
   gridBreakpoints = { xs:12, sm:6, md:4, lg:3 },
 }) {
   const [view, setView] = React.useState(() => localStorage.getItem("tickets:view") || defaultView);
@@ -41,7 +42,7 @@ export default function TicketsViewController({
 
           {tickets.length === 0
             ? <Box sx={{ p:4, textAlign:"center", color:"text.secondary" }}>No tickets yet</Box>
-            : tickets.map((t) => <TicketRow key={t.ticket_id ?? t.id} ticket={t} onOpen={onOpenTicket} />)}
+            : tickets.map((t) => <TicketRow key={t.ticket_id ?? t.id} ticket={t} onOpen={onOpenTicket} escalated={t.escalated} />)}
         </Box>
       ) : (
         <Grid container spacing={2}>
@@ -52,6 +53,7 @@ export default function TicketsViewController({
                 issueDescription={t.issue_description}
                 status={t.status}
                 name={t.userName || t.name}
+                escalated={t.escalated}
               />
             </Grid>
           ))}

@@ -17,6 +17,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ASULogo from "../../assets/ASULogo.png";
 import CreateTicket from "../CreateTicket/CreateTicket";
+import InstructorCreateTicket from "../CreateTicket/InstructorCreateTicket";
 import "./SideBar.css";
 
 
@@ -75,28 +76,74 @@ const SideBar = () => {
               </ListItemIcon>
               <ListItemText className="fontStyle" primary="Dashboard" />
             </ListItemButton>
-            <ListItemButton
-          className="buttonStyle"
-          selected={selectedPage === 1}
-          onClick={() => {
-            setSelectedPage(1);
-            if (userType === "admin") {
-              navigate("/alltickets"); // Admins see all tickets
-            } else if (userType === "student") {
-              navigate("/mytickets"); // Students only see their own tickets
-            } else {
-              navigate("/instructortickets"); // Default case (for TAs or unknown roles)
-            }
-      }}
-    >
-            <ListItemIcon>
+
+          {/* Admin "All Tickets" Button */}
+          {userType === "admin" && (
+              <ListItemButton
+                  className="buttonStyle"
+                  selected={selectedPage === 1}
+                  onClick={() => {
+                      setSelectedPage(1);
+                      navigate("/alltickets");
+                  }}
+              >
+                  <ListItemIcon>
+                      <ListIcon className="iconStyle" />
+                  </ListItemIcon>
+                  <ListItemText className="fontStyle" primary="All Tickets" />
+              </ListItemButton>
+          )}
+
+          {/* Student "My Tickets" Button */}
+          {userType === "student" && (
+              <ListItemButton
+                  className="buttonStyle"
+                  selected={selectedPage === 1}
+                  onClick={() => {
+                      setSelectedPage(1);
+                      navigate("/mytickets");
+                  }}
+              >
+                  <ListItemIcon>
+                      <ListIcon className="iconStyle" />
+                  </ListItemIcon>
+                  <ListItemText className="fontStyle" primary="My Tickets" />
+              </ListItemButton>
+          )}
+
+          {/* TA Ticket Buttons */}
+          {userType === "TA" && (
+              <>
+                  <ListItemButton
+                      className="buttonStyle"
+                      selected={selectedPage === 1}
+                      onClick={() => {
+                          setSelectedPage(1);
+                          navigate("/instructortickets");
+                      }}
+                  >
+                      <ListItemIcon>
+                          <ListIcon className="iconStyle" />
+                      </ListItemIcon>
+                      <ListItemText className="fontStyle" primary="Assigned Tickets" />
+                  </ListItemButton>
+
+              <ListItemButton
+              className="buttonStyle"
+              selected={selectedPage === 6} // Assign a unique selectedPage index for "My Tickets"
+              onClick={() => {
+                  setSelectedPage(6);
+                  navigate("/TaRequestTickets");
+              }}
+              >{}
+          <ListItemIcon>
               <ListIcon className="iconStyle" />
-            </ListItemIcon> 
-            <ListItemText 
-              className="fontStyle" 
-              primary={userType === "admin" ? "All Tickets" : "My Tickets"}/>
-      </ListItemButton> 
-      
+          </ListItemIcon>
+          <ListItemText className="fontStyle" primary="My Tickets" />
+              </ListItemButton>
+    </>
+              )}
+
       { userType === "admin" && (
       <ListItemButton
           className="buttonStyle"
@@ -127,7 +174,7 @@ const SideBar = () => {
           <ListItemText className="fontStyle" primary="All Assignees" />
         </ListItemButton>
 
-        { userType === "student" && (
+        { (userType === "student" || userType === "TA") && (
           <ListItemButton
             className="buttonStyle"
             selected={selectedPage === 3}
@@ -160,7 +207,8 @@ const SideBar = () => {
             zIndex: 1000,
           }}
         >
-          <CreateTicket onClose={closeModal} />
+            {userType === "student" && <CreateTicket onClose={closeModal} />}
+            {userType === "TA" && <InstructorCreateTicket onClose={closeModal} />}
         </div>
       )}
 

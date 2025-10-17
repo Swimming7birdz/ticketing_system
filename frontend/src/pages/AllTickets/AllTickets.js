@@ -11,9 +11,10 @@ import {
 import ArticleIcon from "@mui/icons-material/Article";
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
+import TaTicketsViewController from "../../components/TaTicketsViewController";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -23,11 +24,15 @@ const AllTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
+  const [escalatedTickets, setEscalatedTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const [filterAnchor, setFilterAnchor] = useState(null);
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState({
     sort: null,
     status: null,
+    source: null,
     search: "",
     teamNameSearch: "",
   });
@@ -67,11 +72,16 @@ const AllTickets = () => {
     }
 
     // Apply status filter
-    if (activeFilters.status) {
-      filtered = filtered.filter(
-        (ticket) =>
-          ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
-      );
+    if(activeFilters.status) {
+      if (activeFilters.status.toLowerCase() === "escalated") {
+        filtered = filtered.filter(
+          (ticket) => ticket.escalated === true
+        );
+      } else {
+        filtered = filtered.filter(
+          (ticket) => ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
+        );
+      }
     }
 
     // Apply search filter
@@ -103,6 +113,19 @@ const AllTickets = () => {
         (ticket) => ticket.status.toLowerCase() !== "resolved"
       );
     }
+      // Apply source filter
+    if (activeFilters.source) {
+        const source_type = activeFilters.source === 'student' ? 'regular' : 'ta';
+          filtered = filtered.filter(
+              (ticket) => ticket.source === source_type
+          );
+    }
+
+    if (hideResolved) {
+        filtered = filtered.filter(
+            (ticket) => ticket.status.toLowerCase() !== "resolved"
+          );
+    }
 
     setFilteredTickets(filtered);
   };
@@ -116,32 +139,42 @@ const AllTickets = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "", teamIdSearch: "" });
+    setActiveFilters({ sort: null, status: null, source: null, search: "", teamIdSearch: "" });
   };
 
-  const fetchNameFromId = async (student_id) => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/users/${student_id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const fetchUserNameForTicket = async (ticket) => {
+        // 1. Determine which ID to use based on the ticket's source
+        const userId = ticket.source === 'ta' ? ticket.ta_id : ticket.student_id;
 
-      if (!response.ok) {
-        console.warn(`Failed to fetch user name for ticket ${student_id}`);
-        return "Unknown Name";
-      }
+        // 2. Handle cases where the ticket might not have an ID
+        if (!userId) {
+            console.warn("Ticket object is missing a valid ID.", ticket);
+            return "Unknown Name";
+        }
 
-      const data = await response.json();
-      return data.name;
-    } catch (error) {
-      console.error(`Error fetching name for ticket ${student_id}:`, error);
-      return "Unknown Name";
-    }
-  };
+        try {
+            const token = Cookies.get("token");
+            // 3. Use the determined userId in the API call
+            const response = await fetch(`${baseURL}/api/users/${userId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                console.warn(`Failed to fetch user name for ID: ${userId}`);
+                return "Unknown Name";
+            }
+
+            const data = await response.json();
+            return data.name;
+        } catch (error) {
+            console.error(`Error fetching name for ID ${userId}:`, error);
+            return "Unknown Name";
+        }
+    };
 
   const fetchTeamNameFromId = async (team_id) => {
     try {
@@ -167,47 +200,88 @@ const AllTickets = () => {
     }
   };
 
-  const fetchTickets = async () => {
-    try {
-      const token = Cookies.get("token");
+    const fetchTickets = async () => {
+        try {
+            const token = Cookies.get("token");
+            const headers = {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            };
 
-      const response = await fetch(`${baseURL}/api/tickets`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+            // 1. Create promises for both fetch requests
+            const ticketsPromise = fetch(`${baseURL}/api/tickets`, { method: "GET", headers });
+            const taTicketsPromise = fetch(`${baseURL}/api/tatickets`, { method: "GET", headers });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch tickets");
-      }
+            // 2. Await both promises to resolve concurrently
+            const [ticketsResponse, taTicketsResponse] = await Promise.all([
+                ticketsPromise,
+                taTicketsPromise,
+            ]);
 
-      const ticketsData = await response.json();
+            // Check if either request failed
+            if (!ticketsResponse.ok || !taTicketsResponse.ok) {
+                throw new Error("Failed to fetch one or more ticket lists");
+            }
 
-      const ticketsWithNames = await Promise.all(
-        ticketsData.map(async (ticket) => {
-          const userName = await fetchNameFromId(ticket.student_id);
-          const teamName = await fetchTeamNameFromId(ticket.team_id);
+            // 3. Get the JSON data from both responses
+            const ticketsData = await ticketsResponse.json();
+            const taTicketsData = await taTicketsResponse.json();
+
+            // Add a 'source' property to each ticket from the regular endpoint
+            const sourcedTickets = ticketsData.map(ticket => ({ ...ticket, source: 'regular' }));
+
+            // Add a 'source' property to each ticket from the TA endpoint
+            const sourcedTaTickets = taTicketsData.map(ticket => ({ ...ticket, source: 'ta' }));
+
+            // 4. Combine the two arrays into one
+            const allTicketsData = [...sourcedTickets, ...sourcedTaTickets];
+
+            // The rest of the logic remains the same, but operates on the combined array
+            const ticketsWithNames = await Promise.all(
+                allTicketsData.map(async (ticket) => {
+                    const userName = await fetchUserNameForTicket(ticket); // New call
+                    const teamName = await fetchTeamNameFromId(ticket.team_id);
           return { ...ticket, userName, teamName };
         })
       );
-      
 
-      setTickets(ticketsWithNames);
-      setTotalTickets(ticketsData.length);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-      setLoading(false);
-    }
-  };
+
+      // Calculate ticket counts
+      const escalatedCount = ticketsWithNames.filter(ticket =>
+        ticket.escalated === true
+      ).length;
+
+      const openCount = ticketsWithNames.filter(ticket =>
+        ticket.status === "new" || ticket.status === "ongoing"
+      ).length;
+                const closedCount = ticketsWithNames.filter(ticket =>
+            ticket.status === "resolved"
+      ).length;
+
+            setTickets(ticketsWithNames);
+            setTotalTickets(allTicketsData.length); // Use the combined length
+            setEscalatedTickets(escalatedCount);
+      setOpenTickets(openCount);
+      setClosedTickets(closedCount);setLoading(false);
+        } catch (error) {
+            console.error("Error fetching tickets:", error);
+            setLoading(false);
+        }
+    };
 
   const toggleHideResolved = () => {
     setHideResolved((prev) => !prev);
   };
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
+    // Add this logic before the return statement
+    const studentTickets = filteredTickets.filter(
+        (ticket) => ticket.source === 'regular'
+    );
+    const taTickets = filteredTickets.filter(
+        (ticket) => ticket.source === 'ta'
+    );
 
   if (loading) {
     return (
@@ -246,6 +320,56 @@ const AllTickets = () => {
       >
         All Tickets
       </Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+          <Avatar>
+            <ArticleIcon sx={{ fontSize: "2rem" }} />
+          </Avatar>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {totalTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Total Tickets
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {openTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Open
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {escalatedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Escalated
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {closedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Closed
+            </Typography>
+          </div>
+        </div>
+      </Box>
+
       <Box
         sx={{
           display: "flex",
@@ -275,7 +399,7 @@ const AllTickets = () => {
             }
             sx={{ flex: 1 }}
           />
-          
+
           <TextField
             label="Search by Team Name"
             variant="outlined"
@@ -436,25 +560,102 @@ const AllTickets = () => {
             )}
             Status: Resolved
           </MenuItem>
+          {/* Status: Escalated */}
+          <MenuItem
+            onClick={() => {
+              if (activeFilters.status === "Escalated") {
+                setActiveFilters({ ...activeFilters, status: null });
+              } else {
+                setActiveFilters({ ...activeFilters, status: "Escalated" });
+              }
+              handleFilterClose();
+            }}
+          >
+            {activeFilters.status === "Escalated" && (
+              <span style={{ marginRight: 8 }}>✔</span>
+            )}
+            Status: Escalated
+          </MenuItem>
+
+            {/* Source: Student */}
+            <MenuItem
+                onClick={() => {
+                    setActiveFilters({
+                        ...activeFilters,
+                        source: activeFilters.source === "student" ? null : "student",
+                    });
+                    handleFilterClose();
+                }}
+            >
+                {activeFilters.source === "student" && (
+                    <span style={{ marginRight: 8 }}>✔</span>
+                )}
+                Source: Student
+            </MenuItem>
+
+            {/* Source: TA */}
+            <MenuItem
+                onClick={() => {
+                    setActiveFilters({
+                        ...activeFilters,
+                        source: activeFilters.source === "ta" ? null : "ta",
+                    });
+                    handleFilterClose();
+                }}
+            >
+                {activeFilters.source === "ta" && (
+                    <span style={{ marginRight: 8 }}>✔</span>
+                )}
+                Source: TA
+            </MenuItem>
         </Menu>
 
         {/* Tickets */}
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            border: "1px solid",
-            borderColor: "divider",
-            p: 2,
-            borderRadius: 2,
-          }}
-        >
-          <TicketsViewController
-            tickets={filteredTickets}
-            defaultView="list"
-            onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
-            header={<Typography variant="subtitle2">Tickets</Typography>}
-          />
-        </Box>
+          <Box
+              sx={{
+                  bgcolor: "background.paper",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  p: 2,
+                  borderRadius: 2,
+              }}
+          >
+              {/* Render Student Tickets Section */}
+              {studentTickets.length > 0 && (
+                  <>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                          Student Tickets
+                      </Typography>
+                      <TicketsViewController
+                          tickets={studentTickets}
+                          defaultView="list"
+                          onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
+                      />
+                  </>
+              )}
+
+              {/* Render TA Tickets Section */}
+              {taTickets.length > 0 && (
+                  <>
+                      <Typography
+                          variant="h6"
+                          sx={{ mb: 1, mt: studentTickets.length > 0 ? 4 : 0 }}
+                      >
+                          TA Tickets
+                      </Typography>
+                      <TaTicketsViewController
+                          tickets={taTickets}
+                          defaultView="list"
+                          onOpenTicket={(t) => navigate(`/taticketinfo?ticket=${t.ticket_id}`)}
+                      />
+                  </>
+              )}
+
+              {/* Display a message if no tickets match the filters */}
+              {filteredTickets.length === 0 && (
+                  <Typography>No tickets to display.</Typography>
+              )}
+          </Box>
       </Box>
     </Box>
   );
