@@ -1,7 +1,5 @@
-const fetch = require('isomorphic-fetch');
-const { Client } = require('@microsoft/microsoft-graph-client');
+const fetch = (...a) => import('node-fetch').then(({default: f}) => f(...a));
 const { ClientSecretCredential } = require('@azure/identity');
-
 const tenantId = process.env.MS_TENANT_ID;
 const clientId = process.env.MS_CLIENT_ID;
 const clientSecret = process.env.MS_CLIENT_SECRET;
@@ -10,14 +8,6 @@ const senderEmail = process.env.EMAIL_USER;
 // Authenticate using client credentials (no user interaction)
 const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
-const graphClient = Client.initWithMiddleware({
-  authProvider: {
-    getAccessToken: async () => {
-      const tokenResponse = await credential.getToken('https://graph.microsoft.com/.default');
-      return tokenResponse.token;
-    }
-  }
-});
 
 /**
  * Send an email via Microsoft Graph API (application permission)
@@ -27,7 +17,9 @@ const graphClient = Client.initWithMiddleware({
  */
 const sendEmail = async (to, subject, text) => {
   try {
-    const message = {
+        const tokenResponse = await credential.getToken('https://graph.microsoft.com/.default');
+
+      const message = {
       message: {
         subject,
         body: {
@@ -40,10 +32,21 @@ const sendEmail = async (to, subject, text) => {
       },
       saveToSentItems: 'false'
     };
+     const res = await fetch(`https://graph.microsoft.com/v1.0/users/${senderEmail}/sendMail`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
 
-    await graphClient.api(`/users/${senderEmail}/sendMail`).post(message);
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Graph API error (${res.status}): ${errText}`);
+    }
 
-    console.log(`Email sent successfully to ${to}`);
+    console.log("Email successful");
   } catch (err) {
     console.error('Failed to send email:', err);
     throw err;
