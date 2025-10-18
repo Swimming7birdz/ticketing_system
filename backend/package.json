@@ -24,6 +24,7 @@
     "isomorphic-fetch": "^3.0.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.3",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.6",
     "pg": "^8.7.1",
     "pg-hstore": "^2.3.4",
