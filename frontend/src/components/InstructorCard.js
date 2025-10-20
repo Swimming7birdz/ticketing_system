@@ -63,12 +63,52 @@ const InstructorCard = ({
   const theme = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [officeHours, setOfficeHours] = useState({
+    monday: {start: '12:00', end: '12:00'},
+    tuesday: {start: '12:00', end: '12:00'},
+    wednesday: {start: '12:00', end: '12:00'},
+    thursday: {start: '12:00', end: '12:00'},
+    friday: {start: '12:00', end: '12:00'},
+    saturday: {start: '12:00', end: '12:00'},
+    sunday: {start: '12:00', end: '12:00'}
+  });
 
   let navigate = useNavigate();
 
   useEffect(() => {
     fetchUserDetails();
+    fetchOfficeHours();
   }, [userId]);
+
+  const fetchOfficeHours = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/officehours/users/${userId}`,{
+        headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.office_hours) {
+        setOfficeHours(data.office_hours);
+      }
+      
+    } catch (err) {
+      console.error("error fetching office hours:", err);
+    }
+  };
+
+  function handleDisplayTime(time) {
+    if (time) {
+      let hrs = time.split(':')[0], mins = time.split(':')[1];
+      if (hrs > 12){return (hrs - 12) + ':' + mins + ' PM';}
+      else if (hrs == 0) {return '12:' + mins + ' PM';}
+      else {return (time + ' AM');}
+    }
+    return '';
+  }
 
   const onViewProfile = () => {
     navigate(`/instructorprofile?user=${userId}`)
@@ -184,25 +224,25 @@ const InstructorCard = ({
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Monday: 01:00 PM - 02:00 PM
+            Monday: {handleDisplayTime(officeHours.monday.start)} - {handleDisplayTime(officeHours.monday.end)}
           </Typography>
           <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Tuesday: 01:00 PM - 02:00 PM
+            Tuesday: {handleDisplayTime(officeHours.tuesday.start)} - {handleDisplayTime(officeHours.tuesday.end)}
           </Typography>
           <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Wednesday: 01:00 PM - 02:00 PM
+            Wednesday: {handleDisplayTime(officeHours.wednesday.start)} - {handleDisplayTime(officeHours.wednesday.end)}
           </Typography>
           <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Thursday: 01:00 PM - 02:00 PM
+            Thursday: {handleDisplayTime(officeHours.thursday.start)} - {handleDisplayTime(officeHours.thursday.end)}
           </Typography>
           <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Friday: 01:00 PM - 02:00 PM
+            Friday: {handleDisplayTime(officeHours.friday.start)} - {handleDisplayTime(officeHours.friday.end)}
           </Typography>
           <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Saturday: 01:00 PM - 02:00 PM
+            Saturday: {handleDisplayTime(officeHours.saturday.start)} - {handleDisplayTime(officeHours.saturday.end)}
           </Typography>
           <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Sunday: 01:00 PM - 02:00 PM
+            Sunday: {handleDisplayTime(officeHours.sunday.start)} - {handleDisplayTime(officeHours.sunday.end)}
           </Typography>
         </div>
       </div>
