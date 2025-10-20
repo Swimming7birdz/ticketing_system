@@ -17,6 +17,8 @@ import { Avatar } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
 import { jwtDecode } from "jwt-decode";
+import TicketsViewController from "../../components/TicketsViewController";
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 //const token = Cookies.get("token");
 const InstructorProfile = () => {
@@ -25,6 +27,9 @@ const InstructorProfile = () => {
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [filterAnchor, setFilterAnchor] = useState(null); // For dropdown
+  const [escalatedTickets, setEscalatedTickets] = useState(0);
+  const [openTickets, setOpenTickets] = useState(0);
+  const [closedTickets, setClosedTickets] = useState(0);
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [TA, setTA] = useState(null);
   const [TATickets, setTATickets] = useState([]);
@@ -32,12 +37,13 @@ const InstructorProfile = () => {
     sort: null,
     status: null,
     search: "",
+	  teamNameSearch: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [isUser, setIsUser] = useState(false);
   const [newTime, setNewTime] = useState(null);
   const [time, setTime] = useState({monday: {start: '', end: ''}, 
-				    tuesday: {start: '', end:''},
+				    tuesday: {start: '', end: ''},
 		 		    wednesday: {start: '', end: ''},
 				    thursday: {start: '', end: ''},
 				    friday: {start: '', end: ''},
@@ -59,6 +65,7 @@ const InstructorProfile = () => {
   const urlParameters = new URLSearchParams(location.search);
   const userId = urlParameters.get("user");
   const latestUserIdRef = useRef(userId);
+  let navigate = useNavigate();
 
   useEffect(() => {
     latestUserIdRef.current = userId;
@@ -219,29 +226,41 @@ const InstructorProfile = () => {
   const applyFilters = () => {
     let filtered = [...tickets];
 
-    // Apply sort filter
+    // Apply sort filters
     if (activeFilters.sort === "newest") {
       filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (activeFilters.sort === "oldest") {
       filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (activeFilters.sort === "id-asc") {
+      filtered.sort((a, b) => a.ticket_id - b.ticket_id);
+    } else if (activeFilters.sort === "id-desc") {
+      filtered.sort((a, b) => b.ticket_id - a.ticket_id);
     }
 
-    // Apply status filter
+    // Apply status filters
     if (activeFilters.status) {
-      filtered = filtered.filter(
-        (ticket) =>
+      if (activeFilters.status === "escalated") {
+        filtered = filtered.filter((ticket) => ticket.escalated === true);
+      } else {
+        filtered = filtered.filter((ticket) =>
           ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
-      );
+        );
+      }
     }
 
-    // Apply search filter
+    // Apply search filters
     if (activeFilters.search) {
       filtered = filtered.filter((ticket) =>
-        ticket.userName
-          .toLowerCase()
-          .includes(activeFilters.search.toLowerCase())
+        ticket.userName?.toLowerCase().includes(activeFilters.search.toLowerCase())
       );
     }
+
+    if (activeFilters.teamNameSearch) {
+      filtered = filtered.filter((ticket) =>
+        ticket.teamName?.toLowerCase().includes(activeFilters.teamNameSearch.toLowerCase())
+      );
+    }
+
     setFilteredTickets(filtered);
   };
 
@@ -254,7 +273,7 @@ const InstructorProfile = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, search: "" });
+    setActiveFilters({ sort: null, status: null, search: "", teamNameSearch: "" });
   };
 
   const fetchNameFromId = async (student_id) => {
@@ -355,6 +374,17 @@ const InstructorProfile = () => {
       setTickets(ticketsWithNames);
       setTotalTickets(uniqueTickets.length);
     
+    //  Add ticket statistics
+    const escalatedCount = ticketsWithNames.filter(ticket => ticket.escalated === true).length;
+    const openCount = ticketsWithNames.filter(ticket => 
+      ticket.status === 'new' || ticket.status === 'ongoing'
+    ).length;
+    const closedCount = ticketsWithNames.filter(ticket => ticket.status === 'resolved').length;
+
+    setEscalatedTickets(escalatedCount);
+    setOpenTickets(openCount);
+    setClosedTickets(closedCount);
+    
     setLoading(false);
   } catch (error) {
       if (latestUserIdRef.current !== requestedUserId) {
@@ -404,8 +434,10 @@ const InstructorProfile = () => {
           color: theme.palette.text.primary
         }}
       >
-        {TA.name || ' '} Profile
+        {TA?.name || ' '} Profile
       </Typography>
+
+      {/* ADD TICKET STATISTICS SECTION */}
       <Box
         sx={{
           display: "flex",
@@ -418,33 +450,68 @@ const InstructorProfile = () => {
           border: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "right",
-            alignItems: "right",
-            gap: 2.5,
-          }}
-        >{/*
+        {/* TICKET HEADER WITH STATS */}
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+          <Avatar>
+            <ArticleIcon sx={{ fontSize: "2rem" }} />
+          </Avatar>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {totalTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Total Tickets
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {openTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Open
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {escalatedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Escalated
+            </Typography>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <Typography variant="h1" sx={{ fontWeight: 'bold', fontSize: '2rem' }}>
+              {closedTickets}
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+              Closed
+            </Typography>
+          </div>
+        </div>
+
+        {/* SEARCH AND FILTER SECTION */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2.5 }}>
           <TextField
             label="Search by Student Name"
             variant="outlined"
             value={activeFilters.search}
-            onChange={(e) =>
-              setActiveFilters({ ...activeFilters, search: e.target.value })
-            }
+            onChange={(e) => setActiveFilters({ ...activeFilters, search: e.target.value })}
             sx={{ flex: 1 }}
-          />*/}
+          />
+          <TextField
+            label="Search by Team Name"
+            variant="outlined"
+            value={activeFilters.teamNameSearch}
+            onChange={(e) => setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })}
+            sx={{ flex: 1 }}
+          />
           <Button
             variant="contained"
             onClick={handleFilterClick}
             sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
           >
             {activeFilters.sort || activeFilters.status
-              ? `Filters: ${activeFilters.sort || ""} ${
-                  activeFilters.status || ""
-                }`
+              ? `Filters: ${activeFilters.sort || ""} ${activeFilters.status || ""}`
               : "Add Filter"}
           </Button>
           <Button
@@ -456,78 +523,48 @@ const InstructorProfile = () => {
           </Button>
         </Box>
 
-        {/* Filter Dropdown */}
+        {/* ENHANCED FILTER DROPDOWN */}
         <Menu
           anchorEl={filterAnchor}
           open={Boolean(filterAnchor)}
           onClose={handleFilterClose}
         >
-          <MenuItem
-            onClick={() => {
-              setActiveFilters({ ...activeFilters, sort: "newest" });
-              handleFilterClose();
-            }}
-          >
-            Newest
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "newest" }); handleFilterClose(); }}>
+            Sort: Newest First
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setActiveFilters({ ...activeFilters, sort: "oldest" });
-              handleFilterClose();
-            }}
-          >
-            Oldest
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "oldest" }); handleFilterClose(); }}>
+            Sort: Oldest First
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setActiveFilters({ ...activeFilters, status: "New" });
-              handleFilterClose();
-            }}
-          >
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "id-asc" }); handleFilterClose(); }}>
+            Sort: ID Ascending
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "id-desc" }); handleFilterClose(); }}>
+            Sort: ID Descending
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "new" }); handleFilterClose(); }}>
             Status: New
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setActiveFilters({ ...activeFilters, status: "Ongoing" });
-              handleFilterClose();
-            }}
-          >
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "ongoing" }); handleFilterClose(); }}>
             Status: Ongoing
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setActiveFilters({ ...activeFilters, status: "Resolved" });
-              handleFilterClose();
-            }}
-          >
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "resolved" }); handleFilterClose(); }}>
             Status: Resolved
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "escalated" }); handleFilterClose(); }}>
+            Status: Escalated
           </MenuItem>
         </Menu>
 
-
-        {/* Tickets Grid */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: 2.5,
-            justifyContent: "center",
-            maxHeight: "calc(100vh - 400px)",
-            overflowY: "auto",
-          }}
-        >
-          {filteredTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.ticket_id}
-              ticketId={ticket.ticket_id}
-              issueDescription={ticket.issue_description}
-              status={ticket.status}
-              name={ticket.userName}
-            />
-          ))}
-        </Box>
+        {/* REPLACE TICKET GRID WITH TICKETSVIEWCONTROLLER */}
+        <TicketsViewController
+          tickets={filteredTickets}
+          defaultView="grid"
+          onOpenTicket={(ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`)}
+          header={<Typography variant="subtitle2">Assigned Tickets</Typography>}
+        />
       </Box>
-	{/*Schedule section*/}
+
+      {/*Schedule section*/}
       <Box
         sx={{
           display: "flex",
@@ -675,14 +712,14 @@ const InstructorProfile = () => {
 	<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                    <input type="time" 
 		   step="300"
-		   value={time.friday.start}
+		   value={time.friday.start} 
 		   onChange={e=> handleChange("friday", "start", e.target.value)}
 		   style={{ width: "120px" }}
 		   /> 
 		    - 
 		   <input type="time" 
 		   step="300"
-		   value={time.friday.start}
+		   value={time.friday.end}
 		   onChange={e=> handleChange("friday", "end", e.target.value)}
 		   style={{ width: "120px" }}
 		   />
