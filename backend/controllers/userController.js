@@ -43,6 +43,7 @@ exports.updateUser = async (req, res) => {
         email,
         notifications_enabled,
         dark_mode,
+        is_enabled,
       } = req.body;
 
       await user.update({
@@ -50,6 +51,7 @@ exports.updateUser = async (req, res) => {
         email,
         notifications_enabled,
         dark_mode,
+        is_enabled,
       });
 
       res.json(user);
@@ -106,6 +108,7 @@ exports.getUserProfile = async (req, res) => {
         "role",
         "notifications_enabled",
         "dark_mode",
+        "is_enabled"
       ],
     });
 

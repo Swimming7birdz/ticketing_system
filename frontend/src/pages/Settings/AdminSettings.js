@@ -569,7 +569,7 @@ const AdminSettings = () => {
         </Box>
       </Box>
       
-      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center" }}>
+      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
         <Button 
           variant="contained" 
           onClick={() => navigate("/profile")}
@@ -577,6 +577,14 @@ const AdminSettings = () => {
         >
           Go To Account Settings
         </Button>
+
+          <Button
+              variant="contained"
+              onClick={() => navigate("/managestudents")}
+              sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+              Manage Students
+          </Button>
       </Box>
       </Box>
     </Box>
