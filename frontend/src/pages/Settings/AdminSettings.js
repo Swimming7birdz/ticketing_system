@@ -5,6 +5,9 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { useDropzone } from "react-dropzone";
+import Papa from "papaparse";
 
 import {
   Button,
@@ -45,6 +48,20 @@ const AdminSettings = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { isDarkMode, themeMode, setTheme } = useCustomTheme();
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const REQUIRED_HEADERS = ["name", "canvas_user_id", "user_id", "login_id", "sections", "group_name", "canvas_group_id", "sponsor"]; // adjust to your required columns
+  const SCHEMA = {
+      name: "string",
+      canvas_user_id: "number",
+      user_id: "number",
+      login_id: "string",
+      sections: "number",
+      group_name: "string",
+      canvas_group_id: "number",
+      sponsor: "string",
+    };
+
   useEffect(() => {
     fetchTeams();
     fetchTAs();
@@ -307,6 +324,106 @@ const AdminSettings = () => {
     setDeleteStatus(status);
   }
 
+  const onDrop = React.useCallback((acceptedFiles) => {
+    setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "text/csv": [".csv"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+    },
+    maxSize: 10 * 1024 * 1024, // 10MB
+  });
+
+  //const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateCell = (key, value) => {
+    //console.log('validateCell called', { key, raw: JSON.stringify(value), typeof: typeof value });
+   
+    if (value == null) return `${key} is missing`;
+    const v = String(value).trim();
+    const normalizeDigits = (s) => String(s).replace(/[, \u00A0\r\n\t]+/g, '').trim();
+    const normalized = normalizeDigits(v);
+   
+    //console.log('normalized for', key, ':', JSON.stringify(normalized)); // shows empty string clearly
+   
+    if (SCHEMA[key] === "number") {
+      if (!/^\d+$/.test(normalized)) return `${key} must be an integer made only of digits`;
+      return null;
+    }
+    if (v === "") return `${key} must be a non-empty string`;
+    return null;
+  };
+
+  const verifyFile = (file) => {
+  return new Promise((resolve) => {
+    if (!file) return resolve({ valid: false, errors: ["No file provided"], rows: [] });
+
+    const name = file.name?.toLowerCase?.() || "";
+    if (!name.endsWith(".csv")) {
+      return resolve({ valid: false, errors: ["Only CSV files are supported"], rows: [] });
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      quoteChar: '"',         
+      escapeChar: '"',        
+      delimiter: ',',         
+      encoding: "UTF-8",
+      newline: "\r\n",
+      transformHeader: (h) => h.trim(),
+      transform: (value) => value.trim(),
+      complete: (results) => {
+          console.log("Parsed data:", results.data);
+        const errors = [];
+        const headers = results.meta.fields || [];
+
+        const missingHeaders = REQUIRED_HEADERS.filter(
+          (h) => !headers.map(x => x.toLowerCase()).includes(h.toLowerCase())
+        );
+        if (missingHeaders.length) {
+          errors.push(`Missing required header(s): ${missingHeaders.join(", ")}`);
+        }
+
+        const rows = results.data || [];
+        rows.forEach((row, idx) => {
+          
+          REQUIRED_HEADERS.forEach((key) => {
+            console.log('DEBUG:', key, JSON.stringify(row[key]));
+            const err = validateCell(key, row[key] ?? '');
+            if (err) errors.push(`Row ${idx + 2}: ${err}`);
+          });
+        });
+
+        resolve({ valid: errors.length === 0, errors, rows });
+      },
+      error: (err) => {
+        resolve({ valid: false, errors: [String(err)], rows: [] });
+      },
+    });
+  });
+};
+
+  const handleUploadFiles = async () => {
+    if (selectedFiles.length === 0) return;
+    // verify all files
+    for (const f of selectedFiles) {
+      const result = await verifyFile(f);
+      if (!result.valid) {
+        console.error("File verification failed:", result.errors);
+        alert("File validation errors:\n" + result.errors.join("\n"));
+        return; // stop upload
+      }
+      // result.rows contains parsed rows you can transform and send
+    }
+    alert("All files verified successfully. Ready to upload.");
+    // proceed to build FormData and upload
+  };
+
+
   return (
     <Box
       sx={{
@@ -567,6 +684,62 @@ const AdminSettings = () => {
             Add TA
           </Button>
         </Box>
+      </Box>
+
+      {/* bulk upload */}
+       <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+         <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
+          Student Data Bulk Upload
+        </Typography>
+
+
+        <Box
+          {...getRootProps()}
+          sx={{
+            border: `2px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
+            borderRadius: 1,
+            p: 3,
+            textAlign: "center",
+            cursor: "pointer",
+          }}
+        >
+          <input {...getInputProps()} />
+          <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
+          <Typography>Drop files here or click to select</Typography>
+          <Typography variant="caption">CSV, XLSX — max 10MB each</Typography>
+        </Box>
+
+        {selectedFiles.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            {selectedFiles.map((f, i) => (
+              <Box key={`${f.name}-${i}`} sx={{ display: "flex", justifyContent: "space-between", p: 1, border: `1px solid ${theme.palette.divider}`, borderRadius: 1, mb: 1 }}>
+                <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</Typography>
+                <Button size="small" onClick={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))}>Remove</Button>
+              </Box>
+            ))}
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button variant="contained" onClick={()=>handleUploadFiles()} >Upload Files</Button>
+              <Button variant="outlined" onClick={() => setSelectedFiles([])}>Clear</Button>
+            </Box>
+          </Box>
+        )}
+
       </Box>
       
       <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center" }}>
