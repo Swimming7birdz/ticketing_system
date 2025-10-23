@@ -30,7 +30,7 @@ import RequestReset from "./pages/RequestReset/RequestReset";
 import TaRequestTickets from "./pages/InstructorTickets/TaRequestTickets";
 import TaTicketView from "./components/TicketView/TaTicketView";
 import TaTicketInfo from "./pages/TicketInfo/TaTicketInfo";
-import ManageStudents from "./pages/ManageStudents/ManageStudents"
+import ManageStudents from "./pages/ManageStudents/ManageStudents";
 
 function App() {
   return (

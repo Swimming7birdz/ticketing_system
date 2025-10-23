@@ -111,7 +111,7 @@ export default function SignIn() {
                         }
                     } catch (e) {
                         // Response wasn't JSON, just use a generic 403 message
-                        msg = "Account is disabled or forbidden.";
+                        msg = "This account has been disabled. Please contact an administrator.";
                     }
                 }
 

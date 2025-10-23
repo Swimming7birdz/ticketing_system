@@ -33,10 +33,10 @@ const User = sequelize.define("User", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-    is_enabled: {
-      type: DataTypes.BOOLEAN,
-        defaultValue: true,
-    },
+  is_enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
 }, {
   tableName: 'users',
   timestamps: false,
