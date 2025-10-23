@@ -104,6 +104,48 @@ exports.reassignTA = async (req, res) => {
   }
 };
 
+exports.getSecureTAProfile = async (req, res) => {
+  try {
+    const requestedUserId = parseInt(req.params.user_id);
+    const requestingUserId = req.user.id;
+    const requestingUserRole = req.user.role;
+    const isStudentViewing = req.isStudentViewing || false;
+
+    // Get TA's ticket assignments
+    const ticketAssignments = await TicketAssignment.findAll({
+      where: { user_id: requestedUserId },
+    });
+
+    let filteredAssignments = ticketAssignments;
+
+    // If a student is viewing, only show assignments for tickets they created
+    if (isStudentViewing) {
+      // Get all tickets to filter by student
+      const allTickets = await Ticket.findAll({
+        where: { student_id: requestingUserId }
+      });
+      
+      const studentTicketIds = allTickets.map(ticket => ticket.ticket_id);
+      
+      // Filter assignments to only include student's own tickets
+      filteredAssignments = ticketAssignments.filter(assignment => 
+        studentTicketIds.includes(assignment.ticket_id)
+      );
+    }
+
+    // Return filtered data based on role
+    res.json({
+      assignments: filteredAssignments,
+      isStudentView: isStudentViewing,
+      viewerRole: requestingUserRole
+    });
+    
+  } catch (error) {
+    console.error('Error in getSecureTAProfile:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.getTicketAssignmentsById = async (req, res) => {
   try {
     const ticketAssignments = await TicketAssignment.findAll({

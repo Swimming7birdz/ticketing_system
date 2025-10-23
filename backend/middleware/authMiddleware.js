@@ -58,6 +58,29 @@ isAdmin: (req, res, next) => {
       res.status(403).json({ error: "Forbidden" });
     }
   },
+  canViewTAProfile: (req, res, next) => {
+    const requestedUserId = parseInt(req.params.user_id);
+    const requestingUserId = req.user.id;
+    const requestingUserRole = req.user.role;
+    
+    // Admins can view any profile
+    if (requestingUserRole === "admin") {
+      next();
+    }
+    // TAs can only view their own profile or other TAs (for collaboration)
+    else if (requestingUserRole === "TA") {
+      // For now, allow TAs to view other TAs (you might want to restrict this further)
+      next();
+    }
+    // Students can view TA profiles but with limited data
+    else if (requestingUserRole === "student") {
+      // Students can view TA profiles but will get filtered data
+      req.isStudentViewing = true;
+      next();
+    } else {
+      res.status(403).json({ error: "Forbidden: Cannot view this profile" });
+    }
+  },
 };
 
 module.exports = authMiddleware;

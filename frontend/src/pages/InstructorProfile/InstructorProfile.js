@@ -41,16 +41,15 @@ const InstructorProfile = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [isUser, setIsUser] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
   const [newTime, setNewTime] = useState(null);
   const [time, setTime] = useState({monday: {start: '', end: ''}, 
-				    tuesday: {start: '', end: ''},
-		 		    wednesday: {start: '', end: ''},
-				    thursday: {start: '', end: ''},
-				    friday: {start: '', end: ''},
-				    saturday: {start: '', end: ''},
-				    sunday: {start: '', end: ''}});
-  
-  
+			    tuesday: {start: '', end: ''},
+	 		    wednesday: {start: '', end: ''},
+			    thursday: {start: '', end: ''},
+			    friday: {start: '', end: ''},
+			    saturday: {start: '', end: ''},
+			    sunday: {start: '', end: ''}});  
   const [selectedDays, setSelectedDays] = useState({
   monday: true,
   tuesday: true,
@@ -209,6 +208,7 @@ const InstructorProfile = () => {
       const decodedToken = jwtDecode(token);
       console.log("token",decodedToken.id)
       setIsUser(decodedToken.id === taData.user_id); //set logged in user for edit function on office hours
+      setCurrentUserRole(decodedToken.role); //set current user role for conditional rendering
       console.log("TA data: ", taData);
       setLoading(false);
     } catch (error) {
@@ -353,11 +353,8 @@ const InstructorProfile = () => {
     let uniqueTickets = [...new Map(validTicketDetails.map((ticket) => [ticket.ticket_id, ticket])).values()];
     //console.log("unique tickets:", ticketIds);
     
-    // temporary way of making students only view their own tickets -- change it to check authentication instead, like studentdash/studenttickets
+    // Filter tickets based on user role - students only see their own tickets
     const decodedToken = jwtDecode(token);
-    //console.log("token role:",decodedToken.role);
-
-    //console.log("rolecheck:", roleCheck);
     if (decodedToken.role === 'student') {
       uniqueTickets = uniqueTickets.filter(ticket => ticket.student_id === decodedToken.id);
     }
@@ -434,10 +431,28 @@ const InstructorProfile = () => {
           color: theme.palette.text.primary
         }}
       >
-        {TA?.name || ' '} Profile
+        {currentUserRole === "student" 
+          ? `${TA?.name || ''} - Teaching Assistant` 
+          : `${TA?.name || ''} Profile`}
       </Typography>
 
-      {/* ADD TICKET STATISTICS SECTION */}
+      {currentUserRole === "student" && (
+        <Typography
+          variant="subtitle1"
+          sx={{ 
+            fontSize: "1rem", 
+            textAlign: "center", 
+            color: theme.palette.text.secondary,
+            marginTop: -4,
+            marginBottom: 2
+          }}
+        >
+          Office hours, contact information, and your ticket status
+        </Typography>
+      )}
+
+      {/* CONDITIONAL TICKET STATISTICS SECTION - Hide detailed stats for students */}
+      {currentUserRole !== "student" && (
       <Box
         sx={{
           display: "flex",
@@ -560,9 +575,49 @@ const InstructorProfile = () => {
           tickets={filteredTickets}
           defaultView="grid"
           onOpenTicket={(ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`)}
-          header={<Typography variant="subtitle2">Assigned Tickets</Typography>}
+          header={<Typography variant="subtitle2">
+            {currentUserRole === "student" ? "Your Tickets with this TA" : "Assigned Tickets"}
+          </Typography>}
         />
       </Box>
+      )}
+
+      {/* SIMPLIFIED VIEW FOR STUDENTS - Show only their tickets */}
+      {currentUserRole === "student" && totalTickets > 0 && (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          p: 2.5,
+          borderRadius: 1,
+          flex: 1,
+          border: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: "bold",
+            color: theme.palette.text.primary,
+            display: "flex",
+            alignItems: "center",
+            gap: 1
+          }}
+        >
+          <ArticleIcon />
+          Your Tickets ({totalTickets})
+        </Typography>
+
+        <TicketsViewController
+          tickets={filteredTickets}
+          defaultView="grid"
+          onOpenTicket={(ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`)}
+          header={<Typography variant="subtitle2">Click on a ticket to view details</Typography>}
+        />
+      </Box>
+      )}
 
       {/*Schedule section*/}
       <Box

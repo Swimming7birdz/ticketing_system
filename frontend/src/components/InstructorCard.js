@@ -198,14 +198,14 @@ const InstructorCard = ({
       >
         <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <Typography variant="p" sx={{ fontWeight: "bold", color: "green" }}>
-              Open
+            <Typography variant="p" sx={{ fontWeight: "bold", color: "#D00505" }}>
+              New
             </Typography>
-            <Typography variant="p" sx={{ fontWeight: "bold", color: "red" }}>
-              Closed
+            <Typography variant="p" sx={{ fontWeight: "bold", color: "#1965D8" }}>
+              Ongoing
             </Typography>
-            <Typography variant="p" sx={{ fontWeight: "bold", color: "blue" }}>
-              Escalated
+            <Typography variant="p" sx={{ fontWeight: "bold", color: "#1C741F" }}>
+              Resolved
             </Typography>
           </div>
 

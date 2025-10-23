@@ -3,6 +3,8 @@ import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import InstructorCard from "../../components/InstructorCard";
+import StudentInstructorCard from "../../components/StudentInstructorCard";
+import { jwtDecode } from "jwt-decode";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const AllAssignees = () => {
@@ -12,8 +14,15 @@ const AllAssignees = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [taCounts, setTACounts] = useState({});
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
+    // Get user role from token
+    const token = Cookies.get("token");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setUserRole(decodedToken.role);
+    }
     fetchTAs();
   }, []);
 
@@ -51,71 +60,76 @@ const AllAssignees = () => {
   const fetchTACounts = async (tasData) => {
     try {
       const token = Cookies.get("token");
+      const decodedToken = jwtDecode(token);
+      const currentUserRole = decodedToken.role;
 
-      const assignmentsResponse = await fetch(
-        `${baseURL}/api/ticketassignments`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!assignmentsResponse.ok) {
-        throw new Error(
-          `Failed to fetch ticket assignments, status: ${assignmentsResponse.status}`
-        );
-      }
-
-      const assignments = await assignmentsResponse.json();
-
-      const ticketsResponse = await fetch(`${baseURL}/api/tickets`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!ticketsResponse.ok) {
-        throw new Error(
-          `Failed to fetch tickets, status: ${ticketsResponse.status}`
-        );
-      }
-
-      const tickets = await ticketsResponse.json();
-
+      // Use role-based ticket assignment endpoint for each TA
       const ticketCounts = {};
 
+      // Initialize counts for all TAs
       tasData.forEach((ta) => {
         ticketCounts[ta.user_id] = {
           name: ta.name,
           counts: { new: 0, ongoing: 0, resolved: 0 },
         };
-
-        const taAssignments = assignments.filter(
-          (assignment) => assignment.user_id === ta.user_id
-        );
-        // For each assignment, find the corresponding ticket and increment counts
-        taAssignments.forEach((assignment) => {
-          const ticket = tickets.find(
-            (t) => t.ticket_id === assignment.ticket_id
-          );
-
-          if (ticket) {
-            // Increment the status count
-            if (ticket.status === "new")
-              ticketCounts[ta.user_id].counts.new += 1;
-            else if (ticket.status === "ongoing")
-              ticketCounts[ta.user_id].counts.ongoing += 1;
-            else if (ticket.status === "resolved")
-              ticketCounts[ta.user_id].counts.resolved += 1;
-          }
-        });
       });
 
+      // Fetch assignments for each TA using the role-filtered endpoint
+      const countPromises = tasData.map(async (ta) => {
+        try {
+          const assignmentsResponse = await fetch(
+            `${baseURL}/api/ticketassignments/users/${ta.user_id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (assignmentsResponse.ok) {
+            const assignments = await assignmentsResponse.json();
+            
+            // Get ticket details for each assignment
+            const ticketPromises = assignments.map(async (assignment) => {
+              try {
+                const ticketResponse = await fetch(`${baseURL}/api/tickets/${assignment.ticket_id}`, {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+                
+                if (ticketResponse.ok) {
+                  return await ticketResponse.json();
+                }
+              } catch (err) {
+                console.error(`Error fetching ticket ${assignment.ticket_id}:`, err);
+              }
+              return null;
+            });
+
+            const tickets = (await Promise.all(ticketPromises)).filter(Boolean);
+            
+            // Count by status
+            tickets.forEach((ticket) => {
+              if (ticket.status === "new") {
+                ticketCounts[ta.user_id].counts.new += 1;
+              } else if (ticket.status === "ongoing") {
+                ticketCounts[ta.user_id].counts.ongoing += 1;
+              } else if (ticket.status === "resolved") {
+                ticketCounts[ta.user_id].counts.resolved += 1;
+              }
+            });
+          }
+        } catch (err) {
+          console.error(`Error fetching assignments for TA ${ta.user_id}:`, err);
+        }
+      });
+
+      await Promise.all(countPromises);
       setTACounts(ticketCounts);
     } catch (err) {
       console.error("Error fetching TA ticket counts:", err);
@@ -164,8 +178,21 @@ const AllAssignees = () => {
         variant="h1"
         sx={{ fontWeight: "bold", fontSize: "2rem", textAlign: "center" }}
       >
-        All Teaching Assistants (TAs)
+        {userRole === "student" ? "Teaching Assistants" : "All Teaching Assistants (TAs)"}
       </Typography>
+      {userRole === "student" && (
+        <Typography
+          variant="subtitle1"
+          sx={{ 
+            fontSize: "1rem", 
+            textAlign: "center", 
+            color: theme.palette.text.secondary,
+            marginTop: -4
+          }}
+        >
+          Find office hours and contact information for your course TAs
+        </Typography>
+      )}
       <div
         style={{
           display: "flex",
@@ -175,11 +202,12 @@ const AllAssignees = () => {
         }}
       >
         <TextField
-          label="Search TAs"
+          label={userRole === "student" ? "Search Teaching Assistants" : "Search TAs"}
           variant="outlined"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ width: "300px" }}
+          placeholder={userRole === "student" ? "Search by name..." : "Search TAs..."}
         />
         <Button
           variant="outlined"
@@ -192,7 +220,9 @@ const AllAssignees = () => {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+          gridTemplateColumns: userRole === "student" 
+            ? "repeat(auto-fill, minmax(280px, 1fr))" 
+            : "repeat(auto-fill, minmax(300px, 1fr))",
           gap: 2.5,
           maxHeight: "70vh",
           overflowY: "auto",
@@ -203,12 +233,20 @@ const AllAssignees = () => {
         }}
       >
         {filteredTAs.map((ta) => (
-          <InstructorCard
-            key={ta.user_id}
-            name={ta.name}
-            counts={taCounts[ta.user_id]?.counts || {new:0, ongoing:0, resolved:0}} 
-            userId={ta.user_id}
-          />
+          userRole === "student" ? (
+            <StudentInstructorCard
+              key={ta.user_id}
+              name={ta.name}
+              userId={ta.user_id}
+            />
+          ) : (
+            <InstructorCard
+              key={ta.user_id}
+              name={ta.name}
+              counts={taCounts[ta.user_id]?.counts || {new:0, ongoing:0, resolved:0}} 
+              userId={ta.user_id}
+            />
+          )
         ))}
       </Box>
     </Box>
