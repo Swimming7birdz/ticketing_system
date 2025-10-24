@@ -4,9 +4,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import PersonIcon from "@mui/icons-material/Person";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
-
-
 
 function stringAvatar(name) {
   if (!name || typeof name !== "string") {
@@ -47,31 +48,26 @@ function stringToColor(string) {
 
 const defaultProps = {
   name: "Unknown Name",
-  counts: {
-    new: -1,
-    ongoing: -1,
-    resolved: -1,
-  },
   userId: "1",
 };
 
-const InstructorCard = ({
+const StudentInstructorCard = ({
   name = defaultProps.name,
-  counts = defaultProps.counts,
   userId = defaultProps.userId,
 }) => {
   const theme = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [officeHours, setOfficeHours] = useState({
-    monday: {start: '12:00', end: '12:00'},
-    tuesday: {start: '12:00', end: '12:00'},
-    wednesday: {start: '12:00', end: '12:00'},
-    thursday: {start: '12:00', end: '12:00'},
-    friday: {start: '12:00', end: '12:00'},
-    saturday: {start: '12:00', end: '12:00'},
-    sunday: {start: '12:00', end: '12:00'}
+    monday: {start: '', end: ''},
+    tuesday: {start: '', end: ''},
+    wednesday: {start: '', end: ''},
+    thursday: {start: '', end: ''},
+    friday: {start: '', end: ''},
+    saturday: {start: '', end: ''},
+    sunday: {start: '', end: ''}
   });
+  const [isAvailable, setIsAvailable] = useState(false);
 
   let navigate = useNavigate();
 
@@ -93,10 +89,29 @@ const InstructorCard = ({
       
       if (response.ok && data.office_hours) {
         setOfficeHours(data.office_hours);
+        checkAvailability(data.office_hours);
       }
       
     } catch (err) {
       console.error("error fetching office hours:", err);
+    }
+  };
+
+  const checkAvailability = (hours) => {
+    const now = new Date();
+    const currentDay = now.toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+    
+    const todayHours = hours[currentDay];
+    if (todayHours && todayHours.start && todayHours.end) {
+      const [startHour, startMin] = todayHours.start.split(':').map(Number);
+      const [endHour, endMin] = todayHours.end.split(':').map(Number);
+      const startTime = startHour * 60 + startMin;
+      const endTime = endHour * 60 + endMin;
+      
+      if (currentTime >= startTime && currentTime <= endTime) {
+        setIsAvailable(true);
+      }
     }
   };
 
@@ -116,7 +131,7 @@ const InstructorCard = ({
     return '';
   }
 
-  const getActiveOfficeHours = () => {
+  function getAllOfficeHours() {
     const dayAbbreviations = {
       monday: 'Mon',
       tuesday: 'Tue', 
@@ -132,7 +147,7 @@ const InstructorCard = ({
     const activeHours = [];
     daysInOrder.forEach(day => {
       const hours = officeHours[day];
-      if (hours && hours.start && hours.end) {
+      if (hours && hours.start && hours.end && hours.start !== '' && hours.end !== '') {
         activeHours.push({
           day: dayAbbreviations[day],
           start: handleDisplayTime(hours.start),
@@ -141,8 +156,8 @@ const InstructorCard = ({
       }
     });
 
-    return activeHours; 
-  };
+    return activeHours;
+  }
 
   const onViewProfile = () => {
     navigate(`/instructorprofile?user=${userId}`)
@@ -170,7 +185,6 @@ const InstructorCard = ({
       console.error("Error fetching TA details:", error);
       setLoading(false);
     }
-
   };
 
   return (
@@ -185,27 +199,48 @@ const InstructorCard = ({
         flex: 1,
         gap: 1.25,
         width: "100%",
-        height: "300px",
+        height: "280px",
         overflow: "hidden",
         boxSizing: "border-box",
         border: 1,
         borderColor: theme.palette.divider,
+        position: "relative",
       }}
     >
+      {/* Availability Indicator */}
+      {isAvailable && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            backgroundColor: "#4caf50",
+            color: "white",
+            borderRadius: "12px",
+            padding: "4px 8px",
+            fontSize: "0.7rem",
+            fontWeight: "bold",
+          }}
+        >
+          Available Now
+        </Box>
+      )}
+
       {/* HEADER */}
       <div
         style={{
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <Avatar {...stringAvatar(name)} />
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <Avatar {...stringAvatar(name)} sx={{ width: 56, height: 56 }} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
           <Typography
-            variant="p"
+            variant="h6"
             sx={{
-              fontSize: "1rem",
+              fontSize: "1.1rem",
               color: theme.palette.text.primary,
               fontWeight: "bold",
               textAlign: "right",
@@ -214,128 +249,121 @@ const InstructorCard = ({
             {name}
           </Typography>
           <Typography
-            variant="p"
-            sx={{ fontSize: "0.8rem", color: "#212121", textAlign: "right" }}
+            variant="body2"
+            sx={{ 
+              fontSize: "0.8rem", 
+              color: theme.palette.text.secondary, 
+              textAlign: "right",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5
+            }}
           >
-            UGTA
+            <PersonIcon sx={{ fontSize: "0.9rem" }} />
+            Teaching Assistant
           </Typography>
         </div>
       </div>
 
+      {/* OFFICE HOURS SECTION */}
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          gap: 3,
+          flexDirection: "column",
+          gap: 1,
+          backgroundColor: theme.palette.background.default,
+          padding: 1.5,
+          borderRadius: 1,
           flex: 1,
           minHeight: 0, 
+          overflow: "hidden", 
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "row", gap: 1, minWidth: "fit-content" }}>
-          <Box sx={{ display: "flex", flexDirection: "column" }}>
-            <Typography variant="body2" sx={{ fontWeight: "bold", color: "#D00505", fontSize: "0.8rem" }}>
-              New
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: "bold", color: "#1965D8", fontSize: "0.8rem" }}>
-              Ongoing
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: "bold", color: "#1C741F", fontSize: "0.8rem" }}>
-              Resolved
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              textAlign: "right",
-              minWidth: "30px"
-            }}
-          >
-            <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>{counts.new}</Typography>
-            <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>{counts.ongoing}</Typography>
-            <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>{counts.resolved}</Typography>
-          </Box>
-        </Box>
-
-        <Box 
-          sx={{ 
-            display: "flex", 
-            flexDirection: "column",
-            minWidth: 0, 
-            flex: 1,
-            overflow: "hidden"
+        <Typography
+          variant="subtitle2"
+          sx={{
+            color: theme.palette.text.primary,
+            fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
           }}
         >
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              color: theme.palette.text.primary, 
-              fontSize: "0.85rem",
-              fontWeight: "bold",
-              marginBottom: 0.5
-            }}
-          >
-            Office Hours:
-          </Typography>
+          <AccessTimeIcon sx={{ fontSize: "1rem" }} />
+          Office Hours
+        </Typography>
+        
+        {getAllOfficeHours().length > 0 ? (
           <Box sx={{ 
-            maxHeight: "100px", 
-            overflowY: "auto",
             display: "flex",
             flexDirection: "column",
-            gap: 0.25
+            gap: 0.5,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto"
           }}>
-            {getActiveOfficeHours().length > 0 ? (
-              getActiveOfficeHours().map((hours, index) => (
-                <Typography 
-                  key={index}
-                  variant="body2" 
-                  sx={{ 
-                    color: theme.palette.text.secondary, 
-                    fontSize: "0.8rem",
-                    lineHeight: 1.3,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
-                  }}
-                >
-                  {hours.day}: {hours.start} - {hours.end}
-                </Typography>
-              ))
-            ) : (
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: theme.palette.text.disabled, 
-                  fontSize: "0.8rem",
-                  fontStyle: "italic"
+            {getAllOfficeHours().map((hours, index) => (
+              <Typography
+                key={index}
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontSize: "0.85rem",
+                  lineHeight: 1.3,
                 }}
               >
-                No hours set
+                {hours.day}: {hours.start} - {hours.end}
+              </Typography>
+            ))}
+            {isAvailable && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#4caf50",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  marginTop: 0.5
+                }}
+              >
+                Available now!
               </Typography>
             )}
           </Box>
-        </Box>
+        ) : (
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.text.disabled,
+              fontSize: "0.85rem",
+              fontStyle: "italic",
+            }}
+          >
+            No office hours scheduled
+          </Typography>
+        )}
       </Box>
 
+      {/* CONTACT BUTTON */}
       <Button
         variant="contained"
         disableElevation
         sx={{
           backgroundColor: theme.palette.primary.main,
           color: "white",
-          borderRadius: 999,
-          fontSize: "0.75rem",
-          width: "fit-content",
-          alignSelf: "flex-end",
+          borderRadius: "8px",
+          fontSize: "0.85rem",
+          fontWeight: "bold",
+          textTransform: "none",
+          padding: "8px 16px",
+          flexShrink: 0, 
+          marginTop: "auto", 
         }} 
-	onClick={onViewProfile} //need to grab TA's specific information
+        onClick={onViewProfile}
       >
-        View Profile
+        View Contact Info
       </Button>
     </Box>
   );
 };
 
-export default InstructorCard;
+export default StudentInstructorCard;
