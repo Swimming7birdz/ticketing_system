@@ -1,41 +1,55 @@
-require('dotenv').config();
-const nodemailer = require('nodemailer');
+const fetch = (...a) => import('node-fetch').then(({default: f}) => f(...a));
+const { ClientSecretCredential } = require('@azure/identity');
+const tenantId = process.env.MS_TENANT_ID;
+const clientId = process.env.MS_CLIENT_ID;
+const clientSecret = process.env.MS_CLIENT_SECRET;
+const senderEmail = process.env.EMAIL_USER;
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.office365.com',
-  port: 587,
-  secure: false, // Use tls
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    minVersion: 'TLSv1.2'
-  }
-});
+// Authenticate using client credentials (no user interaction)
+const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
+
+/**
+ * Send an email via Microsoft Graph API (application permission)
+ * @param {string} to - Recipient email address
+ * @param {string} subject - Email subject
+ * @param {string} text - Email body (plain text)
+ */
 const sendEmail = async (to, subject, text) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject,
-    text,
-  };
-
-  transporter.verify(function(error, success) {
-    if (error) {
-      console.error("SMTP connection failed:", error);
-    } else {
-      console.log("SMTP server is ready to take messages");
-    }
-  });
-
   try {
-    console.log('Attempting to send email...');
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent: ${info.response}`);
-  } catch (error) {
-    console.error(` Error sending email: ${error.message}`);
+        const tokenResponse = await credential.getToken('https://graph.microsoft.com/.default');
+
+      const message = {
+      message: {
+        subject,
+        body: {
+          contentType: 'Text',
+          content: text
+        },
+        toRecipients: [
+          { emailAddress: { address: to } }
+        ]
+      },
+      saveToSentItems: 'false'
+    };
+     const res = await fetch(`https://graph.microsoft.com/v1.0/users/${senderEmail}/sendMail`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Graph API error (${res.status}): ${errText}`);
+    }
+
+    console.log("Email successful");
+  } catch (err) {
+    console.error('Failed to send email:', err);
+    throw err;
   }
 };
 
