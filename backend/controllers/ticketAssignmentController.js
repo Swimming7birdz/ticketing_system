@@ -24,10 +24,35 @@ exports.getTicketAssignmentsByTicketId = async (req, res) => {
 
 exports.getTicketAssignmentsByUserId = async (req, res) => {
   try {
+    const requestedUserId = parseInt(req.params.user_id);
+    const requestingUserId = req.user.id;
+    const requestingUserRole = req.user.role;
+
+    // Get all ticket assignments for the requested TA
     const ticketAssignments = await TicketAssignment.findAll({
-      where: { user_id: req.params.user_id },
+      where: { user_id: requestedUserId },
     });
-    res.json(ticketAssignments);
+
+    let filteredAssignments = ticketAssignments;
+
+    // If a student is requesting, filter to only show assignments for tickets they created
+    if (requestingUserRole === 'student') {
+      // Get all tickets created by this student
+      const studentTickets = await Ticket.findAll({
+        where: { student_id: requestingUserId },
+        attributes: ['ticket_id']
+      });
+      
+      const studentTicketIds = studentTickets.map(ticket => ticket.ticket_id);
+      
+      // Filter assignments to only include tickets the student created
+      filteredAssignments = ticketAssignments.filter(assignment => 
+        studentTicketIds.includes(assignment.ticket_id)
+      );
+    }
+    
+    // TAs and Admins see all assignments (no filtering needed)
+    res.json(filteredAssignments);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -117,30 +117,46 @@ const StudentInstructorCard = ({
 
   function handleDisplayTime(time) {
     if (time) {
-      let hrs = time.split(':')[0], mins = time.split(':')[1];
-      if (hrs > 12){return (hrs - 12) + ':' + mins + ' PM';}
-      else if (hrs == 0) {return '12:' + mins + ' PM';}
-      else {return (time + ' AM');}
+      let hrs = parseInt(time.split(':')[0]), mins = time.split(':')[1];
+      if (hrs > 12) {
+        return (hrs - 12) + ':' + mins + ' PM';
+      } else if (hrs === 12) {
+        return '12:' + mins + ' PM';
+      } else if (hrs === 0) {
+        return '12:' + mins + ' AM';
+      } else {
+        return hrs + ':' + mins + ' AM';
+      }
     }
     return '';
   }
 
-  function getNextOfficeHours() {
-    const today = new Date();
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    
-    for (let i = 0; i < 7; i++) {
-      const checkDate = new Date(today);
-      checkDate.setDate(today.getDate() + i);
-      const dayName = days[checkDate.getDay()];
-      
-      const dayHours = officeHours[dayName];
-      if (dayHours && dayHours.start && dayHours.end) {
-        const dayLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : checkDate.toLocaleDateString('en-US', { weekday: 'long' });
-        return `${dayLabel}: ${handleDisplayTime(dayHours.start)} - ${handleDisplayTime(dayHours.end)}`;
+  function getAllOfficeHours() {
+    const dayAbbreviations = {
+      monday: 'Mon',
+      tuesday: 'Tue', 
+      wednesday: 'Wed',
+      thursday: 'Thu',
+      friday: 'Fri',
+      saturday: 'Sat',
+      sunday: 'Sun'
+    };
+
+    const daysInOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    const activeHours = [];
+    daysInOrder.forEach(day => {
+      const hours = officeHours[day];
+      if (hours && hours.start && hours.end && hours.start !== '' && hours.end !== '') {
+        activeHours.push({
+          day: dayAbbreviations[day],
+          start: handleDisplayTime(hours.start),
+          end: handleDisplayTime(hours.end)
+        });
       }
-    }
-    return 'No office hours scheduled';
+    });
+
+    return activeHours;
   }
 
   const onViewProfile = () => {
@@ -259,6 +275,8 @@ const StudentInstructorCard = ({
           padding: 1.5,
           borderRadius: 1,
           flex: 1,
+          minHeight: 0, 
+          overflow: "hidden", 
         }}
       >
         <Typography
@@ -272,31 +290,55 @@ const StudentInstructorCard = ({
           }}
         >
           <AccessTimeIcon sx={{ fontSize: "1rem" }} />
-          Next Office Hours
+          Office Hours
         </Typography>
         
-        <Typography
-          variant="body2"
-          sx={{
-            color: theme.palette.text.secondary,
-            fontSize: "0.9rem",
-            lineHeight: 1.4,
-          }}
-        >
-          {getNextOfficeHours()}
-        </Typography>
-
-        {/* Show today's hours if different from next */}
-        {!isAvailable && (
+        {getAllOfficeHours().length > 0 ? (
+          <Box sx={{ 
+            display: "flex",
+            flexDirection: "column",
+            gap: 0.5,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto"
+          }}>
+            {getAllOfficeHours().map((hours, index) => (
+              <Typography
+                key={index}
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontSize: "0.85rem",
+                  lineHeight: 1.3,
+                }}
+              >
+                {hours.day}: {hours.start} - {hours.end}
+              </Typography>
+            ))}
+            {isAvailable && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#4caf50",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  marginTop: 0.5
+                }}
+              >
+                Available now!
+              </Typography>
+            )}
+          </Box>
+        ) : (
           <Typography
             variant="body2"
             sx={{
               color: theme.palette.text.disabled,
-              fontSize: "0.8rem",
+              fontSize: "0.85rem",
               fontStyle: "italic",
             }}
           >
-            Currently unavailable
+            No office hours scheduled
           </Typography>
         )}
       </Box>
@@ -313,6 +355,8 @@ const StudentInstructorCard = ({
           fontWeight: "bold",
           textTransform: "none",
           padding: "8px 16px",
+          flexShrink: 0, 
+          marginTop: "auto", 
         }} 
         onClick={onViewProfile}
       >

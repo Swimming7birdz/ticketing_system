@@ -102,13 +102,47 @@ const InstructorCard = ({
 
   function handleDisplayTime(time) {
     if (time) {
-      let hrs = time.split(':')[0], mins = time.split(':')[1];
-      if (hrs > 12){return (hrs - 12) + ':' + mins + ' PM';}
-      else if (hrs == 0) {return '12:' + mins + ' PM';}
-      else {return (time + ' AM');}
+      let hrs = parseInt(time.split(':')[0]), mins = time.split(':')[1];
+      if (hrs > 12) {
+        return (hrs - 12) + ':' + mins + ' PM';
+      } else if (hrs === 12) {
+        return '12:' + mins + ' PM';
+      } else if (hrs === 0) {
+        return '12:' + mins + ' AM';
+      } else {
+        return hrs + ':' + mins + ' AM';
+      }
     }
     return '';
   }
+
+  const getActiveOfficeHours = () => {
+    const dayAbbreviations = {
+      monday: 'Mon',
+      tuesday: 'Tue', 
+      wednesday: 'Wed',
+      thursday: 'Thu',
+      friday: 'Fri',
+      saturday: 'Sat',
+      sunday: 'Sun'
+    };
+
+    const daysInOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    const activeHours = [];
+    daysInOrder.forEach(day => {
+      const hours = officeHours[day];
+      if (hours && hours.start && hours.end) {
+        activeHours.push({
+          day: dayAbbreviations[day],
+          start: handleDisplayTime(hours.start),
+          end: handleDisplayTime(hours.end)
+        });
+      }
+    });
+
+    return activeHours; 
+  };
 
   const onViewProfile = () => {
     navigate(`/instructorprofile?user=${userId}`)
@@ -188,64 +222,102 @@ const InstructorCard = ({
         </div>
       </div>
 
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
-          gap: 20,
+          gap: 3,
+          flex: 1,
+          minHeight: 0, 
         }}
       >
-        <div style={{ display: "flex", flexDirection: "row", gap: 10 }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <Typography variant="p" sx={{ fontWeight: "bold", color: "#D00505" }}>
+        <Box sx={{ display: "flex", flexDirection: "row", gap: 1, minWidth: "fit-content" }}>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Typography variant="body2" sx={{ fontWeight: "bold", color: "#D00505", fontSize: "0.8rem" }}>
               New
             </Typography>
-            <Typography variant="p" sx={{ fontWeight: "bold", color: "#1965D8" }}>
+            <Typography variant="body2" sx={{ fontWeight: "bold", color: "#1965D8", fontSize: "0.8rem" }}>
               Ongoing
             </Typography>
-            <Typography variant="p" sx={{ fontWeight: "bold", color: "#1C741F" }}>
+            <Typography variant="body2" sx={{ fontWeight: "bold", color: "#1C741F", fontSize: "0.8rem" }}>
               Resolved
             </Typography>
-          </div>
+          </Box>
 
-          <div
-            style={{
+          <Box
+            sx={{
               display: "flex",
               flexDirection: "column",
               textAlign: "right",
+              minWidth: "30px"
             }}
           >
-            <Typography variant="p">{counts.new}</Typography>
-            <Typography variant="p">{counts.ongoing}</Typography>
-            <Typography variant="p">{counts.resolved}</Typography>
-          </div>
-        </div>
+            <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>{counts.new}</Typography>
+            <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>{counts.ongoing}</Typography>
+            <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>{counts.resolved}</Typography>
+          </Box>
+        </Box>
 
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Monday: {handleDisplayTime(officeHours.monday.start)} - {handleDisplayTime(officeHours.monday.end)}
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: "column",
+            minWidth: 0, 
+            flex: 1,
+            overflow: "hidden"
+          }}
+        >
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: theme.palette.text.primary, 
+              fontSize: "0.85rem",
+              fontWeight: "bold",
+              marginBottom: 0.5
+            }}
+          >
+            Office Hours:
           </Typography>
-          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Tuesday: {handleDisplayTime(officeHours.tuesday.start)} - {handleDisplayTime(officeHours.tuesday.end)}
-          </Typography>
-          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Wednesday: {handleDisplayTime(officeHours.wednesday.start)} - {handleDisplayTime(officeHours.wednesday.end)}
-          </Typography>
-          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Thursday: {handleDisplayTime(officeHours.thursday.start)} - {handleDisplayTime(officeHours.thursday.end)}
-          </Typography>
-          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Friday: {handleDisplayTime(officeHours.friday.start)} - {handleDisplayTime(officeHours.friday.end)}
-          </Typography>
-          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Saturday: {handleDisplayTime(officeHours.saturday.start)} - {handleDisplayTime(officeHours.saturday.end)}
-          </Typography>
-          <Typography variant="p" sx={{ color: theme.palette.text.secondary, fontSize: "0.8rem" }}>
-            Sunday: {handleDisplayTime(officeHours.sunday.start)} - {handleDisplayTime(officeHours.sunday.end)}
-          </Typography>
-        </div>
-      </div>
+          <Box sx={{ 
+            maxHeight: "100px", 
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 0.25
+          }}>
+            {getActiveOfficeHours().length > 0 ? (
+              getActiveOfficeHours().map((hours, index) => (
+                <Typography 
+                  key={index}
+                  variant="body2" 
+                  sx={{ 
+                    color: theme.palette.text.secondary, 
+                    fontSize: "0.8rem",
+                    lineHeight: 1.3,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  {hours.day}: {hours.start} - {hours.end}
+                </Typography>
+              ))
+            ) : (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: theme.palette.text.disabled, 
+                  fontSize: "0.8rem",
+                  fontStyle: "italic"
+                }}
+              >
+                No hours set
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      </Box>
 
       <Button
         variant="contained"

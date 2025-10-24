@@ -51,13 +51,13 @@ const InstructorProfile = () => {
 			    saturday: {start: '', end: ''},
 			    sunday: {start: '', end: ''}});  
   const [selectedDays, setSelectedDays] = useState({
-  monday: true,
-  tuesday: true,
-  wednesday: true,
-  thursday: true,
-  friday: true,
-  saturday: true,
-  sunday: true,
+  monday: false,
+  tuesday: false,
+  wednesday: false,
+  thursday: false,
+  friday: false,
+  saturday: false,
+  sunday: false,
   });
   
   const location = useLocation();
@@ -111,7 +111,19 @@ const InstructorProfile = () => {
       console.log("response okay?: ", response.ok, "data?: ", data) 
       if (response.ok && data.office_hours) { // if ta is found in table and office_hours is not null
         setTime(data.office_hours);
-        console.log("fetched office hours:", time);
+        
+        // Update selectedDays based on fetched office hours
+        const updatedSelectedDays = {};
+        Object.keys(data.office_hours).forEach(day => {
+          const dayHours = data.office_hours[day];
+          // A day is selected if it has both start and end times set and they're not the default 12:00
+          updatedSelectedDays[day] = !!(dayHours.start && dayHours.end && 
+            !(dayHours.start === '12:00' && dayHours.end === '12:00'));
+        });
+        setSelectedDays(updatedSelectedDays);
+        
+        console.log("fetched office hours:", data.office_hours);
+        console.log("updated selected days:", updatedSelectedDays);
       }
       
     } catch (err) {
@@ -140,11 +152,16 @@ const InstructorProfile = () => {
 
     const result = await response.json();
     console.log('saved office hours', result);
+    
+    if (response.ok) {
+      await fetchOfficeHours();
+      setIsEditing(false);
+    } else {
+      console.error('Failed to save office hours:', result);
+    }
     } catch (error) {
       console.error('failed to save office hours', error);
     }
-    setTime(time)
-    setIsEditing(false);
   };
   const handleCloseClick = () => {
     // some way to set it back to previous information
@@ -168,10 +185,20 @@ const InstructorProfile = () => {
   }
   
   const handleDayChange = (day) => {
+    const isCurrentlySelected = selectedDays[day];
+    const newSelectedState = !isCurrentlySelected;
+    
     setSelectedDays((prevState) => ({
       ...prevState,
-      [day]: !prevState[day],
+      [day]: newSelectedState,
     }));
+    
+    if (isCurrentlySelected && !newSelectedState) {
+      setTime(prevTime => ({
+        ...prevTime,
+        [day]: { start: '', end: '' }
+      }));
+    }
   };
  
   const handleChange = (day, field, value) => {
@@ -538,7 +565,7 @@ const InstructorProfile = () => {
           </Button>
         </Box>
 
-        {/* ENHANCED FILTER DROPDOWN */}
+        {/*FILTER DROPDOWN */}
         <Menu
           anchorEl={filterAnchor}
           open={Boolean(filterAnchor)}
@@ -570,7 +597,7 @@ const InstructorProfile = () => {
           </MenuItem>
         </Menu>
 
-        {/* REPLACE TICKET GRID WITH TICKETSVIEWCONTROLLER */}
+        {/* TICKET SECTION */}
         <TicketsViewController
           tickets={filteredTickets}
           defaultView="grid"
