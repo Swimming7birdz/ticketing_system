@@ -8,6 +8,8 @@ import TableRow from "@mui/material/TableRow";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
+import DownloadTemplate from "../../services/downloadTemplate";
+import Stack from "@mui/material/Stack";
 
 import {
   Button,
@@ -708,7 +710,6 @@ const AdminSettings = () => {
           Student Data Bulk Upload
         </Typography>
 
-
         <Box
           {...getRootProps()}
           sx={{
@@ -739,6 +740,21 @@ const AdminSettings = () => {
             </Box>
           </Box>
         )}
+
+        <Box sx={{ mt: 5, p: 1 }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography 
+              variant="h7" 
+              sx={{ 
+                fontWeight: "bold",
+                color: theme.palette.text.primary
+              }}
+            >
+              Find template here:
+            </Typography>
+            <DownloadTemplate />
+          </Stack>
+        </Box>
 
       </Box>
       
