@@ -33,6 +33,7 @@ import {useNavigate} from "react-router-dom";
 import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
 import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
 import { verifyFileService } from "../../services/verifyfile";
+import { generateStudentUsers } from "../../services/generateStudentUsers";
 
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
@@ -332,18 +333,24 @@ const AdminSettings = () => {
 
   const handleUploadFiles = async () => {
     if (selectedFiles.length === 0) return;
-    // verify all files
     for (const f of selectedFiles) {
-      const result = await verifyFileService(f);
-      if (!result.valid) {
-        console.error("File verification failed:", result.errors);
-        alert("File validation errors:\n" + result.errors.join("\n"));
+      const verifyResult = await verifyFileService(f);
+      if (!verifyResult.valid) {
+        console.error("File verification failed:", verifyResult.errors);
+        alert("File validation errors:\n" + verifyResult.errors.join("\n"));
         return; // stop upload
+      } else {
+        const genResult = await generateStudentUsers(f);
+        if (!genResult.valid) {
+          console.error("User creation failed:", genResult.errors);
+          alert("User creation errors:\n" + genResult.errors.join("\n"));
+          return; // stop creation
+        }
       }
-      // result.rows contains parsed rows you can transform and send
     }
-    alert("All files verified successfully. Ready to upload.");
-    // proceed to build FormData and upload
+    alert("All users created successfully.");
+   
+    // create users 
   };
 
 
