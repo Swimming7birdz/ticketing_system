@@ -5,11 +5,6 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { useDropzone } from "react-dropzone";
-import DownloadTemplate from "../../services/downloadTemplate";
-import Stack from "@mui/material/Stack";
-
 import {
   Button,
   List,
@@ -32,8 +27,7 @@ import React, { useEffect, useState } from "react";
 import {useNavigate} from "react-router-dom";
 import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
 import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
-import { verifyFileService } from "../../services/verifyfile";
-import { generateStudentUsers } from "../../services/generateStudentUsers";
+
 
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
@@ -51,7 +45,8 @@ const AdminSettings = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { isDarkMode, themeMode, setTheme } = useCustomTheme();
-  const [selectedFiles, setSelectedFiles] = useState([]);
+//  const [selectedFiles, setSelectedFiles] = useState([]);
+
 
   useEffect(() => {
     fetchTeams();
@@ -303,7 +298,7 @@ const AdminSettings = () => {
     console.log("Delete TA Button Clicked");
     setSelectedTA(ta);
     setDeleteOpen(true);
-  }
+  };
 
   const deletePopupClose = () => {
     setDeleteOpen(false);
@@ -313,45 +308,46 @@ const AdminSettings = () => {
   const updateStatus = (status) => {
     console.log("This is the update status:", status)
     setDeleteStatus(status);
-  }
+  };
 
-  const onDrop = React.useCallback((acceptedFiles) => {
-    setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
-  }, []);
+  // const onDrop = React.useCallback((acceptedFiles) => {
+  //   setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
+  // }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "text/csv": [".csv"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
-    },
-    maxSize: 10 * 1024 * 1024, // 10MB
-  });
+  // const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  //   onDrop,
+  //   accept: {
+  //     "text/csv": [".csv"],
+  //     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+  //   },
+  //   maxSize: 10 * 1024 * 1024, // 10MB
+  // });
 
   //const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 
-  const handleUploadFiles = async () => {
-    if (selectedFiles.length === 0) return;
-    for (const f of selectedFiles) {
-      const verifyResult = await verifyFileService(f);
-      if (!verifyResult.valid) {
-        console.error("File verification failed:", verifyResult.errors);
-        alert("File validation errors:\n" + verifyResult.errors.join("\n"));
-        return; // stop upload
-      } else {
-        const genResult = await generateStudentUsers(f);
-        if (!genResult.valid) {
-          console.error("User creation failed:", genResult.errors);
-          alert("User creation errors:\n" + genResult.errors.join("\n"));
-          return; // stop creation
-        }
-      }
-    }
-    alert("All users created successfully.");
+  // const handleUploadFiles = async () => {
+  //   if (selectedFiles.length === 0) return;
+  //   for (const f of selectedFiles) {
+  //     const verifyResult = await verifyFileService(f);
+  //     if (!verifyResult.valid) {
+  //       console.error("File verification failed:", verifyResult.errors);
+  //       alert("File validation errors:\n" + verifyResult.errors.join("\n"));
+  //       return; // stop upload
+  //     } else {
+  //       const genResult = await generateStudentUsers(f);
+  //       if (!genResult.valid) {
+  //         console.error("User creation failed:", genResult.errors);
+  //         alert("User creation errors:\n" + genResult.errors.join("\n"));
+  //         return; // stop creation
+  //       }
+  //     }
+  //   }
+  //   alert("All users created successfully.");
    
-    // create users 
-  };
+  //   // create users 
+  // };
+
 
 
   return (
@@ -569,8 +565,6 @@ const AdminSettings = () => {
       />
     )}
 
-
-
         {/* <List className="scrollable-list">
           {tas.map((ta) => (
             <ListItem key={ta.user_id}>
@@ -616,29 +610,8 @@ const AdminSettings = () => {
         </Box>
       </Box>
 
-      {/* bulk upload */}
-       <Box
-        sx={{
-          marginBottom: 5,
-          backgroundColor: theme.palette.background.paper,
-          borderRadius: "10px",
-          border: `1px solid ${theme.palette.divider}`,
-          padding: 2.5,
-          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-         <Typography 
-          variant="h5" 
-          sx={{ 
-            marginBottom: 2.5, 
-            fontWeight: "bold",
-            color: theme.palette.text.primary
-          }}
-        >
-          Student Data Bulk Upload
-        </Typography>
-
-        <Box
+      
+        {/* <Box
           {...getRootProps()}
           sx={{
             border: `2px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
@@ -684,16 +657,28 @@ const AdminSettings = () => {
           </Stack>
         </Box>
 
-      </Box>
-      
+        <Box sx={{ mt: 2, p: 1 }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography 
+              variant="h7" 
+              sx={{ 
+                fontWeight: "bold",
+                color: theme.palette.text.primary
+              }}
+            >
+              Find template here:
+            </Typography>
+            <DownloadTemplate />
+          </Stack>
+        </Box> */}
       <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button 
-          variant="contained" 
-          onClick={() => navigate("/profile")}
-          sx={{ backgroundColor: theme.palette.primary.main }}
-        >
-          Go To Account Settings
-        </Button>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate("/profile")}
+            sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+            Go To Account Settings
+          </Button>
 
           <Button
               variant="contained"
@@ -702,10 +687,20 @@ const AdminSettings = () => {
           >
               Manage Students
           </Button>
-      </Box>
+
+          <Button
+              variant="contained"
+              onClick={() => navigate("/bulkupload")}
+              sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+              Data Upload
+          </Button>
+
+
+        </Box>
       </Box>
     </Box>
-  );
+    );
 };
 
 export default AdminSettings;
