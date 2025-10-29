@@ -383,8 +383,9 @@ const AdminSettings = () => {
             color: theme.palette.text.primary
           }}
         >
-          Teams
+          Teams Under development
         </Typography>
+        {/*need to add input for sponsor and instructor info when creating a team
         <List 
           sx={{
             maxHeight: "300px",
@@ -430,8 +431,9 @@ const AdminSettings = () => {
             Add Team
           </Button>
         </Box>
+      */}
       </Box>
-
+      
       {/* Teaching Assistants Section */}
       <Box
         sx={{
