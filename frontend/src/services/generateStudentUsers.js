@@ -2,40 +2,49 @@ import Cookies from "js-cookie";
 import Papa from "papaparse";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL; 
-const REQUIRED_HEADERS = ["name", "canvas_user_id", "user_id", "login_id", "sections", "group_name", "canvas_group_id", "sponsor"]; // adjust to your required columns
+const REQUIRED_HEADERS = [
+  "name", 
+  "canvas_user_id", 
+  "user_id", 
+  "login_id", 
+  "sections", 
+  "group_name", 
+  "canvas_group_id", 
+  "sponsor"
+];
 
+const addStudent = async (name, email, password) => { //will need to add more parameters
+  try {
+    const token = Cookies.get("token");
+    const response = await fetch(`${baseURL}/api/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email, //unique
+        password: password, //unique
+        role: "student",  
+      }),
+    });
 
-const createUser = async (name, email, password) => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: name,
-          email: email, //unique
-          password: password, //unique
-          role: "student",  
-        }),
-      });
+    const responseData = await response.json();
+    console.log(responseData)
 
-      const responseData = await response.json();
-      console.log(responseData)
-
-      if (!response.ok) {
-        return { success: false, error: `Account Creation Failed for ${name}: ${responseData?.message || response.statusText}` };
-      }
-
-      return { success: true, data: responseData };
-
-    } catch (error) {
-      console.error("An error occurred during registration:", error);
-       return { success: false, error: `Account Creation Failed for ${name}: ${error.message}` };
+    if (!response.ok) {
+      return { success: false, error: `Account Creation Failed for ${name}: ${responseData?.message || response.statusText}` };
     }
-  };
+
+    //also need to make student_data entry... another api
+    return { success: true, data: responseData };
+
+  } catch (error) {
+    console.error("An error occurred during registration:", error);
+      return { success: false, error: `Account Creation Failed for ${name}: ${error.message}` };
+  }  
+};
 
 const generateRandomPassword = (length = 6) => {
   const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -54,11 +63,11 @@ const createStudent = async (row) => {
     userData[k] = (row[k] ?? "").toString().trim();
   });
 
-  const email = `${userData.canvas_user_id}@asu.edu`;
+  const email = `${userData.login_id}@asu.edu`;
   const password = generateRandomPassword(6);
 
   // single awaited call only
-  const result = await createUser(userData.name, email, password);
+  const result = await addStudent(userData.name, email, password);
   return result;
 };
 

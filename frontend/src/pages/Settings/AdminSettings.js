@@ -45,7 +45,6 @@ const AdminSettings = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { isDarkMode, themeMode, setTheme } = useCustomTheme();
-//  const [selectedFiles, setSelectedFiles] = useState([]);
 
 
   useEffect(() => {
@@ -274,26 +273,6 @@ const AdminSettings = () => {
     }
   };
 
-  // const deleteTA = async (taId) => {
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.REACT_APP_API_BASE_URL}/api/users/${taId}`,
-  //       {
-  //         method: "DELETE",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     if (!response.ok) throw new Error("Failed to delete TA.");
-  //     fetchTAs(); // Refresh the list of TAs
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
   const handleDelete = (ta) => {
     console.log("Delete TA Button Clicked");
     setSelectedTA(ta);
@@ -309,45 +288,6 @@ const AdminSettings = () => {
     console.log("This is the update status:", status)
     setDeleteStatus(status);
   };
-
-  // const onDrop = React.useCallback((acceptedFiles) => {
-  //   setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
-  // }, []);
-
-  // const { getRootProps, getInputProps, isDragActive } = useDropzone({
-  //   onDrop,
-  //   accept: {
-  //     "text/csv": [".csv"],
-  //     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
-  //   },
-  //   maxSize: 10 * 1024 * 1024, // 10MB
-  // });
-
-  //const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-
-  // const handleUploadFiles = async () => {
-  //   if (selectedFiles.length === 0) return;
-  //   for (const f of selectedFiles) {
-  //     const verifyResult = await verifyFileService(f);
-  //     if (!verifyResult.valid) {
-  //       console.error("File verification failed:", verifyResult.errors);
-  //       alert("File validation errors:\n" + verifyResult.errors.join("\n"));
-  //       return; // stop upload
-  //     } else {
-  //       const genResult = await generateStudentUsers(f);
-  //       if (!genResult.valid) {
-  //         console.error("User creation failed:", genResult.errors);
-  //         alert("User creation errors:\n" + genResult.errors.join("\n"));
-  //         return; // stop creation
-  //       }
-  //     }
-  //   }
-  //   alert("All users created successfully.");
-   
-  //   // create users 
-  // };
-
 
 
   return (
@@ -610,67 +550,6 @@ const AdminSettings = () => {
         </Box>
       </Box>
 
-      
-        {/* <Box
-          {...getRootProps()}
-          sx={{
-            border: `2px dashed ${isDragActive ? theme.palette.primary.main : theme.palette.divider}`,
-            borderRadius: 1,
-            p: 3,
-            textAlign: "center",
-            cursor: "pointer",
-          }}
-        >
-          <input {...getInputProps()} />
-          <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
-          <Typography>Drop files here or click to select</Typography>
-          <Typography variant="caption">CSV, XLSX — max 10MB each</Typography>
-        </Box>
-
-        {selectedFiles.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            {selectedFiles.map((f, i) => (
-              <Box key={`${f.name}-${i}`} sx={{ display: "flex", justifyContent: "space-between", p: 1, border: `1px solid ${theme.palette.divider}`, borderRadius: 1, mb: 1 }}>
-                <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</Typography>
-                <Button size="small" onClick={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))}>Remove</Button>
-              </Box>
-            ))}
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button variant="contained" onClick={()=>handleUploadFiles()} >Upload Files</Button>
-              <Button variant="outlined" onClick={() => setSelectedFiles([])}>Clear</Button>
-            </Box>
-          </Box>
-        )}
-
-        <Box sx={{ mt: 5, p: 1 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography 
-              variant="h7" 
-              sx={{ 
-                fontWeight: "bold",
-                color: theme.palette.text.primary
-              }}
-            >
-              Find template here:
-            </Typography>
-            <DownloadTemplate />
-          </Stack>
-        </Box>
-
-        <Box sx={{ mt: 2, p: 1 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography 
-              variant="h7" 
-              sx={{ 
-                fontWeight: "bold",
-                color: theme.palette.text.primary
-              }}
-            >
-              Find template here:
-            </Typography>
-            <DownloadTemplate />
-          </Stack>
-        </Box> */}
       <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
           <Button 
             variant="contained" 
