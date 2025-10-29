@@ -11,21 +11,17 @@ const Team = sequelize.define("Team", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  instructor_user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   sponsor_name: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   sponsor_email: {
     type: DataTypes.STRING,
-    allowNull: false,
-  },
-  instructor_name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  instructor_email: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
 },{
   tableName: 'teams', // Ensure the table name is lowercase

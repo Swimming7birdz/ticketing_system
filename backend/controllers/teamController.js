@@ -22,6 +22,19 @@ exports.getTeamById = async (req, res) => {
   }
 };
 
+exports.getTeamByName = async (req, res) => {
+  try {
+    const team = await Team.findOne({ where: { team_name: req.params.team_name } });
+    if (team) {
+      res.json(team);
+    } else {
+      res.status(404).json({ error: "Team not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.createTeam = async (req, res) => {
   try {
     const team = await Team.create(req.body);

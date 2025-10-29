@@ -28,12 +28,6 @@ module.exports = {
           type: Sequelize.DATE,
           defaultValue: Sequelize.literal('NOW()'),
         },
-        acct_expiration: {
-          type: Sequelize.DATE,
-          allowNull: false,
-          defaultValue: Sequelize.literal("NOW() + INTERVAL '1 year'"), // Postgres
-          //defaultValue: Sequelize.literal("DATE_ADD(NOW(), INTERVAL 1 YEAR)"), // MySQL
-        },
       }, { transaction: t });
 
       // ensure one studentdata row per user (prevents duplicates)
