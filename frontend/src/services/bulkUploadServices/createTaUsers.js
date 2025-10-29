@@ -1,5 +1,6 @@
 import Cookies from "js-cookie"; 
 import Papa from "papaparse";
+import {generateRandomPassword} from "../generateRandomPass";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL; 
 const REQUIRED_HEADERS = [
@@ -74,18 +75,6 @@ const addTA  = async (name, email, password) => { //add paramaters
     console.error("An error occurred during registration:", error);
       return { success: false, error: `Account Creation Failed for ${name}: ${error.message}` };
   }  
-};
-
-
-const generateRandomPassword = (length = 6) => {
-  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const rnd = new Uint32Array(length);
-  if (typeof window !== "undefined" && window.crypto && window.crypto.getRandomValues) {
-    window.crypto.getRandomValues(rnd);
-  } else {
-    for (let i = 0; i < length; i++) rnd[i] = Math.floor(Math.random() * 2 ** 32);
-  }
-  return Array.from(rnd, (n) => charset[n % charset.length]).join("");
 };
 
 const createTAs = async (row) => {

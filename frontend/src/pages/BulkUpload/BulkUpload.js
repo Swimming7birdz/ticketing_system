@@ -1,7 +1,7 @@
 import React, {useState } from "react";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useDropzone } from "react-dropzone";
-import DownloadTemplate from "../../services/downloadTemplate";
+import DownloadTemplate from "../../services/bulkUploadServices/downloadTemplate";
 import Stack from "@mui/material/Stack";
 import {
     Button,
@@ -9,9 +9,10 @@ import {
     Box,
     IconButton,
 } from "@mui/material";
-import { verifyFileService } from "../../services/verifyfile";
-import { generateTAs } from "../../services/generateTaUsers";
-import { generateTeams } from "../../services/generateTeams";
+import { verifyFileService } from "../../services/bulkUploadServices/verifyFile";
+import { generateTAs } from "../../services/bulkUploadServices/createTaUsers";
+import { generateTeams } from "../../services/bulkUploadServices/createTeams";
+import { generateStudentUsers } from "../../services/bulkUploadServices/createStudentUsers";
 import { useTheme } from "@mui/material/styles";
 import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
 import {useNavigate} from "react-router-dom";
@@ -57,7 +58,7 @@ const BulkUpload = () => {
     });
 
     const handleUploadFiles = async () => {
-        if (!studentFile && !projectFile) {
+        if (!studentFile || !projectFile) {
             alert("Please select both files to upload.");
             return;
         }
@@ -94,12 +95,12 @@ const BulkUpload = () => {
                     return;
                 }
         
-                // const genResult = await generateStudentUsers(studentFile);
-                //     if (!genResult.valid) {
-                //         console.error("User creation failed:", genResult.errors);
-                //         alert("Student user creation errors:\n" + genResult.errors.join("\n"));
-                //         return;
-                // }
+                const genResult = await generateStudentUsers(studentFile);
+                    if (!genResult.valid) {
+                        console.error("User creation failed:", genResult.errors);
+                        alert("Student user creation errors:\n" + genResult.errors.join("\n"));
+                        return;
+                }
             }
             
             alert("Files processed successfully.");

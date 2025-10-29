@@ -4,6 +4,7 @@ const sequelize = require("../config/db");
 const StudentData = sequelize.define("StudentData", {
     user_id: {
         type: DataTypes.INTEGER,
+        primaryKey: true,
         allowNull: false,
         references: { model: 'users', key: 'user_id' },
         onDelete: 'CASCADE',
