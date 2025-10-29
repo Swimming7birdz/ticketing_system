@@ -10,7 +10,7 @@ import {
     IconButton,
 } from "@mui/material";
 import { verifyFileService } from "../../services/verifyfile";
-import { generateStudentUsers } from "../../services/generateStudentUsers";
+import { generateTAs } from "../../services/generateTaUsers";
 import { generateTeams } from "../../services/generateTeams";
 import { useTheme } from "@mui/material/styles";
 import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
@@ -57,7 +57,7 @@ const BulkUpload = () => {
     });
 
     const handleUploadFiles = async () => {
-        if (!studentFile || !projectFile) {
+        if (!studentFile && !projectFile) {
             alert("Please select both files to upload.");
             return;
         }
@@ -71,12 +71,19 @@ const BulkUpload = () => {
                     return;
                 }
 
-                // const genResult = await generateTeams(projectFile);
-                //     if (!genResult.valid) {
-                //         console.error("Team creation failed:", genResult.errors);
-                //         alert("Team creation errors:\n" + genResult.errors.join("\n"));
-                //         return;
-                // }
+                const genTaResult = await generateTAs(projectFile);
+                    if (!genTaResult.valid) {("TA creation failed:", genTaResult.errors);
+                        alert("TA creation errors:\n" + genTaResult.errors.join("\n"));
+                        return;
+                }
+                
+                const genTeamResult = await generateTeams(projectFile);
+                    if (!genTeamResult.valid) {
+                        console.error("Team creation failed:", genTeamResult.errors);
+                        alert("Team creation errors:\n" + genTeamResult.errors.join("\n"));
+                        return;
+                }
+
             }
             
             if (studentFile) {
