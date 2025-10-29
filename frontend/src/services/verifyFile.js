@@ -1,7 +1,16 @@
 import Papa from "papaparse";
 
-const REQUIRED_HEADERS = ["name", "canvas_user_id", "user_id", "login_id", "sections", "group_name", "canvas_group_id", "sponsor"]; // adjust to your required columns
-const SCHEMA = {
+const REQUIRED_HEADERS_STUDENT = [
+  "name", 
+  "canvas_user_id", 
+  "user_id", 
+  "login_id", 
+  "sections", 
+  "group_name", 
+  "canvas_group_id", 
+  "sponsor"
+];
+const SCHEMA_STUDENT = {
     name: "string",
     canvas_user_id: "number",
     user_id: "number",
@@ -12,7 +21,23 @@ const SCHEMA = {
     sponsor: "string",
 };
 
-const validateCell = (key, value) => {
+const REQUIRED_HEADERS_PROJECT = [
+  "project", 
+  "sponsor", 
+  "sponsor email", 
+  "instructor", 
+  "instructor email"
+]
+; 
+const SCHEMA_PROJECT= {
+    project: "string",
+    sponsor: "string",
+    sponsor_email: "string",
+    instructor: "string",
+    instructor_email: "string"
+};
+
+const validateCell = (key, value, SCHEMA) => {
     //console.log('validateCell called', { key, raw: JSON.stringify(value), typeof: typeof value });
 
     if (value == null) return `${key} is missing`;
@@ -31,9 +56,20 @@ const validateCell = (key, value) => {
 };
 
 
-export const verifyFileService = (file) => {
-    return new Promise((resolve) => {
+export const verifyFileService = (file, f_type) => {
+  return new Promise((resolve) => {
     if (!file) return resolve({ valid: false, errors: ["No file provided"], rows: [] });
+
+    var REQUIRED_HEADERS, SCHEMA;
+    if (f_type === 'student') {
+        REQUIRED_HEADERS = REQUIRED_HEADERS_STUDENT;
+        SCHEMA = SCHEMA_STUDENT;
+    } else if (f_type === 'project') {
+        REQUIRED_HEADERS = REQUIRED_HEADERS_PROJECT;
+        SCHEMA = SCHEMA_PROJECT;
+    } else {
+        return resolve({ valid: false, errors: ["Invalid file type specified"], rows: [] });
+    }
 
     const name = file.name?.toLowerCase?.() || "";
     if (!name.endsWith(".csv")) {
@@ -67,7 +103,7 @@ export const verifyFileService = (file) => {
           
           REQUIRED_HEADERS.forEach((key) => {
             //console.log('DEBUG:', key, JSON.stringify(row[key]));
-            const err = validateCell(key, row[key] ?? '');
+            const err = validateCell(key, row[key] ?? '', SCHEMA);
             if (err) errors.push(`Row ${idx + 2}: ${err}`);
           });
         });

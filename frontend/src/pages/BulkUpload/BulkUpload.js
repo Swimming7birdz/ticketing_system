@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { verifyFileService } from "../../services/verifyfile";
 import { generateStudentUsers } from "../../services/generateStudentUsers";
+import { generateTeams } from "../../services/generateTeams";
 import { useTheme } from "@mui/material/styles";
 import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
 import {useNavigate} from "react-router-dom";
@@ -18,13 +19,13 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
 const BulkUpload = () => {
     const [studentFile, setStudentFile] = useState(null);
-    const [instructorFile, setInstructorFile] = useState(null);
+    const [projectFile, setProjectFile] = useState(null);
     const navigate = useNavigate();
     const theme = useTheme();
     const { isDarkMode, themeMode, setTheme } = useCustomTheme();
 
     const handleBack = () => {
-        navigate(-1); // Navigates to the previous page in history
+        navigate(-1); 
     };
 
     const onDropStudent = React.useCallback((acceptedFiles) => {
@@ -32,7 +33,7 @@ const BulkUpload = () => {
     }, []);
 
     const onDropInstructor = React.useCallback((acceptedFiles) => {
-        setInstructorFile(acceptedFiles && acceptedFiles.length ? acceptedFiles[0] : null);
+        setProjectFile(acceptedFiles && acceptedFiles.length ? acceptedFiles[0] : null);
     }, []);
 
     const studentDrop = useDropzone({
@@ -56,41 +57,47 @@ const BulkUpload = () => {
     });
 
     const handleUploadFiles = async () => {
-        // ensure at least one file is selected
-        if (!studentFile && !instructorFile) return;
-    
+        if (!studentFile || !projectFile) {
+            alert("Please select both files to upload.");
+            return;
+        }
+        
         try {
+            if (projectFile) {
+                const verifyResult = await verifyFileService(projectFile, "project");
+                if (!verifyResult.valid) {
+                    console.error("Project file verification failed:", verifyResult.errors);
+                    alert("Project file validation errors:\n" + verifyResult.errors.join("\n"));
+                    return;
+                }
+
+                // const genResult = await generateTeams(projectFile);
+                //     if (!genResult.valid) {
+                //         console.error("Team creation failed:", genResult.errors);
+                //         alert("Team creation errors:\n" + genResult.errors.join("\n"));
+                //         return;
+                // }
+            }
+            
             if (studentFile) {
-            const verifyResult = await verifyFileService(studentFile);
-            if (!verifyResult.valid) {
-                console.error("Student file verification failed:", verifyResult.errors);
-                alert("Student file validation errors:\n" + verifyResult.errors.join("\n"));
-                return;
+                const verifyResult = await verifyFileService(studentFile, "student");
+                if (!verifyResult.valid) {
+                    console.error("Student file verification failed:", verifyResult.errors);
+                    alert("Student file validation errors:\n" + verifyResult.errors.join("\n"));
+                    return;
+                }
+        
+                // const genResult = await generateStudentUsers(studentFile);
+                //     if (!genResult.valid) {
+                //         console.error("User creation failed:", genResult.errors);
+                //         alert("Student user creation errors:\n" + genResult.errors.join("\n"));
+                //         return;
+                // }
             }
-    
-            const genResult = await generateStudentUsers(studentFile);
-            if (!genResult.valid) {
-                console.error("User creation failed:", genResult.errors);
-                alert("Student user creation errors:\n" + genResult.errors.join("\n"));
-                return;
-            }
-            }
-    
-            if (instructorFile) {
-            const verifyResult = await verifyFileService(instructorFile);
-            if (!verifyResult.valid) {
-                console.error("Instructor file verification failed:", verifyResult.errors);
-                alert("Instructor file validation errors:\n" + verifyResult.errors.join("\n"));
-                return;
-            }
-    
-            // TODO: process instructor file (create instructor users / import)
-            console.log("Instructor file verified, add processing here.");
-            }
-    
-        alert("Files processed successfully.");
+            
+            alert("Files processed successfully.");
             setStudentFile(null);
-            setInstructorFile(null);
+            setProjectFile(null);
         } catch (err) {
             console.error("Upload failed:", err);
             alert("Upload failed: " + err.message);
@@ -129,11 +136,76 @@ const BulkUpload = () => {
                             textAlign: "center",
                             fontWeight: "bold",
                             color: theme.palette.text.primary,
-                            flexGrow: 1, // Allows the title to take the remaining space
+                            flexGrow: 1,
                         }}
                     >
                         Data Bulk Upload
                     </Typography>
+                </Box>
+
+                {/* Projects CSV dropzone */}
+                <Box
+                    sx={{
+                    marginBottom: 5,
+                    backgroundColor: (theme) => theme.palette.background.paper,
+                    borderRadius: "10px",
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                    padding: 2.5,
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                    }}
+                >
+                     <Typography 
+                        variant="h5" 
+                        sx={{ 
+                            marginBottom: 2.5, 
+                            fontWeight: "bold",
+                            color: (theme) => theme.palette.text.primary
+                        }}
+                        >
+                        Projects file
+                    </Typography>
+
+
+                    <Box
+                    {...instructorDrop.getRootProps()}
+                    sx={{
+                        mt: 2,
+                        border: (theme) => `2px dashed ${projectFile ? theme.palette.primary.main : theme.palette.divider}`,
+                        borderRadius: 1,
+                        p: 3,
+                        textAlign: "center",
+                        cursor: "pointer",
+                    }}
+                    >
+                    <input {...instructorDrop.getInputProps()} />
+                    <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
+                    <Typography>Drop Project CSV here or click to select</Typography>
+                    <Typography variant="caption">CSV, XLSX — max 10MB</Typography>
+                    </Box>
+
+                    {projectFile && (
+                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", p: 1, border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
+                        <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectFile.name}</Typography>
+                        <Box>
+                        <Button size="small" onClick={() => setProjectFile(null)}>Remove</Button>
+                        </Box>
+                    </Box>
+                    )}
+
+                    <Box sx={{ mt: 2, p: 1 }}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                        <Typography 
+                            variant="h7" 
+                            sx={{ 
+                            fontWeight: "bold",
+                            color: theme.palette.text.primary
+                            }}
+                        >
+                            Find project template here:
+                        </Typography>
+                        <DownloadTemplate />
+                        </Stack>
+                    </Box> 
                 </Box>
 
 
@@ -195,7 +267,7 @@ const BulkUpload = () => {
                             color: theme.palette.text.primary
                             }}
                         >
-                            Find template here:
+                            Find student template here:
                         </Typography>
                         <DownloadTemplate />
                         </Stack>
@@ -203,74 +275,10 @@ const BulkUpload = () => {
 
                 </Box>
 
-                <Box
-                    sx={{
-                    marginBottom: 5,
-                    backgroundColor: (theme) => theme.palette.background.paper,
-                    borderRadius: "10px",
-                    border: (theme) => `1px solid ${theme.palette.divider}`,
-                    padding: 2.5,
-                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                    }}
-                >
-                    {/* Instructor CSV dropzone */}
-                     <Typography 
-                        variant="h5" 
-                        sx={{ 
-                            marginBottom: 2.5, 
-                            fontWeight: "bold",
-                            color: (theme) => theme.palette.text.primary
-                        }}
-                        >
-                        Instructor-Sponsors file
-                    </Typography>
-
-
-                    <Box
-                    {...instructorDrop.getRootProps()}
-                    sx={{
-                        mt: 2,
-                        border: (theme) => `2px dashed ${instructorFile ? theme.palette.primary.main : theme.palette.divider}`,
-                        borderRadius: 1,
-                        p: 3,
-                        textAlign: "center",
-                        cursor: "pointer",
-                    }}
-                    >
-                    <input {...instructorDrop.getInputProps()} />
-                    <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
-                    <Typography>Drop Instructor CSV here or click to select</Typography>
-                    <Typography variant="caption">CSV, XLSX — max 10MB</Typography>
-                    </Box>
-
-                    {instructorFile && (
-                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", p: 1, border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
-                        <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{instructorFile.name}</Typography>
-                        <Box>
-                        <Button size="small" onClick={() => setInstructorFile(null)}>Remove</Button>
-                        </Box>
-                    </Box>
-                    )}
-
-                    <Box sx={{ mt: 2, p: 1 }}>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                        <Typography 
-                            variant="h7" 
-                            sx={{ 
-                            fontWeight: "bold",
-                            color: theme.palette.text.primary
-                            }}
-                        >
-                            Find template here:
-                        </Typography>
-                        <DownloadTemplate />
-                        </Stack>
-                    </Box> 
-                </Box>
 
                 <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
                     <Button variant="contained" onClick={() => handleUploadFiles()} >Upload Files</Button>
-                    <Button variant="outlined" onClick={() => { setStudentFile(null); setInstructorFile(null); }}>Clear</Button>
+                    <Button variant="outlined" onClick={() => { setStudentFile(null); setProjectFile(null); }}>Clear</Button>
                 </Box>
 
             </Box>
