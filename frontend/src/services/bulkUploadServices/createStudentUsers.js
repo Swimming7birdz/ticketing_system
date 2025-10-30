@@ -14,7 +14,7 @@ const REQUIRED_HEADERS = [
   "sponsor"
 ];
 
-
+//TO-DO: put this in its own file?
 const checkUserExistsByEmail = async (email) => {
   try {
     const token = Cookies.get("token");
@@ -43,7 +43,7 @@ const checkUserExistsByEmail = async (email) => {
   }
 };
 
-
+//TO-DO: migrate team to make team_name unique? 
 const getTeam = async (name) => {
   try {
     const token = Cookies.get("token");
@@ -56,7 +56,7 @@ const getTeam = async (name) => {
     });
 
     const responseData = await response.json();
-    console.log(responseData);
+    //console.log(responseData);
 
     if (response.ok) {
         return { success: true, data: responseData.team_id };
@@ -73,6 +73,7 @@ const getTeam = async (name) => {
 const addStudent = async (name, email, password, section, team_id) => {
   try {
     const token = Cookies.get("token");
+    //create user account for student
     const responseUser = await fetch(`${baseURL}/api/auth/register`, {
       method: "POST",
       headers: {
@@ -95,8 +96,9 @@ const addStudent = async (name, email, password, section, team_id) => {
     }
 
     const { user_id } = responseUserData;
-    console.log("Creating user with ID:", user_id, team_id, section);
-    //also need to make student_data entry... another api
+    //console.log("Creating user with ID:", user_id, team_id, section);
+
+    //now create student data based on new student user
     const responseStudentData = await fetch(`${baseURL}/api/studentdata/`, {
       method: "POST",
       headers: {
@@ -132,12 +134,14 @@ const createStudent = async (row) => {
   });
 
   const email = `${userData.login_id}@asu.edu`;;
-  if (!email) return { success: false, error: "Missing instructor_email" };
+  if (!email) return { success: false, error: "Missing email" };
 
   const exists = await checkUserExistsByEmail(email);
   
   if (exists.error) return { success: false, error: `Email check failed: ${exists.error}` };
   if (exists.exists) return { success: true, exists: true, data: exists.data };
+  //TO-DO: notify user if student already exists?
+
   //console.log(exists)
 
   const name = (userData.name ?? "").replace(/,/g, "").trim();
@@ -145,8 +149,9 @@ const createStudent = async (row) => {
   const section = userData.sections;
   const team_id = await getTeam(userData.group_name);
 
-  // single awaited call only
+  //TO-DO: add entry to teammembers table?
   const result = await addStudent(name, email, password, section, team_id.data);
+  //TO-DO: email student with reset link?
   return result;
 };
 
@@ -163,9 +168,9 @@ export const generateStudentUsers = (file) => {
           transformHeader: (h) => h.trim(),
           transform: (value) => value.trim(),
           complete: (results) => {
+            //console.log("Parsed data:", results.data);
             const rows = results.data || [];
-            // create all users in parallel and wait for all results
-            const createPromises = rows.map((row) => createStudent(row));
+            const createPromises = rows.map((row) => createStudent(row)); // create all users in parallel and wait for all results
             Promise.all(createPromises)
               .then((results) => {
                 const errors = results

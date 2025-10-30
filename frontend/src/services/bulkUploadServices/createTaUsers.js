@@ -95,6 +95,7 @@ const createTAs = async (row) => {
 
         const password = generateRandomPassword();
         const result = await addTA(userData.instructor, email, password);
+        //TO-DO: email TA with reset link?
 
         // treat unique-constraint responses as "already exists"
         if (!result.success && result.error && /duplicate|already exists|unique/i.test(result.error)) {
@@ -126,7 +127,7 @@ export const generateTAs = (file) => {
                 .replace(/[^\w_]/g, ""),    // remove other punctuation
             transform: (value) => (typeof value === "string" ? value.trim() : value),
               complete: (results) => {
-                console.log("Parsed data:", results.data);
+                //console.log("Parsed data:", results.data);
                 const rows = results.data || [];
                 // create all users in parallel and wait for all results
                 const createPromises = rows.map((row) => createTAs(row));

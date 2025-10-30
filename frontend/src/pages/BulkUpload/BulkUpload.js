@@ -173,33 +173,6 @@ const BulkUpload = () => {
                         Projects file
                     </Typography>
 
-
-                    <Box
-                    {...instructorDrop.getRootProps()}
-                    sx={{
-                        mt: 2,
-                        border: (theme) => `2px dashed ${projectFile ? theme.palette.primary.main : theme.palette.divider}`,
-                        borderRadius: 1,
-                        p: 3,
-                        textAlign: "center",
-                        cursor: "pointer",
-                    }}
-                    >
-                    <input {...instructorDrop.getInputProps()} />
-                    <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
-                    <Typography>Drop Project CSV here or click to select</Typography>
-                    <Typography variant="caption">CSV, XLSX — max 10MB</Typography>
-                    </Box>
-
-                    {projectFile && (
-                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", p: 1, border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
-                        <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectFile.name}</Typography>
-                        <Box>
-                        <Button size="small" onClick={() => setProjectFile(null)}>Remove</Button>
-                        </Box>
-                    </Box>
-                    )}
-
                     <Box sx={{ mt: 2, p: 1 }}>
                         <Stack direction="row" spacing={2} alignItems="center">
                         <Typography 
@@ -211,9 +184,36 @@ const BulkUpload = () => {
                         >
                             Find project template here:
                         </Typography>
-                        <DownloadTemplate />
+                        <DownloadTemplate ftype={"project"} />
                         </Stack>
                     </Box> 
+
+
+                    <Box
+                        {...instructorDrop.getRootProps()}
+                        sx={{
+                            mt: 2,
+                            border: (theme) => `2px dashed ${projectFile ? theme.palette.primary.main : theme.palette.divider}`,
+                            borderRadius: 1,
+                            p: 3,
+                            textAlign: "center",
+                            cursor: "pointer",
+                        }}
+                        >
+                        <input {...instructorDrop.getInputProps()} />
+                        <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
+                        <Typography>Drop Project CSV here or click to select</Typography>
+                        <Typography variant="caption">CSV, XLSX — max 10MB</Typography>
+                    </Box>
+
+                    {projectFile && (
+                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", p: 1, border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
+                        <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectFile.name}</Typography>
+                        <Box>
+                        <Button size="small" onClick={() => setProjectFile(null)}>Remove</Button>
+                        </Box>
+                    </Box>
+                    )}
                 </Box>
 
 
@@ -239,33 +239,6 @@ const BulkUpload = () => {
                     Students file
                     </Typography>
 
-   
-                    <Box
-                    {...studentDrop.getRootProps()}
-                    sx={{
-                        mt: 2,
-                        border: (theme) => `2px dashed ${studentFile ? theme.palette.primary.main : theme.palette.divider}`,
-                        borderRadius: 1,
-                        p: 3,
-                        textAlign: "center",
-                        cursor: "pointer",
-                    }}
-                    >
-                    <input {...studentDrop.getInputProps()} />
-                    <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
-                    <Typography>Drop Student CSV here or click to select</Typography>
-                    <Typography variant="caption">CSV, XLSX — max 10MB</Typography>
-                    </Box>
-
-                    {studentFile && (
-                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", p: 1, border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
-                        <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{studentFile.name}</Typography>
-                        <Box>
-                        <Button size="small" onClick={() => setStudentFile(null)}>Remove</Button>
-                        </Box>
-                    </Box>
-                    )}
-
                     <Box sx={{ mt: 2, p: 1 }}>
                         <Stack direction="row" spacing={2} alignItems="center">
                         <Typography 
@@ -277,9 +250,36 @@ const BulkUpload = () => {
                         >
                             Find student template here:
                         </Typography>
-                        <DownloadTemplate />
+                        <DownloadTemplate ftype={"student"}/>
                         </Stack>
                     </Box> 
+
+   
+                    <Box
+                        {...studentDrop.getRootProps()}
+                        sx={{
+                            mt: 2,
+                            border: (theme) => `2px dashed ${studentFile ? theme.palette.primary.main : theme.palette.divider}`,
+                            borderRadius: 1,
+                            p: 3,
+                            textAlign: "center",
+                            cursor: "pointer",
+                        }}
+                        >
+                        <input {...studentDrop.getInputProps()} />
+                        <UploadFileIcon fontSize="large" sx={{ mb: 1 }} />
+                        <Typography>Drop Student CSV here or click to select</Typography>
+                        <Typography variant="caption">CSV, XLSX — max 10MB</Typography>
+                    </Box>
+
+                    {studentFile && (
+                    <Box sx={{ mt: 1, display: "flex", justifyContent: "space-between", p: 1, border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
+                        <Typography sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{studentFile.name}</Typography>
+                        <Box>
+                        <Button size="small" onClick={() => setStudentFile(null)}>Remove</Button>
+                        </Box>
+                    </Box>
+                    )}
 
                 </Box>
 

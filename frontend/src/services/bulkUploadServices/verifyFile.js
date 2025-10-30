@@ -83,13 +83,14 @@ export const verifyFileService = (file, f_type) => {
       escapeChar: '"',        
       delimiter: ',',         
       encoding: "UTF-8",
-      newline: "\r\n",
+      newline: "\n",
       transformHeader: (h) => h.trim(),
       transform: (value) => value.trim(),
       complete: (results) => {
           console.log("Parsed data:", results.data);
         const errors = [];
         const headers = results.meta.fields || [];
+        console.log("Parsed headers:", headers);
 
         const missingHeaders = REQUIRED_HEADERS.filter(
           (h) => !headers.map(x => x.toLowerCase()).includes(h.toLowerCase())
