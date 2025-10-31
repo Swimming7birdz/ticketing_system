@@ -30,21 +30,33 @@ const apiFetch = async (url, method = "GET", body = null) => {
   return response.json();
 };
 
-// Fetch all tickets
-export const fetchAllTickets = async () => {
-  const url = `${baseURL}/api/tickets`;
+// Fetch all tickets with pagination
+export const fetchAllTickets = async (page = 1, limit = 10, filters = {}) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...filters
+  });
+  
+  const url = `${baseURL}/api/tickets?${params}`;
   return apiFetch(url);
 };
 
-// Fetch tickets by user ID
-export const fetchTicketsByUserId = async () => {
+// Fetch tickets by user ID with pagination
+export const fetchTicketsByUserId = async (page = 1, limit = 10, filters = {}) => {
   const token = Cookies.get("token");
   if (!token) throw new Error("No token found");
 
   const decodedToken = jwtDecode(token);
   const userId = decodedToken.id; // Extract user ID from JWT
 
-  const url = `${baseURL}/api/tickets/user/${userId}`;
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...filters
+  });
+
+  const url = `${baseURL}/api/tickets/user/${userId}?${params}`;
   return apiFetch(url);
 };
 

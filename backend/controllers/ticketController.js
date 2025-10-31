@@ -4,12 +4,103 @@ const Team = require("../models/Team");
 const Communication = require("../models/Communication"); 
 const sendEmail = require('../services/emailService');
 const TicketAssignment = require("../models/TicketAssignment");
+const { Op } = require("sequelize");
 
 exports.getAllTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.findAll();
-	
-    res.json(tickets);
+    // Extract pagination parameters from query string
+    const { 
+      page = 1, 
+      limit = 10, 
+      status, 
+      priority, 
+      team_id,
+      assigned_to 
+    } = req.query;
+
+    // Convert to integers and calculate offset
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build where clause for filtering
+    const whereClause = {};
+    if (status) whereClause.status = status;
+    if (priority) whereClause.priority = priority;
+    if (team_id) whereClause.team_id = team_id;
+    if (assigned_to) whereClause.assigned_to = assigned_to;
+
+    // Use findAndCountAll to get both tickets and total count
+    const { count, rows } = await Ticket.findAndCountAll({
+      where: whereClause,
+      limit: limitNum,
+      offset: offset,
+      order: [['created_at', 'DESC']], // Most recent tickets first
+      include: [
+        { 
+          model: User, 
+          as: "student", 
+          attributes: ["name", "email"] 
+        }
+      ]
+    });
+
+    // Get summary counts (all tickets, ignoring pagination but respecting filters)
+    let totalTickets, openTickets, closedTickets, escalatedTickets;
+    
+    try {
+      totalTickets = await Ticket.count({ where: whereClause });
+      
+      openTickets = await Ticket.count({ 
+        where: { 
+          ...whereClause, 
+          status: { [Op.in]: ['new', 'ongoing'] } 
+        } 
+      });
+      
+      closedTickets = await Ticket.count({ 
+        where: { 
+          ...whereClause, 
+          status: 'resolved' 
+        } 
+      });
+      
+      escalatedTickets = await Ticket.count({ 
+        where: { 
+          ...whereClause, 
+          escalated: true 
+        } 
+      });
+      
+    } catch (summaryError) {
+      console.error('Error calculating summary counts:', summaryError);
+      // Fallback to basic counts
+      totalTickets = count;
+      openTickets = 0;
+      closedTickets = 0;
+      escalatedTickets = 0;
+    }
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(count / limitNum);
+
+    res.json({
+      tickets: rows,
+      pagination: {
+        currentPage: pageNum,
+        itemsPerPage: limitNum,
+        totalItems: count,
+        totalPages: totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPreviousPage: pageNum > 1
+      },
+      summary: {
+        totalTickets,
+        openTickets,
+        closedTickets,
+        escalatedTickets
+      }
+    });
   } catch (error) {
     res.status(507).json({ error: error.message });
   }
@@ -17,18 +108,45 @@ exports.getAllTickets = async (req, res) => {
 
 exports.getTicketsByUserId = async (req, res) => {
   try {
-    const tickets = await Ticket.findAll({
-      where: { student_id: req.params.user_id },
-      include: [{ model: User, as: "student", attributes: ["name"] }], //  Fetch student name
+    // Extract pagination parameters
+    const { page = 1, limit = 10, status, priority } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build where clause
+    const whereClause = { student_id: req.params.user_id };
+    if (status) whereClause.status = status;
+    if (priority) whereClause.priority = priority;
+
+    const { count, rows } = await Ticket.findAndCountAll({
+      where: whereClause,
+      limit: limitNum,
+      offset: offset,
+      order: [['created_at', 'DESC']],
+      include: [{ model: User, as: "student", attributes: ["name"] }]
     });
 
     // Add student_name manually if needed
-    const ticketsWithNames = tickets.map(ticket => ({
+    const ticketsWithNames = rows.map(ticket => ({
       ...ticket.dataValues,
       student_name: ticket.student ? ticket.student.name : "Unknown Student",
     }));
 
-    res.json(ticketsWithNames);
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(count / limitNum);
+
+    res.json({
+      tickets: ticketsWithNames,
+      pagination: {
+        currentPage: pageNum,
+        itemsPerPage: limitNum,
+        totalItems: count,
+        totalPages: totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPreviousPage: pageNum > 1
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
