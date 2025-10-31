@@ -1,6 +1,7 @@
 const TicketAssignment = require("../models/TicketAssignment");
 const User = require("../models/User");
 const Ticket = require("../models/Ticket");
+const Sequelize = require("sequelize");
 
 exports.getAllTicketAssignments = async (req, res) => {
   try {
@@ -35,12 +36,27 @@ exports.getTicketAssignmentsByUserId = async (req, res) => {
 
 exports.assignTicket = async (req, res) => {
   try {
-    const ticketAssignment = await TicketAssignment.create({
-      ticket_id: req.params.ticket_id,
-      user_id: req.body.user_id,
+    const [ticketAssignment, created] = await TicketAssignment.findOrCreate({
+      where: {
+        ticket_id: req.params.ticket_id,
+        user_id: req.body.user_id,
+      },
+      defaults: {
+        ticket_id: req.params.ticket_id,
+        user_id: req.body.user_id,
+      },
     });
+
+    if (!created) {
+      return res.status(409).json({ error: "Assignment already exists" });
+    }
+
     res.status(201).json(ticketAssignment);
   } catch (error) {
+    // handle unique constraint race if it still occurs
+    if (error instanceof Sequelize.UniqueConstraintError) {
+      return res.status(409).json({ error: "Assignment already exists" });
+    }
     res.status(500).json({ error: error.message });
   }
 };
