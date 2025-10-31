@@ -11,44 +11,10 @@ const REQUIRED_HEADERS = [
   "instructor_email"
 ]; 
 
-const checkUserExistsByEmail = async (email) => {
+const addTA  = async (name, email, password) => { 
   try {
     const token = Cookies.get("token");
-    const resp = await fetch(`${baseURL}/api/users/email/${encodeURIComponent(email)}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    //console.log('checkUserExistsByEmail response status:', resp.status);
-
-    if (resp.status === 200) {
-      const data = await resp.json();
-      //console.log('User exists with data:', data);
-      return { exists: true, data };
-    }
-
-    if (resp.status === 404){
-        //console.log('failed check');
-        return { exists: false };
-    } 
-    
-    const err = await resp.json().catch(() => ({}));
-    //console.log('Unexpected response during email check:', err);
-    return { exists: false, error: err?.message || resp.statusText };
-  
-} catch (error) {
-    //console.error("Error checking user existence by email:", error);
-    return { exists: false, error: error.message };
-  }
-};
-
-const addTA  = async (name, email, password) => { //add paramaters
-  try {
-    const token = Cookies.get("token");
-    const response = await fetch(`${baseURL}/api/users/`, {
+    const response = await fetch(`${baseURL}/api/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -65,10 +31,17 @@ const addTA  = async (name, email, password) => { //add paramaters
     const responseData = await response.json();
     //console.log(responseData)
 
+    const createdFalse = responseData?.created === false;
+    const isConflict = responseData.status === 409 || /unique|already exists|conflict/i.test(responseData?.error || '');
+
+    if (createdFalse || isConflict) { //check if user already existed
+      return { success: true, exists: true, data: responseData };
+    }
+
     if (!response.ok) {
       return { success: false, error: `Account Creation Failed for ${name}: ${responseData?.message || response.statusText}` };
     }
-
+    
     return { success: true, data: responseData };
 
   } catch (error) {
@@ -84,27 +57,15 @@ const createTAs = async (row) => {
             userData[k] = (row[k] ?? "").toString().trim();
         });
 
+        const name = userData.instructor;
         const email = userData.instructor_email;
-        if (!email) return { success: false, error: "Missing instructor_email" };
-
-        const exists = await checkUserExistsByEmail(email);
-        
-        if (exists.error) return { success: false, error: `Email check failed: ${exists.error}` };
-        if (exists.exists) return { success: true, exists: true, data: exists.data };
-
-
         const password = generateRandomPassword();
-        const result = await addTA(userData.instructor, email, password);
+
+        const result = await addTA(name, email, password);
         //TO-DO: email TA with reset link?
-
-        // treat unique-constraint responses as "already exists"
-        if (!result.success && result.error && /duplicate|already exists|unique/i.test(result.error)) {
-            return { success: true, exists: true };
-        }
-
         return result;
   } catch (err) {
-        return { success: false, error: err.message || String(err) };
+      return { success: false, error: err.message || String(err) };
   }
 };
 

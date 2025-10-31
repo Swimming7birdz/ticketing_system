@@ -10,38 +10,6 @@ const REQUIRED_HEADERS = [
   "instructor_email"
 ]; 
 
-const checkTeamExists = async (name) => {
-  try {
-    const token = Cookies.get("token");
-    const resp = await fetch(`${baseURL}/api/teams/name/${name}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (resp.status === 200) {
-      const data = await resp.json();
-      //console.log('User exists with data:', data);
-      return { exists: true, data };
-    }
-
-    if (resp.status === 404){
-        //console.log('failed check');
-        return { exists: false };
-    } 
-    
-    const err = await resp.json().catch(() => ({}));
-    //console.log('Unexpected response during email check:', err);
-    return { exists: false, error: err?.message || resp.statusText };
-  
-} catch (error) {
-    //console.error("Error checking user existence by email:", error);
-    return { exists: false, error: error.message };
-  }
-};
-
 const getTaIDByEmail = async (email) => {
     try {
         const token = Cookies.get("token");
@@ -67,7 +35,7 @@ const getTaIDByEmail = async (email) => {
     }
 };
 
-const addTeam = async (project, sponsor, sponsor_email, taID) => { //add paramaters
+const addTeam = async (project, sponsor, sponsor_email, taID) => { 
     try {
         const token = Cookies.get("token");
         const response = await fetch(`${baseURL}/api/teams/`, {
@@ -87,8 +55,15 @@ const addTeam = async (project, sponsor, sponsor_email, taID) => { //add paramat
         const responseData = await response.json();
         //console.log(responseData)
 
+        const createdFalse = responseData?.created === false;
+        const isConflict = responseData.status === 409 || /unique|already exists|conflict/i.test(responseData?.error || '');
+
+        if (createdFalse || isConflict) { //check if user already existed
+          return { success: true, exists: true, data: responseData };
+        }
+
         if (!response.ok) {
-        return { success: false, error: `Team Creation Failed for ${name}: ${responseData?.message || response.statusText}` };
+        return { success: false, error: `Team Creation Failed for ${team_name}: ${responseData?.message || response.statusText}` };
         }
 
         return { success: true, data: responseData };
@@ -106,19 +81,14 @@ const createTeams = async (row) => {
     });
 
     const team_name = userData.project;
-    if (!team_name) return { success: false, error: "Missing team name" };
-
-    const exists = await checkTeamExists(team_name);
-    
-    if (exists.error) return { success: false, error: `Team check failed: ${exists.error}` };
-    if (exists.exists) return { success: true, exists: true, data: exists.data };
-
-  const taID = await getTaIDByEmail(userData.instructor_email);
-    //console.log(taID.data);
+    const sponsor_name = userData.sponsor;
+    const sponsor_email = userData.sponsor_email;
+    const taID = await getTaIDByEmail(userData.instructor_email);
     if (!taID.success) {
         return { success: false, error: `Could not find TA with email ${userData.instructor_email}: ${taID.error}` };
     }
-    const result = await addTeam(userData.project, userData.sponsor, userData.sponsor_email, taID.data);
+
+    const result = await addTeam(team_name, sponsor_name, sponsor_email, taID.data);
     return result;
 };
 

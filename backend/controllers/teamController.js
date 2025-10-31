@@ -37,9 +37,25 @@ exports.getTeamByName = async (req, res) => {
 
 exports.createTeam = async (req, res) => {
   try {
-    const team = await Team.create(req.body);
-    res.status(201).json(team);
+    const {team_name, instructor_user_id, sponsor_name, sponsor_email} = req.body;
+    
+    const [team, created] = await Team.findOrCreate({
+      where: { team_name },
+      defaults: { team_name, instructor_user_id, sponsor_name, sponsor_email }
+    });
+    if (created) return res.status(201).json({ created: true, team });
+        return res.status(200).json({ created: false, team });
+ 
   } catch (error) {
+     if (error.name === 'SequelizeUniqueConstraintError') {
+            const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+            return res.status(409).json({ error: 'Unique constraint', details });
+        }
+        if (error.name === 'SequelizeValidationError') {
+            const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+            return res.status(400).json({ error: 'Validation error', details });
+        }
+    
     res.status(500).json({ error: error.message });
   }
 };

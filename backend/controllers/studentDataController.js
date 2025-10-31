@@ -15,9 +15,27 @@ exports.getStudentDataByUserId = async (req, res) => {
 
 exports.createStudentData = async (req, res) => {
     try {
-        const studentData = await StudentData.create(req.body);
-        res.status(201).json(studentData);
+        const {user_id, team_id, section} = req.body;
+        const [user, created] = await StudentData.findOrCreate({
+            where: { user_id },
+            defaults: { user_id, team_id, section }
+        });
+        
+        if (created) return res.status(201).json({ created: true, user });
+        return res.status(200).json({ created: false, user });
+ 
+        // const studentData = await StudentData.create(req.body);
+        // res.status(201).json(studentData);
     } catch (error) {
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+            return res.status(409).json({ error: 'Unique constraint', details });
+        }
+        if (error.name === 'SequelizeValidationError') {
+            const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+            return res.status(400).json({ error: 'Validation error', details });
+        }
+
         res.status(500).json({ error: error.message });
     }
 };
