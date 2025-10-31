@@ -173,6 +173,43 @@ const AdminDash = () => {
     }
   };
 
+  const fetchEscalatedTickets = async (token) => {
+    try {
+      // Fetch ALL tickets (without pagination) to get all escalated tickets
+      const response = await fetch(`${baseURL}/api/tickets?limit=1000`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch escalated tickets");
+      }
+
+      const responseData = await response.json();
+      const allTickets = responseData.tickets || responseData;
+      
+      // Filter for escalated tickets only
+      const escalatedOnly = allTickets.filter(ticket => ticket.escalated === true);
+      
+      // Add usernames to escalated tickets
+      const escalatedWithNames = await Promise.all(
+        escalatedOnly.map(async (ticket) => {
+          const userName = await fetchNameFromId(ticket.student_id);
+          return { ...ticket, userName };
+        })
+      );
+
+      setEscalatedTickets(escalatedWithNames);
+      
+    } catch (error) {
+      console.error("Error fetching escalated tickets:", error);
+      setEscalatedTickets([]);
+    }
+  };
+
   const fetchTickets = async () => {
     try {
       // Get the token from cookies
@@ -232,19 +269,11 @@ const AdminDash = () => {
         })
       );
 
-      // For escalated tickets in the dashboard, filter from paginated data
-      // Note: This will only show escalated tickets from current page
-      const escalatedFromCurrent = ticketsData.filter(ticket => ticket.escalated === true);
-      const ticketsWithNamesEscalated = await Promise.all(
-        escalatedFromCurrent.map(async (ticket) => {
-          const userName = await fetchNameFromId(ticket.student_id);
-          return { ...ticket, userName };
-        })
-      );
-
-      // Set display tickets
+      // Set display tickets (paginated)
       setTickets(ticketsWithNames);
-      setEscalatedTickets(ticketsWithNamesEscalated);
+      
+      // Fetch ALL escalated tickets separately (not just from current page)
+      await fetchEscalatedTickets(token);
       
       // Set pagination data
       setPagination(responseData.pagination || {
