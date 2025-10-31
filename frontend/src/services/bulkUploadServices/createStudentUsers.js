@@ -70,6 +70,32 @@ const getTeam = async (name) => {
 };
 
 
+const addTeamMember = async (team_id, user_id) => {
+  try {
+    const token = Cookies.get("token");
+    const response = await fetch(`${baseURL}/api/teammembers/team/${team_id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ user_id }),
+    });
+
+    const responseData = await response.json();
+
+    if (response.ok) {
+        return { success: true, data: responseData };
+    } else {
+        return { success: false, error: `Failed to add Team Member for team ID ${team_id} and user ID ${user_id}: ${responseData?.message || response.statusText}` };
+    }
+  } catch (error) {
+      console.error("An error occurred while adding Team Member:", error);
+      return { success: false, error: `Failed to add Team Member for team ID ${team_id} and user ID ${user_id}: ${error.message}` };
+  }
+};
+
+
 const addStudent = async (name, email, password, section, team_id) => {
   try {
     const token = Cookies.get("token");
@@ -118,7 +144,7 @@ const addStudent = async (name, email, password, section, team_id) => {
     }
 
 
-    return { success: true, data: responseUser };
+    return { success: true, data: responseUserData };
 
   } catch (error) {
     console.error("An error occurred during registration:", error);
@@ -139,8 +165,9 @@ const createStudent = async (row) => {
   const exists = await checkUserExistsByEmail(email);
   
   if (exists.error) return { success: false, error: `Email check failed: ${exists.error}` };
-  if (exists.exists) return { success: true, exists: true, data: exists.data };
   //TO-DO: notify user if student already exists?
+  if (exists.exists) return { success: true, exists: true, data: exists.data };
+  
 
   //console.log(exists)
 
@@ -149,10 +176,22 @@ const createStudent = async (row) => {
   const section = userData.sections;
   const team_id = await getTeam(userData.group_name);
 
-  //TO-DO: add entry to teammembers table?
-  const result = await addStudent(name, email, password, section, team_id.data);
+  //create student user and student data
+  const studentResult = await addStudent(name, email, password, section, team_id.data);
+  if (!studentResult.success) {
+    return { success: false, error: `Failed to create student data: ${studentResult.error}` };
+  }
+
+  const user_id = studentResult.data.user_id;
+  //console.log(`Created student user ${name} with ID ${user_id} in team ID ${team_id.data}`);
+  //add student to team members
+  const teamMemberResult = await addTeamMember(team_id.data, user_id);
+  if (!teamMemberResult.success) {
+    return { success: false, error: `Failed to add team member: ${teamMemberResult.error}` };
+  }
+
   //TO-DO: email student with reset link?
-  return result;
+  return { success: true, data: studentResult.data };
 };
 
 export const generateStudentUsers = (file) => {
