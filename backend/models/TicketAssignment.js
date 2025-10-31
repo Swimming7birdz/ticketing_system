@@ -18,6 +18,14 @@ const TicketAssignment = sequelize.define("TicketAssignment", {
 }, {
   tableName: 'ticketassignments', // Ensure the table name is lowercase
   timestamps: false,
+  indexes: [
+    {
+      name: 'ticket_user_unique',
+      unique: true,
+      fields: ['ticket_id', 'user_id'],
+    },
+  ],
+
 });
 
 module.exports = TicketAssignment;
