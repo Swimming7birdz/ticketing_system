@@ -37,6 +37,14 @@ module.exports = {
         throw new Error('No TA user found to backfill instructor_user_id');
       }
 
+      await queryInterface.sequelize.query(
+        `UPDATE teams
+          SET sponsor_name = 'DefaultSponsor', 
+          sponsor_email = 'DefaultSponsor@gmail.com'
+        WHERE sponsor_name IS NULL`,
+        { transaction: t }
+      );
+
 
       //Keep the team if the instructor user is removed
       await queryInterface.addConstraint('teams', {
@@ -51,9 +59,7 @@ module.exports = {
         onDelete: 'SET NULL',
         transaction: t,
       });
-
-
-     
+   
     });
   },
 
