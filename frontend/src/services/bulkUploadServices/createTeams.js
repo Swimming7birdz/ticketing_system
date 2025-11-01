@@ -63,14 +63,14 @@ const addTeam = async (project, sponsor, sponsor_email, taID) => {
         }
 
         if (!response.ok) {
-        return { success: false, error: `Team Creation Failed for ${team_name}: ${responseData?.message || response.statusText}` };
+        return { success: false, error: `Team Creation Failed for ${project}: ${responseData?.message || response.statusText}` };
         }
 
         return { success: true, data: responseData };
 
     } catch (error) {
         console.error("An error occurred during registration:", error);
-        return { success: false, error: `Team Creation Failed for ${name}: ${error.message}` };
+        return { success: false, error: `Team Creation Failed for ${project}: ${error.message}` };
     }
 };
 

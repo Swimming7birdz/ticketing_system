@@ -32,7 +32,7 @@ router.get(
   "/email/:email", 
   authMiddleware.verifyToken,
   userController.getUserByEmail
-)
+);
 router.post(
   "/",
   authMiddleware.verifyToken,

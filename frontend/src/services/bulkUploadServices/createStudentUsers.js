@@ -156,7 +156,7 @@ const createStudent = async (row) => {
   });
 
   const name = (userData.name ?? "").replace(/,/g, "").trim();
-  const email = `${userData.login_id}@asu.edu`;;
+  const email = `${userData.login_id}@asu.edu`;
   const password = generateRandomPassword();
 
   const section = userData.sections;

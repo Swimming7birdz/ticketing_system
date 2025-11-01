@@ -14,7 +14,6 @@ import { generateTAs } from "../../services/bulkUploadServices/createTaUsers";
 import { generateTeams } from "../../services/bulkUploadServices/createTeams";
 import { generateStudentUsers } from "../../services/bulkUploadServices/createStudentUsers";
 import { useTheme } from "@mui/material/styles";
-import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
 import {useNavigate} from "react-router-dom";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
@@ -23,7 +22,6 @@ const BulkUpload = () => {
     const [projectFile, setProjectFile] = useState(null);
     const navigate = useNavigate();
     const theme = useTheme();
-    const { isDarkMode, themeMode, setTheme } = useCustomTheme();
 
     const handleBack = () => {
         navigate(-1); 
@@ -64,44 +62,41 @@ const BulkUpload = () => {
         }
         
         try {
-            if (projectFile) {
-                const verifyResult = await verifyFileService(projectFile, "project");
-                if (!verifyResult.valid) {
-                    console.error("Project file verification failed:", verifyResult.errors);
-                    alert("Project file validation errors:\n" + verifyResult.errors.join("\n"));
-                    return;
-                }
+            const verifyProjectResult = await verifyFileService(projectFile, "project");
+            if (!verifyProjectResult.valid) {
+                console.error("Project file verification failed:", verifyProjectResult.errors);
+                alert("Project file validation errors:\n" + verifyProjectResult.errors.join("\n"));
+                return;
+            }
 
-                const genTaResult = await generateTAs(projectFile);
-                    if (!genTaResult.valid) {("TA creation failed:", genTaResult.errors);
-                        alert("TA creation errors:\n" + genTaResult.errors.join("\n"));
-                        return;
-                }
-                
-                const genTeamResult = await generateTeams(projectFile);
-                    if (!genTeamResult.valid) {
-                        console.error("Team creation failed:", genTeamResult.errors);
-                        alert("Team creation errors:\n" + genTeamResult.errors.join("\n"));
-                        return;
-                }
-
+            const genTaResult = await generateTAs(projectFile);
+            if (!genTaResult.valid) {
+                console.error("TA creation failed:", genTaResult.errors);
+                alert("TA creation errors:\n" + genTaResult.errors.join("\n"));
+                return;
             }
             
-            if (studentFile) {
-                const verifyResult = await verifyFileService(studentFile, "student");
-                if (!verifyResult.valid) {
-                    console.error("Student file verification failed:", verifyResult.errors);
-                    alert("Student file validation errors:\n" + verifyResult.errors.join("\n"));
-                    return;
-                }
-        
-                const genResult = await generateStudentUsers(studentFile);
-                    if (!genResult.valid) {
-                        console.error("User creation failed:", genResult.errors);
-                        alert("Student user creation errors:\n" + genResult.errors.join("\n"));
-                        return;
-                }
+            const genTeamResult = await generateTeams(projectFile);
+            if (!genTeamResult.valid) {
+                console.error("Team creation failed:", genTeamResult.errors);
+                alert("Team creation errors:\n" + genTeamResult.errors.join("\n"));
+                return;
             }
+
+            const verifyStudentResult = await verifyFileService(studentFile, "student");
+            if (!verifyStudentResult.valid) {
+                console.error("Student file verification failed:", verifyStudentResult.errors);
+                alert("Student file validation errors:\n" + verifyStudentResult.errors.join("\n"));
+                return;
+            }
+    
+            const genStudentResult = await generateStudentUsers(studentFile);
+            if (!genStudentResult.valid) {
+                console.error("User creation failed:", genStudentResult.errors);
+                alert("Student user creation errors:\n" + genStudentResult.errors.join("\n"));
+                return;
+            }
+            
             
             alert("Files processed successfully.");
             setStudentFile(null);

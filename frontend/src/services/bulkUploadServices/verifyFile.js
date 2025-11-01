@@ -10,6 +10,7 @@ const REQUIRED_HEADERS_STUDENT = [
   "canvas_group_id", 
   "sponsor"
 ];
+
 const SCHEMA_STUDENT = {
     name: "string",
     canvas_user_id: "number",
@@ -27,9 +28,9 @@ const REQUIRED_HEADERS_PROJECT = [
   "sponsor email", 
   "instructor", 
   "instructor email"
-]
-; 
-const SCHEMA_PROJECT= {
+];
+
+const SCHEMA_PROJECT = {
     project: "string",
     sponsor: "string",
     sponsor_email: "string",
