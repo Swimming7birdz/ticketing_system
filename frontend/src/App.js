@@ -31,6 +31,7 @@ import TaRequestTickets from "./pages/InstructorTickets/TaRequestTickets";
 import TaTicketView from "./components/TicketView/TaTicketView";
 import TaTicketInfo from "./pages/TicketInfo/TaTicketInfo";
 import ManageStudents from "./pages/ManageStudents/ManageStudents";
+import BulkUpload from "./pages/BulkUpload/BulkUpload";
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
         <Route path="/allassignees" element={<AllAssignees />} />
         <Route path="/adminsettings" element={<AdminSettings />} />
         <Route path="/managestudents" element={<ManageStudents />} />
+        <Route path="/bulkupload" element={<BulkUpload />} />
         <Route path="/tasettings" element={<TASettings />} />
         <Route path="/studentsettings" element={<StudentSettings />} />
         <Route path="/ticketview" element={<TicketView />} />

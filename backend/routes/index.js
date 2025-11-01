@@ -14,6 +14,7 @@ const passwordResetTokenRoutes = require('./passwordResetTokenRoutes');
 const taticketRoutes = require("./taticketRoutes");
 const taticketAssignmentRoutes = require("./taticketAssignmentRoutes");
 const tacommunicationRoutes = require("./tacommunicationRoutes");
+const studentDataRoutes = require("./studentDataRoutes");
 
 // Array to simplify route setup
 const routes = [
@@ -29,10 +30,10 @@ const routes = [
   { path: "/api/encrypt", route: encryptionRoutes },
   { path: "/api/email", route: emailRoutes },
   { path: "/api/password-reset-tokens", route: passwordResetTokenRoutes },
-
-    { path: "/api/tatickets", route: taticketRoutes },
-    { path: "/api/taticketassignments", route: taticketAssignmentRoutes},
-    { path: "/api/tacommunications", route: tacommunicationRoutes},
+  { path: "/api/tatickets", route: taticketRoutes },
+  { path: "/api/taticketassignments", route: taticketAssignmentRoutes},
+  { path: "/api/tacommunications", route: tacommunicationRoutes},
+  { path: "/api/studentdata", route: studentDataRoutes },
 
 ];
 

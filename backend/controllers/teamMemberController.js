@@ -20,9 +20,26 @@ exports.getTeamMembersByTeamId = async (req, res) => {
 
 exports.addTeamMember = async (req, res) => {
   try {
-    const teamMember = await TeamMember.create({ team_id: req.params.team_id, user_id: req.body.user_id });
-    res.status(201).json(teamMember);
+    const { team_id, user_id } = req.body;
+    const [member, created] = await TeamMember.findOrCreate({
+       where: { team_id, user_id },
+       defaults: { team_id, user_id }
+    });
+    if (created) return res.status(201).json({ created: true, member });
+    return res.status(200).json({ created: false, member });
+
+    // const teamMember = await TeamMember.create({ team_id: req.params.team_id, user_id: req.body.user_id });
+    // res.status(201).json(teamMember);
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+      return res.status(409).json({ error: 'Unique constraint', details });
+    }
+    if (error.name === 'SequelizeValidationError') {
+      const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+      return res.status(400).json({ error: 'Validation error', details });
+    }
+
     res.status(500).json({ error: error.message });
   }
 };

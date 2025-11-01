@@ -28,6 +28,11 @@ router.get(
   authMiddleware.verifyToken, 
   userController.getUserById
 );
+router.get(
+  "/email/:email", 
+  authMiddleware.verifyToken,
+  userController.getUserByEmail
+);
 router.post(
   "/",
   authMiddleware.verifyToken,
