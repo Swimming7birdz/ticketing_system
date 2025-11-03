@@ -23,16 +23,48 @@ const StudentDash = () => {
     loadTickets();
   }, []);
 
+  const fetchTeamNameFromId = async (team_id) => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch team name for team_id=${team_id}`);
+        return "No Team";
+      }
+
+      const data = await response.json();
+      return data.team_name || "No Team";
+    } catch (error) {
+      console.error(`Error fetching team name for team_id=${team_id}:`, error);
+      return "No Team";
+    }
+  };
+
   const loadTickets = async () => {
     try {
       const studentTickets = await fetchTicketsByUserId();
-      // Add userName property for TicketsViewController consistency
-      const ticketsWithUserName = studentTickets.map(ticket => ({
-        ...ticket,
-        userName: ticket.student_name || "Unknown"
-      }));
-      setTickets(ticketsWithUserName);
-      setTotalTickets(ticketsWithUserName.length);
+      
+      // Add userName and teamName properties for TicketsViewController consistency
+      const ticketsWithNames = await Promise.all(
+        studentTickets.map(async (ticket) => {
+          const teamName = await fetchTeamNameFromId(ticket.team_id);
+          return {
+            ...ticket,
+            userName: ticket.student_name || "Unknown",
+            teamName: teamName
+          };
+        })
+      );
+      
+      setTickets(ticketsWithNames);
+      setTotalTickets(ticketsWithNames.length);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching student tickets:", error);
@@ -137,7 +169,6 @@ const StudentDash = () => {
           tickets={tickets}
           defaultView="grid"
           onOpenTicket={openTicket}
-          header={<Typography variant="subtitle2">Tickets</Typography>}
         />
       </Box>
     </Box>

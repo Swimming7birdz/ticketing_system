@@ -173,7 +173,7 @@ const InstructorTickets = () => {
                 // Format data for TicketsViewController - flatten the structure
                 return {
                     ...ticketData,
-                    userName: ticketData.student?.name || "Unknown",
+                    userName: ticketData.student_name || ticketData.student?.name || "Unknown",
                     teamName: teamName,
                     // Keep original nested structure for backward compatibility
                     ticketData: ticketData

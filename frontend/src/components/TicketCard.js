@@ -2,6 +2,7 @@ import { Avatar, Button, Chip, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import React, { useState } from "react";
 import TicketView from "./TicketView/TicketView"; // Import TicketView component
+import { generateTicketNumber } from "../constants/IssueTypes";
 // minor change for git tracking
 function stringAvatar(name) {
   return {
@@ -47,6 +48,7 @@ const defaultProps = {
 
 const TicketCard = ({
   ticketId = defaultProps.ticketId,
+  issueType,
   issueDescription = defaultProps.issueDescription,
   status = defaultProps.status,
   escalated = defaultProps.escalated,
@@ -111,7 +113,7 @@ const TicketCard = ({
                 textAlign: "right",
               }}
             >
-              {ticketId}
+              {generateTicketNumber(issueType, ticketId)}
             </Typography>
           </div>
         </div>
