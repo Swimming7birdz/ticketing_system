@@ -106,7 +106,10 @@ const addStudent = async (name, email, password, section, team_id) => {
     }
 
     if (!responseUser.ok) {  // failed to create user
-      return { success: false, error: `User Creation Failed for ${name}: ${responseUserData?.message || responseUserData?.error || responseUserData.statusText}` };
+      return { 
+        success: false, 
+        error: `User Creation Failed for ${name}: ${responseUserData?.message || responseUserData?.error || responseUser.statusText}` 
+      };
    
     } else { //user created successfully, create student data
       
@@ -136,7 +139,10 @@ const addStudent = async (name, email, password, section, team_id) => {
       }
 
       if (!responseSD.ok) { // failed to create student data
-        return { success: false, error: `Student Data Failed for ${user_id}: ${responseStudentData?.message || responseStudentData?.error || responseStudentData.statusText}` };
+        return { 
+          success: false,
+          error: `Student Data Failed for ${user_id}: ${responseStudentData?.message || responseStudentData?.error || responseSD.statusText}` 
+        };
 
       }   
       

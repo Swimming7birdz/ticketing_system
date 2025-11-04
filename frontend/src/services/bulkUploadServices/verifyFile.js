@@ -25,9 +25,9 @@ const SCHEMA_STUDENT = {
 const REQUIRED_HEADERS_PROJECT = [
   "project", 
   "sponsor", 
-  "sponsor email", 
+  "sponsor_email", 
   "instructor", 
-  "instructor email"
+  "instructor_email"
 ];
 
 const SCHEMA_PROJECT = {
@@ -85,7 +85,12 @@ export const verifyFileService = (file, f_type) => {
       delimiter: ',',         
       encoding: "UTF-8",
       newline: "\n",
-      transformHeader: (h) => h.trim(),
+      transformHeader: (h) => (h || "")
+                .replace(/^\uFEFF/, "")      // remove BOM
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "_")       // spaces -> underscore
+                .replace(/[^\w_]/g, ""),    // remove other punctuation,
       transform: (value) => value.trim(),
       complete: (results) => {
           //console.log("Parsed data:", results.data);

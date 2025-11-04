@@ -39,7 +39,9 @@ const addTA  = async (name, email, password) => {
     }
 
     if (!response.ok) {
-      return { success: false, error: `Account Creation Failed for ${name}: ${responseData?.message || response.statusText}` };
+      return { 
+        success: false, 
+        error: `Account Creation Failed for ${name}: ${responseData?.message || response.statusText}` };
     }
     
     return { success: true, data: responseData };

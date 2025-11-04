@@ -29,8 +29,8 @@ module.exports = {
       const taId = rows[0]?.user_id;
       if (taId) {
         await queryInterface.sequelize.query(
-          `UPDATE teams SET instructor_user_id = ${taId} WHERE instructor_user_id IS NULL`,
-          { transaction: t }
+         'UPDATE teams SET instructor_user_id = :taId WHERE instructor_user_id IS NULL',
+          { replacements: { taId }, transaction: t }
         );
       } else {
         // no TA found, must have at least one TA in users table
