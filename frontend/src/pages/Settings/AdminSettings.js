@@ -365,6 +365,7 @@ const AdminSettings = () => {
       <Divider sx={{ margin: "20px 0" }} />
 
       {/* Teams Section */}
+      {/*
       <Box
         sx={{
           marginBottom: 5,
@@ -385,7 +386,7 @@ const AdminSettings = () => {
         >
           Teams Under development
         </Typography>
-        {/*need to add input for sponsor and instructor info when creating a team
+        
         <List 
           sx={{
             maxHeight: "300px",
@@ -431,8 +432,8 @@ const AdminSettings = () => {
             Add Team
           </Button>
         </Box>
-      */}
-      </Box>
+      
+      </Box> */}
       
       {/* Teaching Assistants Section */}
       {/*<Box*/}
@@ -553,45 +554,94 @@ const AdminSettings = () => {
         {/*  </Button>*/}
         {/*</Box>*/}
       {/*</Box>*/}
-      
-      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
-          <Button 
-            variant="contained" 
-            onClick={() => navigate("/profile")}
-            sx={{ backgroundColor: theme.palette.primary.main }}
-          >
-            Go To Account Settings
-          </Button>
 
-          <Button
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
+          People Management
+        </Typography>
+
+          <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "left", gap: 2 }}>
+             <Button
               variant="contained"
               onClick={() => navigate("/managestudents")}
               sx={{ backgroundColor: theme.palette.primary.main }}
-          >
-              Manage Students
-          </Button>
+              >
+                  Manage Students
+              </Button>
 
+              <Button
+                  variant="contained"
+                  onClick={() => navigate("/manageTAs")}
+                  sx={{ backgroundColor: theme.palette.primary.main }}
+              >
+                  Manage TAs
+              </Button>
+          </Box>
+      </Box>
+
+      <Divider sx={{ margin: "20px 0" }} />
+
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
+          Data Management
+        </Typography>
+
+        <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "left", gap: 2 }}>
           <Button
-              variant="contained"
-              onClick={() => navigate("/bulkupload")}
-              sx={{ backgroundColor: theme.palette.primary.main }}
+            variant="contained"
+            onClick={() => navigate("/bulkupload")}
+            sx={{ backgroundColor: theme.palette.primary.main }}
           >
               Data Upload
           </Button>
-
-
-  
-          <Button
-              variant="contained"
-              onClick={() => navigate("/manageTAs")}
-              sx={{ backgroundColor: theme.palette.primary.main }}
-          >
-              Manage TAs
-          </Button>
+        </Box>
       </Box>
+
+      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate("/profile")}
+          sx={{ backgroundColor: theme.palette.primary.main }}
+        >
+          Go To Account Settings
+        </Button>
+
       </Box>
     </Box>
-    );
+  </Box>
+  );
 };
 
 export default AdminSettings;
