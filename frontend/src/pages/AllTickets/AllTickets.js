@@ -15,6 +15,7 @@ import React, { act, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
 import TaTicketsViewController from "../../components/TaTicketsViewController";
+import Pagination from "../../components/Pagination/Pagination";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -37,19 +38,41 @@ const AllTickets = () => {
     teamNameSearch: "",
   });
 
+  const [serverFilters, setServerFilters] = useState({
+    sort: null,
+    status: null,
+  });
+
   const [hideResolved, setHideResolved] = useState(true);
+
+  const [studentCurrentPage, setStudentCurrentPage] = useState(1);
+  const [studentItemsPerPage, setStudentItemsPerPage] = useState(25);
+  const [studentPagination, setStudentPagination] = useState({
+    totalItems: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
+
+  const [taCurrentPage, setTaCurrentPage] = useState(1);
+  const [taItemsPerPage, setTaItemsPerPage] = useState(25);
+  const [taPagination, setTaPagination] = useState({
+    totalItems: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
+
+  const [studentTickets, setStudentTickets] = useState([]);
+  const [taTickets, setTaTickets] = useState([]);
 
   useEffect(() => {
     fetchTickets();
-  }, []);
+  }, [studentCurrentPage, studentItemsPerPage, taCurrentPage, taItemsPerPage, serverFilters, hideResolved]);
 
   useEffect(() => {
     applyFilters();
-  }, [tickets, activeFilters]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [tickets, activeFilters, hideResolved]);
+  }, [tickets, activeFilters.search, activeFilters.teamNameSearch, activeFilters.source, hideResolved]);
 
   useEffect(() => {
     if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
@@ -58,76 +81,54 @@ const AllTickets = () => {
   }, [activeFilters.status]);
 
   const applyFilters = () => {
-    let filtered = [...tickets];
+    let filteredStudentTickets = [...studentTickets];
+    
+    let filteredTaTickets = [...taTickets];
 
-    // Apply sort filter
-    if (activeFilters.sort === "newest") {
-      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    } else if (activeFilters.sort === "oldest") {
-      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    } else if (activeFilters.sort === "id-asc") {
-      filtered.sort((a, b) => a.ticket_id - b.ticket_id);
-    } else if (activeFilters.sort === "id-desc") {
-      filtered.sort((a, b) => b.ticket_id - a.ticket_id);
-    }
+    const applyFiltersToArray = (ticketArray) => {
+      let filtered = [...ticketArray];
 
-    // Apply status filter
-    if(activeFilters.status) {
-      if (activeFilters.status.toLowerCase() === "escalated") {
-        filtered = filtered.filter(
-          (ticket) => ticket.escalated === true
+      if (activeFilters.search) {
+        filtered = filtered.filter((ticket) =>
+          ticket.userName
+            .toLowerCase()
+            .includes(activeFilters.search.toLowerCase())
         );
-      } else {
+      }
+
+      if (activeFilters.ticketIdSearch) {
         filtered = filtered.filter(
-          (ticket) => ticket.status.toLowerCase() === activeFilters.status.toLowerCase()
+          (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
         );
+      }
+
+      if (activeFilters.teamNameSearch) {
+        filtered = filtered.filter((ticket) =>
+          ticket.teamName
+            .toLowerCase()
+            .includes(activeFilters.teamNameSearch.toLowerCase())
+        );
+      }
+
+      return filtered;
+    };
+
+    // Apply filters to both ticket types
+    filteredStudentTickets = applyFiltersToArray(studentTickets);
+    filteredTaTickets = applyFiltersToArray(taTickets);
+
+    // Apply source filter if specified
+    if (activeFilters.source) {
+      if (activeFilters.source === 'student') {
+        filteredTaTickets = []; 
+      } else if (activeFilters.source === 'ta') {
+        filteredStudentTickets = []; 
       }
     }
 
-    // Apply search filter
-    if (activeFilters.search) {
-      filtered = filtered.filter((ticket) =>
-        ticket.userName
-          .toLowerCase()
-          .includes(activeFilters.search.toLowerCase())
-      );
-    }
-
-    // Search by ticket ID
-    if (activeFilters.ticketIdSearch) {
-      filtered = filtered.filter(
-        (ticket) => ticket.ticket_id.toString() === activeFilters.ticketIdSearch
-      );
-    }
-
-    if (activeFilters.teamNameSearch) {
-      filtered = filtered.filter((ticket) =>
-        ticket.teamName
-          .toLowerCase()
-          .includes(activeFilters.teamNameSearch.toLowerCase())
-      );
-    }
-
-    if (hideResolved) {
-      filtered = filtered.filter(
-        (ticket) => ticket.status.toLowerCase() !== "resolved"
-      );
-    }
-      // Apply source filter
-    if (activeFilters.source) {
-        const source_type = activeFilters.source === 'student' ? 'regular' : 'ta';
-          filtered = filtered.filter(
-              (ticket) => ticket.source === source_type
-          );
-    }
-
-    if (hideResolved) {
-        filtered = filtered.filter(
-            (ticket) => ticket.status.toLowerCase() !== "resolved"
-          );
-    }
-
-    setFilteredTickets(filtered);
+    // Combine for overall filtered tickets
+    const allFiltered = [...filteredStudentTickets, ...filteredTaTickets];
+    setFilteredTickets(allFiltered);
   };
 
   const handleFilterClick = (event) => {
@@ -139,7 +140,8 @@ const AllTickets = () => {
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ sort: null, status: null, source: null, search: "", teamIdSearch: "" });
+    setActiveFilters({ sort: null, status: null, source: null, search: "", teamNameSearch: "" });
+    setServerFilters({ sort: null, status: null });
   };
 
     const fetchUserNameForTicket = async (ticket) => {
@@ -201,70 +203,158 @@ const AllTickets = () => {
   };
 
     const fetchTickets = async () => {
-        try {
+        try {          
+            setLoading(true);
+            
             const token = Cookies.get("token");
-            const headers = {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            };
-
-            // 1. Create promises for both fetch requests
-            const ticketsPromise = fetch(`${baseURL}/api/tickets`, { method: "GET", headers });
-            const taTicketsPromise = fetch(`${baseURL}/api/tatickets`, { method: "GET", headers });
-
-            // 2. Await both promises to resolve concurrently
-            const [ticketsResponse, taTicketsResponse] = await Promise.all([
-                ticketsPromise,
-                taTicketsPromise,
-            ]);
-
-            // Check if either request failed
-            if (!ticketsResponse.ok || !taTicketsResponse.ok) {
-                throw new Error("Failed to fetch one or more ticket lists");
+            
+            const studentParams = new URLSearchParams({
+                page: studentCurrentPage.toString(),
+                limit: studentItemsPerPage.toString()
+            });
+            
+            const taParams = new URLSearchParams({
+                page: taCurrentPage.toString(),
+                limit: taItemsPerPage.toString()
+            });
+            
+            if (serverFilters.sort) {
+                studentParams.append('sort', serverFilters.sort);
+                taParams.append('sort', serverFilters.sort);
+            }
+            
+            if (serverFilters.status) {
+                studentParams.append('status', serverFilters.status);
+                taParams.append('status', serverFilters.status);
+            }
+            
+            if (hideResolved) {
+                studentParams.append('hideResolved', 'true');
+                taParams.append('hideResolved', 'true');
             }
 
-            // 3. Get the JSON data from both responses
-            const ticketsData = await ticketsResponse.json();
-            const taTicketsData = await taTicketsResponse.json();
+            // Get paginated student tickets
+            const studentTicketsResponse = await fetch(`${baseURL}/api/tickets?${studentParams}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-            // Add a 'source' property to each ticket from the regular endpoint
-            const sourcedTickets = ticketsData.map(ticket => ({ ...ticket, source: 'regular' }));
+            // Get paginated TA tickets
+            const taTicketsResponse = await fetch(`${baseURL}/api/tatickets?${taParams}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-            // Add a 'source' property to each ticket from the TA endpoint
-            const sourcedTaTickets = taTicketsData.map(ticket => ({ ...ticket, source: 'ta' }));
+            if (!studentTicketsResponse.ok || !taTicketsResponse.ok) {
+                throw new Error("Failed to fetch tickets");
+            }
 
-            // 4. Combine the two arrays into one
-            const allTicketsData = [...sourcedTickets, ...sourcedTaTickets];
+            const studentTicketsData = await studentTicketsResponse.json();
+            const taTicketsDataRaw = await taTicketsResponse.json();
+            
+            const studentTicketsRaw = studentTicketsData.tickets || studentTicketsData;
+            const taTicketsRaw = taTicketsDataRaw.tickets || taTicketsDataRaw;
 
-            // The rest of the logic remains the same, but operates on the combined array
-            const ticketsWithNames = await Promise.all(
-                allTicketsData.map(async (ticket) => {
-                    const userName = await fetchUserNameForTicket(ticket); // New call
+            // Add source property to differentiate ticket types
+            const sourcedStudentTickets = studentTicketsRaw.map(ticket => ({ ...ticket, source: 'regular' }));
+            const sourcedTaTickets = taTicketsRaw.map(ticket => ({ ...ticket, source: 'ta' }));
+
+            // Add user and team names to student tickets
+            const studentTicketsWithNames = await Promise.all(
+                sourcedStudentTickets.map(async (ticket) => {
+                    const userName = await fetchUserNameForTicket(ticket);
                     const teamName = await fetchTeamNameFromId(ticket.team_id);
-          return { ...ticket, userName, teamName };
-        })
-      );
+                    return { ...ticket, userName, teamName };
+                })
+            );
 
+            // Add user and team names to TA tickets
+            const taTicketsWithNames = await Promise.all(
+                sourcedTaTickets.map(async (ticket) => {
+                    const userName = await fetchUserNameForTicket(ticket);
+                    const teamName = await fetchTeamNameFromId(ticket.team_id);
+                    return { ...ticket, userName, teamName };
+                })
+            );
 
-      // Calculate ticket counts
-      const escalatedCount = ticketsWithNames.filter(ticket =>
-        ticket.escalated === true
-      ).length;
+            // Set separate ticket arrays
+            setStudentTickets(studentTicketsWithNames);
+            setTaTickets(taTicketsWithNames);
+            
+            // Combine for filtering and counts calculation
+            const allTicketsData = [...studentTicketsWithNames, ...taTicketsWithNames];
+            setTickets(allTicketsData);
+            
+            setStudentPagination(studentTicketsData.pagination || {
+                totalItems: studentTicketsRaw.length,
+                totalPages: 1,
+                hasNextPage: false,
+                hasPreviousPage: false
+            });
 
-      const openCount = ticketsWithNames.filter(ticket =>
-        ticket.status === "new" || ticket.status === "ongoing"
-      ).length;
-                const closedCount = ticketsWithNames.filter(ticket =>
-            ticket.status === "resolved"
-      ).length;
+            setTaPagination(taTicketsDataRaw.pagination || {
+                totalItems: taTicketsRaw.length,
+                totalPages: 1,
+                hasNextPage: false,
+                hasPreviousPage: false
+            });
 
-            setTickets(ticketsWithNames);
-            setTotalTickets(allTicketsData.length); // Use the combined length
-            setEscalatedTickets(escalatedCount);
-      setOpenTickets(openCount);
-      setClosedTickets(closedCount);setLoading(false);
+            let totalTickets, openTickets, closedTickets, escalatedTickets;
+            
+            if (studentTicketsData.summary && taTicketsDataRaw.summary) {
+                // Use backend summary counts 
+                totalTickets = studentTicketsData.summary.totalTickets + taTicketsDataRaw.summary.totalTickets;
+                openTickets = studentTicketsData.summary.openTickets + taTicketsDataRaw.summary.openTickets;
+                closedTickets = studentTicketsData.summary.closedTickets + taTicketsDataRaw.summary.closedTickets;
+                escalatedTickets = studentTicketsData.summary.escalatedTickets + taTicketsDataRaw.summary.escalatedTickets;
+            } else {
+                // Fallback: calculate from paginated data 
+                const escalatedCount = allTicketsData.filter(ticket => ticket.escalated === true).length;
+                const openCount = allTicketsData.filter(ticket => 
+                    ticket.status === "new" || ticket.status === "ongoing"
+                ).length;
+                const closedCount = allTicketsData.filter(ticket => 
+                    ticket.status === "resolved"
+                ).length;
+                
+                const studentTotal = studentTicketsData.pagination ? studentTicketsData.pagination.totalItems : studentTicketsRaw.length;
+                const taTotal = taTicketsDataRaw.pagination ? taTicketsDataRaw.pagination.totalItems : taTicketsRaw.length;
+                
+                totalTickets = studentTotal + taTotal;
+                escalatedTickets = escalatedCount;
+                openTickets = openCount;
+                closedTickets = closedCount;
+            }
+            
+            setTotalTickets(totalTickets);
+            setEscalatedTickets(escalatedTickets);
+            setOpenTickets(openTickets);
+            setClosedTickets(closedTickets);
+            
         } catch (error) {
             console.error("Error fetching tickets:", error);
+            setStudentTickets([]);
+            setTaTickets([]);
+            setTickets([]);
+            setStudentPagination({
+                totalItems: 0,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPreviousPage: false
+            });
+            setTaPagination({
+                totalItems: 0,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPreviousPage: false
+            });
+        } finally {
             setLoading(false);
         }
     };
@@ -275,13 +365,24 @@ const AllTickets = () => {
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
 
-    // Add this logic before the return statement
-    const studentTickets = filteredTickets.filter(
-        (ticket) => ticket.source === 'regular'
-    );
-    const taTickets = filteredTickets.filter(
-        (ticket) => ticket.source === 'ta'
-    );
+  const handleStudentPageChange = (newPage) => {
+    setStudentCurrentPage(newPage);
+  };
+
+  const handleStudentItemsPerPageChange = (newItemsPerPage) => {
+    setStudentCurrentPage(1); // Reset to first page when changing items per page
+    setStudentItemsPerPage(newItemsPerPage);
+  };
+
+  const handleTaPageChange = (newPage) => {
+    setTaCurrentPage(newPage);
+  };
+
+  const handleTaItemsPerPageChange = (newItemsPerPage) => {
+    setTaCurrentPage(1); 
+    setTaItemsPerPage(newItemsPerPage);
+  };
+
 
   if (loading) {
     return (
@@ -445,11 +546,9 @@ const AllTickets = () => {
           {/* Sort: Newest */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.sort === "newest") {
-                setActiveFilters({ ...activeFilters, sort: null });
-              } else {
-                setActiveFilters({ ...activeFilters, sort: "newest" });
-              }
+              const newSort = activeFilters.sort === "newest" ? null : "newest";
+              setActiveFilters({ ...activeFilters, sort: newSort });
+              setServerFilters({ ...serverFilters, sort: newSort });
               handleFilterClose();
             }}
           >
@@ -462,11 +561,9 @@ const AllTickets = () => {
           {/* Sort: Oldest */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.sort === "oldest") {
-                setActiveFilters({ ...activeFilters, sort: null });
-              } else {
-                setActiveFilters({ ...activeFilters, sort: "oldest" });
-              }
+              const newSort = activeFilters.sort === "oldest" ? null : "oldest";
+              setActiveFilters({ ...activeFilters, sort: newSort });
+              setServerFilters({ ...serverFilters, sort: newSort });
               handleFilterClose();
             }}
           >
@@ -479,11 +576,9 @@ const AllTickets = () => {
           {/* Sort: ID Ascending */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.sort === "id-asc") {
-                setActiveFilters({ ...activeFilters, sort: null });
-              } else {
-                setActiveFilters({ ...activeFilters, sort: "id-asc" });
-              }
+              const newSort = activeFilters.sort === "id-asc" ? null : "id-asc";
+              setActiveFilters({ ...activeFilters, sort: newSort });
+              setServerFilters({ ...serverFilters, sort: newSort });
               handleFilterClose();
             }}
           >
@@ -496,11 +591,9 @@ const AllTickets = () => {
           {/* Sort: ID Descending */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.sort === "id-desc") {
-                setActiveFilters({ ...activeFilters, sort: null });
-              } else {
-                setActiveFilters({ ...activeFilters, sort: "id-desc" });
-              }
+              const newSort = activeFilters.sort === "id-desc" ? null : "id-desc";
+              setActiveFilters({ ...activeFilters, sort: newSort });
+              setServerFilters({ ...serverFilters, sort: newSort });
               handleFilterClose();
             }}
           >
@@ -513,11 +606,9 @@ const AllTickets = () => {
           {/* Status: New */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status === "New") {
-                setActiveFilters({ ...activeFilters, status: null });
-              } else {
-                setActiveFilters({ ...activeFilters, status: "New" });
-              }
+              const newStatus = activeFilters.status === "New" ? null : "New";
+              setActiveFilters({ ...activeFilters, status: newStatus });
+              setServerFilters({ ...serverFilters, status: newStatus });
               handleFilterClose();
             }}
           >
@@ -530,11 +621,9 @@ const AllTickets = () => {
           {/* Status: Ongoing */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status === "Ongoing") {
-                setActiveFilters({ ...activeFilters, status: null });
-              } else {
-                setActiveFilters({ ...activeFilters, status: "Ongoing" });
-              }
+              const newStatus = activeFilters.status === "Ongoing" ? null : "Ongoing";
+              setActiveFilters({ ...activeFilters, status: newStatus });
+              setServerFilters({ ...serverFilters, status: newStatus });
               handleFilterClose();
             }}
           >
@@ -547,11 +636,9 @@ const AllTickets = () => {
           {/* Status: Resolved */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status === "Resolved") {
-                setActiveFilters({ ...activeFilters, status: null });
-              } else {
-                setActiveFilters({ ...activeFilters, status: "Resolved" });
-              }
+              const newStatus = activeFilters.status === "Resolved" ? null : "Resolved";
+              setActiveFilters({ ...activeFilters, status: newStatus });
+              setServerFilters({ ...serverFilters, status: newStatus });
               handleFilterClose();
             }}
           >
@@ -563,11 +650,9 @@ const AllTickets = () => {
           {/* Status: Escalated */}
           <MenuItem
             onClick={() => {
-              if (activeFilters.status === "Escalated") {
-                setActiveFilters({ ...activeFilters, status: null });
-              } else {
-                setActiveFilters({ ...activeFilters, status: "Escalated" });
-              }
+              const newStatus = activeFilters.status === "Escalated" ? null : "Escalated";
+              setActiveFilters({ ...activeFilters, status: newStatus });
+              setServerFilters({ ...serverFilters, status: newStatus });
               handleFilterClose();
             }}
           >
@@ -621,38 +706,84 @@ const AllTickets = () => {
               }}
           >
               {/* Render Student Tickets Section */}
-              {studentTickets.length > 0 && (
-                  <>
-                      <Typography variant="h6" sx={{ mb: 1 }}>
-                          Student Tickets
+              {(!activeFilters.source || activeFilters.source === 'student') && (
+                  <Box sx={{ mb: 4 }}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>
+                          Student Tickets ({studentPagination.totalItems} total)
                       </Typography>
-                      <TicketsViewController
-                          tickets={studentTickets}
-                          defaultView="list"
-                          onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
-                      />
-                  </>
+                      {studentTickets.length > 0 ? (
+                          <>
+                              <TicketsViewController
+                                  tickets={studentTickets.filter(ticket => {
+                                      let show = true;
+                                      if (activeFilters.search) show = show && ticket.userName.toLowerCase().includes(activeFilters.search.toLowerCase());
+                                      if (activeFilters.teamNameSearch) show = show && ticket.teamName.toLowerCase().includes(activeFilters.teamNameSearch.toLowerCase());
+                                      return show;
+                                  })}
+                                  defaultView="list"
+                                  onOpenTicket={(t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`)}
+                              />
+                              {/* Student Tickets Pagination */}
+                              {studentPagination.totalPages > 1 && (
+                                  <Box sx={{ mt: 2 }}>
+                                      <Pagination
+                                          currentPage={studentCurrentPage}
+                                          totalPages={studentPagination.totalPages}
+                                          onPageChange={handleStudentPageChange}
+                                          itemsPerPage={studentItemsPerPage}
+                                          onItemsPerPageChange={handleStudentItemsPerPageChange}
+                                          totalItems={studentPagination.totalItems}
+                                      />
+                                  </Box>
+                              )}
+                          </>
+                      ) : (
+                          <Typography>No student tickets to display.</Typography>
+                      )}
+                  </Box>
               )}
 
               {/* Render TA Tickets Section */}
-              {taTickets.length > 0 && (
-                  <>
-                      <Typography
-                          variant="h6"
-                          sx={{ mb: 1, mt: studentTickets.length > 0 ? 4 : 0 }}
-                      >
-                          TA Tickets
+              {(!activeFilters.source || activeFilters.source === 'ta') && (
+                  <Box>
+                      <Typography variant="h6" sx={{ mb: 2 }}>
+                          TA Tickets ({taPagination.totalItems} total)
                       </Typography>
-                      <TaTicketsViewController
-                          tickets={taTickets}
-                          defaultView="list"
-                          onOpenTicket={(t) => navigate(`/taticketinfo?ticket=${t.ticket_id}`)}
-                      />
-                  </>
+                      {taTickets.length > 0 ? (
+                          <>
+                              <TaTicketsViewController
+                                  tickets={taTickets.filter(ticket => {
+                                      let show = true;
+                                      if (activeFilters.search) show = show && ticket.userName.toLowerCase().includes(activeFilters.search.toLowerCase());
+                                      if (activeFilters.teamNameSearch) show = show && ticket.teamName.toLowerCase().includes(activeFilters.teamNameSearch.toLowerCase());
+                                      // Note: Status and hideResolved filtering now handled by backend
+                                      return show;
+                                  })}
+                                  defaultView="list"
+                                  onOpenTicket={(t) => navigate(`/taticketinfo?ticket=${t.ticket_id}`)}
+                              />
+                              {/* TA Tickets Pagination */}
+                              {taPagination.totalPages > 1 && (
+                                  <Box sx={{ mt: 2 }}>
+                                      <Pagination
+                                          currentPage={taCurrentPage}
+                                          totalPages={taPagination.totalPages}
+                                          onPageChange={handleTaPageChange}
+                                          itemsPerPage={taItemsPerPage}
+                                          onItemsPerPageChange={handleTaItemsPerPageChange}
+                                          totalItems={taPagination.totalItems}
+                                      />
+                                  </Box>
+                              )}
+                          </>
+                      ) : (
+                          <Typography>No TA tickets to display.</Typography>
+                      )}
+                  </Box>
               )}
 
               {/* Display a message if no tickets match the filters */}
-              {filteredTickets.length === 0 && (
+              {studentTickets.length === 0 && taTickets.length === 0 && (
                   <Typography>No tickets to display.</Typography>
               )}
           </Box>

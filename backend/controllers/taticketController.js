@@ -6,9 +6,144 @@ const TaTicketAssignment = require("../models/TaTicketAssignment");
 
 exports.getAllTickets = async (req, res) => {
     try {
-        const tickets = await TaTicket.findAll();
+        // Extract pagination parameters from query string
+        const { 
+            page = 1, 
+            limit = 10, 
+            status, 
+            priority, 
+            team_id,
+            assigned_to,
+            escalated,
+            hideResolved,
+            sort
+        } = req.query;
 
-        res.json(tickets);
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const offset = (pageNum - 1) * limitNum;
+
+        // Build where clause for filtering
+        const whereClause = {};
+        // Normalize status to lowercase (DB uses lowercase enum values)
+        const normalizedStatus = status ? status.toLowerCase() : undefined;
+        if (normalizedStatus) {
+            if (normalizedStatus === 'escalated') {
+                whereClause.escalated = true;
+            } else {
+                whereClause.status = normalizedStatus;
+            }
+        }
+        if (priority) whereClause.priority = priority;
+        if (team_id) whereClause.team_id = team_id;
+        if (assigned_to) whereClause.assigned_to = assigned_to;
+        if (escalated !== undefined) whereClause.escalated = escalated === 'true';
+        // Only apply hideResolved when there is no explicit status filter provided
+        if (hideResolved === 'true' && typeof whereClause.status === 'undefined') {
+            const { Op } = require('sequelize');
+            whereClause.status = { [Op.ne]: 'resolved' };
+        }
+
+        // Build order clause for sorting
+        let orderClause = [['created_at', 'DESC']]; // Default: Most recent tickets first
+        
+        if (sort) {
+            switch (sort) {
+                case 'newest':
+                    orderClause = [['created_at', 'DESC']];
+                    break;
+                case 'oldest':
+                    orderClause = [['created_at', 'ASC']];
+                    break;
+                case 'id-asc':
+                    orderClause = [['ticket_id', 'ASC']];
+                    break;
+                case 'id-desc':
+                    orderClause = [['ticket_id', 'DESC']];
+                    break;
+                default:
+                    orderClause = [['created_at', 'DESC']];
+            }
+        }
+
+        // Use findAndCountAll to get both tickets and total count
+        const { count, rows } = await TaTicket.findAndCountAll({
+            where: whereClause,
+            limit: limitNum,
+            offset: offset,
+            order: orderClause,
+            include: [
+                { 
+                    model: User, 
+                    as: "TA", 
+                    attributes: ["name", "email"] 
+                }
+            ]
+        });
+
+        // Get summary counts (all tickets, ignoring pagination but respecting filters)
+        let totalTickets, openTickets, closedTickets, escalatedTickets;
+        const { Op } = require('sequelize');
+        
+        try {
+            totalTickets = await TaTicket.count({ where: whereClause });
+            
+            openTickets = await TaTicket.count({ 
+                where: { 
+                    ...whereClause, 
+                    status: { [Op.in]: ['new', 'ongoing'] } 
+                } 
+            });
+            
+            closedTickets = await TaTicket.count({ 
+                where: { 
+                    ...whereClause, 
+                    status: 'resolved' 
+                } 
+            });
+            
+            escalatedTickets = await TaTicket.count({ 
+                where: { 
+                    ...whereClause, 
+                    escalated: true 
+                } 
+            });
+            
+        } catch (summaryError) {
+            console.error('Error calculating TA ticket summary counts:', summaryError);
+            // Fallback to basic counts
+            totalTickets = count;
+            openTickets = 0;
+            closedTickets = 0;
+            escalatedTickets = 0;
+        }
+
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(count / limitNum);
+
+        // Add ta_name manually for compatibility
+        const ticketsWithNames = rows.map(ticket => ({
+            ...ticket.dataValues,
+            ta_name: ticket.TA ? ticket.TA.name : "Unknown TA",
+        }));
+
+        res.json({
+            tickets: ticketsWithNames,
+            pagination: {
+                currentPage: pageNum,
+                itemsPerPage: limitNum,
+                totalItems: count,
+                totalPages: totalPages,
+                hasNextPage: pageNum < totalPages,
+                hasPreviousPage: pageNum > 1
+            },
+            summary: {
+                totalTickets,
+                openTickets,
+                closedTickets,
+                escalatedTickets
+            }
+        });
     } catch (error) {
         res.status(507).json({ error: error.message });
     }

@@ -15,27 +15,62 @@ exports.getAllTickets = async (req, res) => {
       status, 
       priority, 
       team_id,
-      assigned_to 
+      assigned_to,
+      sort,
+      hideResolved
     } = req.query;
 
-    // Convert to integers and calculate offset
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const offset = (pageNum - 1) * limitNum;
 
     // Build where clause for filtering
     const whereClause = {};
-    if (status) whereClause.status = status;
+    // Normalize status to lowercase (DB uses lowercase enum values)
+    const normalizedStatus = status ? status.toLowerCase() : undefined;
+    if (normalizedStatus) {
+      if (normalizedStatus === 'escalated') {
+        whereClause.escalated = true;
+      } else {
+        whereClause.status = normalizedStatus;
+      }
+    }
     if (priority) whereClause.priority = priority;
     if (team_id) whereClause.team_id = team_id;
     if (assigned_to) whereClause.assigned_to = assigned_to;
+    // Only apply hideResolved when there is no explicit status filter on the query
+    if (hideResolved === 'true' && typeof whereClause.status === 'undefined') {
+      whereClause.status = { [Op.ne]: 'resolved' };
+    }
+
+    // Build order clause for sorting
+    let orderClause = [['created_at', 'DESC']]; // Default: Most recent tickets first
+    
+    if (sort) {
+      switch (sort) {
+        case 'newest':
+          orderClause = [['created_at', 'DESC']];
+          break;
+        case 'oldest':
+          orderClause = [['created_at', 'ASC']];
+          break;
+        case 'id-asc':
+          orderClause = [['ticket_id', 'ASC']];
+          break;
+        case 'id-desc':
+          orderClause = [['ticket_id', 'DESC']];
+          break;
+        default:
+          orderClause = [['created_at', 'DESC']];
+      }
+    }
 
     // Use findAndCountAll to get both tickets and total count
     const { count, rows } = await Ticket.findAndCountAll({
       where: whereClause,
       limit: limitNum,
       offset: offset,
-      order: [['created_at', 'DESC']], // Most recent tickets first
+      order: orderClause,
       include: [
         { 
           model: User, 
