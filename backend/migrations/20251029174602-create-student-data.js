@@ -45,7 +45,7 @@ module.exports = {
         SELECT 
           u.user_id,
           (SELECT team_id from teams ORDER BY RANDOM() LIMIT 1) AS team_id,
-          '89393' AS section
+          NULL AS section
         FROM users u
         WHERE u.role = 'student'
           AND NOT EXISTS (SELECT 1 FROM studentdata s WHERE s.user_id = u.user_id)

@@ -80,20 +80,22 @@ export const verifyFileService = (file, f_type) => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      quoteChar: '"',         
-      escapeChar: '"',        
-      delimiter: ',',         
+      quoteChar: '"',
+      escapeChar: '"',
+      quotes: true,
+      delimiter: ',',
       encoding: "UTF-8",
-      newline: "\n",
+      dynamicTyping: false,
+      beforeFirstChunk: (chunk) => chunk.replace(/\r\n?/g, '\n'),
       transformHeader: (h) => (h || "")
-                .replace(/^\uFEFF/, "")      // remove BOM
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, "_")       // spaces -> underscore
-                .replace(/[^\w_]/g, ""),    // remove other punctuation,
-      transform: (value) => value.trim(),
+        .replace(/^\uFEFF/, "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^\w_]/g, ""),
+      transform: (value) => (typeof value === "string" ? value.trim() : value),
       complete: (results) => {
-          //console.log("Parsed data:", results.data);
+        //console.log("Parsed data:", results.data);
         const errors = [];
         const headers = results.meta.fields || [];
         //console.log("Parsed headers:", headers);

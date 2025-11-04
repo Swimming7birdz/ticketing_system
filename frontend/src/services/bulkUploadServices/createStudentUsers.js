@@ -168,6 +168,10 @@ const createStudent = async (row) => {
   const section = userData.sections;
   const team_id = await getTeam(userData.group_name);
 
+  if (team_id.success === false) { 
+    return { success: false, error: `Failed to get team ID: ${team_id.error}` };
+  }
+
   //create student user and student data
   const studentResult = await addStudent(name, email, password, section, team_id.data);
 
@@ -194,13 +198,20 @@ export const generateStudentUsers = (file) => {
         Papa.parse(file, {
           header: true,
           skipEmptyLines: true,
-          quoteChar: '"',         
-          escapeChar: '"',        
-          delimiter: ',',         
+          quoteChar: '"',
+          escapeChar: '"',
+          quotes: true,
+          delimiter: ',',
           encoding: "UTF-8",
-          newline: "\r\n",
-          transformHeader: (h) => h.trim(),
-          transform: (value) => value.trim(),
+          dynamicTyping: false,
+          beforeFirstChunk: (chunk) => chunk.replace(/\r\n?/g, '\n'),
+          transformHeader: (h) => (h || "")
+            .replace(/^\uFEFF/, "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_")
+            .replace(/[^\w_]/g, ""),
+          transform: (value) => (typeof value === "string" ? value.trim() : value),
           complete: (results) => {
             //console.log("Parsed data:", results.data);
             const rows = results.data || [];

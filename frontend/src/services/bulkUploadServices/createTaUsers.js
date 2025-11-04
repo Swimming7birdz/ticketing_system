@@ -73,43 +73,43 @@ const createTAs = async (row) => {
 
 export const generateTAs = (file) => {
     return new Promise((resolve) => {
-            Papa.parse(file, {
-              header: true,
-              skipEmptyLines: true,
-              quoteChar: '"',         
-              escapeChar: '"',        
-              delimiter: ',',         
-              encoding: "UTF-8",
-              newline: "\r\n",
-            transformHeader: (h) =>
-              (h || "")
-                .replace(/^\uFEFF/, "")      // remove BOM
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, "_")       // spaces -> underscore
-                .replace(/[^\w_]/g, ""),    // remove other punctuation
-            transform: (value) => (typeof value === "string" ? value.trim() : value),
-              complete: (results) => {
-                //console.log("Parsed data:", results.data);
-                const rows = results.data || [];
-                // create all users in parallel and wait for all results
-                const createPromises = rows.map((row) => createTAs(row));
-                Promise.all(createPromises)
-                  .then((results) => {
-                    const errors = results
-                      .map((r, i) => ({ r, i }))
-                      .filter(x => !x.r.success)
-                      .map(x => `Row ${x.i + 2}: ${x.r.error}`);
-                    resolve({ valid: errors.length === 0, errors, rows });
-                  })
-                  .catch((err) => {
-                    resolve({ valid: false, errors: [String(err)], rows });
-                  });
-              },
-              error: (err) => {
-                resolve({ valid: false, errors: [String(err)], rows: [] });
-              },
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        quoteChar: '"',
+        escapeChar: '"',
+        quotes: true,
+        delimiter: ',',
+        encoding: "UTF-8",
+        dynamicTyping: false,
+        beforeFirstChunk: (chunk) => chunk.replace(/\r\n?/g, '\n'),
+        transformHeader: (h) => (h || "")
+          .replace(/^\uFEFF/, "")
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "_")
+          .replace(/[^\w_]/g, ""),
+        transform: (value) => (typeof value === "string" ? value.trim() : value),
+        complete: (results) => {
+          //console.log("Parsed data:", results.data);
+          const rows = results.data || [];
+          // create all users in parallel and wait for all results
+          const createPromises = rows.map((row) => createTAs(row));
+          Promise.all(createPromises)
+            .then((results) => {
+              const errors = results
+                .map((r, i) => ({ r, i }))
+                .filter(x => !x.r.success)
+                .map(x => `Row ${x.i + 2}: ${x.r.error}`);
+              resolve({ valid: errors.length === 0, errors, rows });
+            })
+            .catch((err) => {
+              resolve({ valid: false, errors: [String(err)], rows });
             });
-        });
-
+        },
+        error: (err) => {
+          resolve({ valid: false, errors: [String(err)], rows: [] });
+        },
+      });
+  });
 };
