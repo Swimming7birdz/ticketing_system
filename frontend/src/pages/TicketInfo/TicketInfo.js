@@ -14,6 +14,7 @@ import EditTicket from "../../components/EditTicket/EditTicket";
 import ConfirmReassign from "../../components/ConfirmReassign/ConfirmReassign";
 import ConfirmEscalate from "../../components/ConfirmEscalate/ConfirmEscalate";
 import ReplySection from "../../components/ReplySection/ReplySection";
+import ShareTicket from "../../components/ShareTicket/ShareTicket";
 import TicketStatusIndicator from "../../components/TicketStatusIndicator/TicketStatusIndicator";
 import { issueTypeDisplay } from "../../constants/IssueTypes";
 import "./TicketInfo.css";
@@ -39,10 +40,13 @@ const TicketInfo = () => {
   const [escalateOpen, setEscalateOpen] = useState(false);
   const [ticketData, setTicketData] = useState(null);
   const [ticketStatus, setTicketStatus] = useState("");
+  const [shareOpen, setShareOpen] = useState(false);
   const [loadingTicketData, setLoadingTicketData] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
   const [error, setError] = useState(false);
   const [AssignedID, setAssignedID] = useState([]);
+  const [allAssignedID, setAllAssignedID] = useState([]);
+  const [SharedID, setSharedID] = useState([]);
   const [idToNameMap, setIdToNameMap] = useState({});
 
   const navigate = useNavigate();
@@ -217,6 +221,8 @@ const TicketInfo = () => {
         const list = await getResponse.json();
         console.log("Assigned TA ID: ", list);
         const TA_id = list.map(obj => obj.user_id)[0]; //if tickets have multiple TAs, only get the first one
+        const TA_id_list = list.map(obj => obj.user_id);
+        setAllAssignedID(TA_id_list);
         setAssignedID(TA_id);
 
       } catch (err) {
@@ -441,6 +447,12 @@ const TicketInfo = () => {
                 <Button variant="outlined" onClick={() => setReassignOpen(true)}>Reassign</Button>
               )}
               <ConfirmReassign handleOpen={reassignOpen} handleClose={() => setReassignOpen(false)} ticketID={ticketId} oldTAID={AssignedID} idNameMap={idToNameMap} updateTA={(newTAID) => setAssignedID(newTAID)} />
+
+              {/*Currently copies from Reassign, do not use yet */}
+              {(userType === "admin" || userType === "TA") && (
+              <Button variant="outlined" onClick={() => setShareOpen(true)}>Share</Button>
+              )}
+              <ShareTicket handleOpen={shareOpen} handleClose={() => setShareOpen(false)} ticketID={ticketId} oldTAID={AssignedID} idNameMap={idToNameMap} updateTA={(newTAID) => setSharedID(newTAID)} allTAs = {allAssignedID} />
             </Box>
           </Box>
 
