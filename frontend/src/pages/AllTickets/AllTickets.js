@@ -71,6 +71,11 @@ const AllTickets = () => {
   }, [studentCurrentPage, studentItemsPerPage, taCurrentPage, taItemsPerPage, serverFilters, hideResolved]);
 
   useEffect(() => {
+    setStudentCurrentPage(1);
+    setTaCurrentPage(1);
+  }, [serverFilters, hideResolved]);
+
+  useEffect(() => {
     applyFilters();
   }, [tickets, activeFilters.search, activeFilters.teamNameSearch, activeFilters.source, hideResolved]);
 
@@ -307,29 +312,51 @@ const AllTickets = () => {
 
             let totalTickets, openTickets, closedTickets, escalatedTickets;
             
+            // Get TOTAL count (unfiltered) for the main totalTickets display
+            const grandTotalStudentParams = new URLSearchParams({ page: '1', limit: '1' }); // Minimal data
+            const grandTotalTaParams = new URLSearchParams({ page: '1', limit: '1' });
+            
+            const [grandTotalStudentResponse, grandTotalTaResponse] = await Promise.all([
+                fetch(`${baseURL}/api/tickets?${grandTotalStudentParams}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }),
+                fetch(`${baseURL}/api/tatickets?${grandTotalTaParams}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+            ]);
+            
+            let grandTotalTickets = 0;
+            if (grandTotalStudentResponse.ok && grandTotalTaResponse.ok) {
+                const grandTotalStudentData = await grandTotalStudentResponse.json();
+                const grandTotalTaData = await grandTotalTaResponse.json();
+                
+                const grandTotalStudentCount = grandTotalStudentData.summary ? grandTotalStudentData.summary.totalTickets : 
+                                              (grandTotalStudentData.pagination ? grandTotalStudentData.pagination.totalItems : 0);
+                const grandTotalTaCount = grandTotalTaData.summary ? grandTotalTaData.summary.totalTickets : 
+                                         (grandTotalTaData.pagination ? grandTotalTaData.pagination.totalItems : 0);
+                
+                grandTotalTickets = grandTotalStudentCount + grandTotalTaCount;
+            }
+            
+            totalTickets = grandTotalTickets;
+            
             if (studentTicketsData.summary && taTicketsDataRaw.summary) {
-                // Use backend summary counts 
-                totalTickets = studentTicketsData.summary.totalTickets + taTicketsDataRaw.summary.totalTickets;
                 openTickets = studentTicketsData.summary.openTickets + taTicketsDataRaw.summary.openTickets;
                 closedTickets = studentTicketsData.summary.closedTickets + taTicketsDataRaw.summary.closedTickets;
                 escalatedTickets = studentTicketsData.summary.escalatedTickets + taTicketsDataRaw.summary.escalatedTickets;
             } else {
-                // Fallback: calculate from paginated data 
-                const escalatedCount = allTicketsData.filter(ticket => ticket.escalated === true).length;
-                const openCount = allTicketsData.filter(ticket => 
-                    ticket.status === "new" || ticket.status === "ongoing"
-                ).length;
-                const closedCount = allTicketsData.filter(ticket => 
-                    ticket.status === "resolved"
-                ).length;
-                
-                const studentTotal = studentTicketsData.pagination ? studentTicketsData.pagination.totalItems : studentTicketsRaw.length;
-                const taTotal = taTicketsDataRaw.pagination ? taTicketsDataRaw.pagination.totalItems : taTicketsRaw.length;
-                
-                totalTickets = studentTotal + taTotal;
-                escalatedTickets = escalatedCount;
-                openTickets = openCount;
-                closedTickets = closedCount;
+                escalatedTickets = 0;
+                openTickets = 0;
+                closedTickets = 0;
+                console.warn('Backend summary not available for filtered counts');
             }
             
             setTotalTickets(totalTickets);
