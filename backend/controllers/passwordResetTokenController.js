@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const PasswordResetToken = require("../models/passwordresettoken");
+const PasswordResetToken = require("../models/PasswordResetToken");
 const sendEmail = require("../services/emailService");
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 const crypto = require("crypto");

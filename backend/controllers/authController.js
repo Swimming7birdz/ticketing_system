@@ -18,7 +18,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user.user_id, role: user.role }, process.env.JWT_SECRET, {
+      if (!user.is_enabled) {
+          return res.status(403).json({ error: "Account is disabled" });
+      }
+
+    const token = jwt.sign({ id: user.user_id, role: user.role, name: user.name }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 

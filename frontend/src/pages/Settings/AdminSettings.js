@@ -450,77 +450,77 @@ const AdminSettings = () => {
       </Box>
 
       {/* Teaching Assistants Section */}
-      <Box
-        sx={{
-          marginBottom: 5,
-          backgroundColor: theme.palette.background.paper,
-          borderRadius: "10px",
-          border: `1px solid ${theme.palette.divider}`,
-          padding: 2.5,
-          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            marginBottom: 2.5, 
-            fontWeight: "bold",
-            color: theme.palette.text.primary
-          }}
-        >
-          Teaching Assistants (TAs)
-        </Typography>
-        <TableContainer 
-          component={Paper} 
-          sx={{
-            marginTop: 1.25,
-            maxHeight: "300px",
-            overflowY: "auto",
-            backgroundColor: isDarkMode ? "#2d2d2d" : theme.palette.background.default,
-          }}
-        >
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Name</TableCell>
-            <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Email</TableCell>
-            <TableCell align="right" sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Action</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {tas.map((ta) => (
-            <TableRow key={ta.user_id}>
-              <TableCell sx={{ color: theme.palette.text.primary }}>{ta.name}</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>{ta.email}</TableCell>
-              <TableCell align="right">
-              <Button 
-                  variant="outlined"
-                  onClick={() =>  { 
-                    handleDelete(ta);
-                    }
-                  }
-                  sx={{ 
-                    color: isDarkMode ? "white" : "black", 
-                    borderColor: isDarkMode ? "white" : "black" 
-                  }}
-                > 
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-    {deleteOpen && (
-      <ConfirmTADelete
-        handleOpen={deleteOpen}
-        handleClose={deletePopupClose}
-        ta={selectedTA}
-        idNameMap={idNameMap}
-        updateStatus={updateStatus}
-      />
-    )}
+      {/*<Box*/}
+      {/*  sx={{*/}
+      {/*    marginBottom: 5,*/}
+      {/*    backgroundColor: theme.palette.background.paper,*/}
+      {/*    borderRadius: "10px",*/}
+      {/*    border: `1px solid ${theme.palette.divider}`,*/}
+      {/*    padding: 2.5,*/}
+      {/*    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",*/}
+      {/*  }}*/}
+      {/*>*/}
+        {/*<Typography */}
+        {/*  variant="h5" */}
+        {/*  sx={{ */}
+        {/*    marginBottom: 2.5, */}
+        {/*    fontWeight: "bold",*/}
+        {/*    color: theme.palette.text.primary*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  Teaching Assistants (TAs)*/}
+        {/*</Typography>*/}
+    {/*    <TableContainer */}
+    {/*      component={Paper} */}
+    {/*      sx={{*/}
+    {/*        marginTop: 1.25,*/}
+    {/*        maxHeight: "300px",*/}
+    {/*        overflowY: "auto",*/}
+    {/*        backgroundColor: isDarkMode ? "#2d2d2d" : theme.palette.background.default,*/}
+    {/*      }}*/}
+    {/*    >*/}
+    {/*  <Table>*/}
+    {/*    <TableHead>*/}
+    {/*      <TableRow>*/}
+    {/*        <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Name</TableCell>*/}
+    {/*        <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Email</TableCell>*/}
+    {/*        <TableCell align="right" sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Action</TableCell>*/}
+    {/*      </TableRow>*/}
+    {/*    </TableHead>*/}
+    {/*    <TableBody>*/}
+    {/*      {tas.map((ta) => (*/}
+    {/*        <TableRow key={ta.user_id}>*/}
+    {/*          <TableCell sx={{ color: theme.palette.text.primary }}>{ta.name}</TableCell>*/}
+    {/*          <TableCell sx={{ color: theme.palette.text.primary }}>{ta.email}</TableCell>*/}
+    {/*          <TableCell align="right">*/}
+    {/*          <Button */}
+    {/*              variant="outlined"*/}
+    {/*              onClick={() =>  { */}
+    {/*                handleDelete(ta);*/}
+    {/*                }*/}
+    {/*              }*/}
+    {/*              sx={{ */}
+    {/*                color: isDarkMode ? "white" : "black", */}
+    {/*                borderColor: isDarkMode ? "white" : "black" */}
+    {/*              }}*/}
+    {/*            > */}
+    {/*              Delete*/}
+    {/*            </Button>*/}
+    {/*          </TableCell>*/}
+    {/*        </TableRow>*/}
+    {/*      ))}*/}
+    {/*    </TableBody>*/}
+    {/*  </Table>*/}
+    {/*</TableContainer>*/}
+    {/*{deleteOpen && (*/}
+    {/*  <ConfirmTADelete*/}
+    {/*    handleOpen={deleteOpen}*/}
+    {/*    handleClose={deletePopupClose}*/}
+    {/*    ta={selectedTA}*/}
+    {/*    idNameMap={idNameMap}*/}
+    {/*    updateStatus={updateStatus}*/}
+    {/*  />*/}
+    {/*)}*/}
 
 
 
@@ -541,35 +541,35 @@ const AdminSettings = () => {
             </ListItem>
           ))}
         </List> */}
-        <Box sx={{ marginTop: 2.5, display: "flex", gap: 1.25 }}>
-          <TextField
-            fullWidth
-            value={newTAName}
-            placeholder="New TA Name"
-            onChange={(e) => setNewTAName(e.target.value)}
-            variant="outlined"
-            size="small"
-          />
-          <TextField
-            fullWidth
-            type="email"
-            value={newTAEmail}
-            placeholder="New TA Email"
-            onChange={(e) => setNewTAEmail(e.target.value)}
-            variant="outlined"
-            size="small"
-          />
-          <Button 
-            variant="contained" 
-            onClick={addTA}
-            sx={{ backgroundColor: theme.palette.primary.main }}
-          >
-            Add TA
-          </Button>
-        </Box>
-      </Box>
+        {/*<Box sx={{ marginTop: 2.5, display: "flex", gap: 1.25 }}>*/}
+        {/*  <TextField*/}
+        {/*    fullWidth*/}
+        {/*    value={newTAName}*/}
+        {/*    placeholder="New TA Name"*/}
+        {/*    onChange={(e) => setNewTAName(e.target.value)}*/}
+        {/*    variant="outlined"*/}
+        {/*    size="small"*/}
+        {/*  />*/}
+        {/*  <TextField*/}
+        {/*    fullWidth*/}
+        {/*    type="email"*/}
+        {/*    value={newTAEmail}*/}
+        {/*    placeholder="New TA Email"*/}
+        {/*    onChange={(e) => setNewTAEmail(e.target.value)}*/}
+        {/*    variant="outlined"*/}
+        {/*    size="small"*/}
+        {/*  />*/}
+        {/*  <Button */}
+        {/*    variant="contained" */}
+        {/*    onClick={addTA}*/}
+        {/*    sx={{ backgroundColor: theme.palette.primary.main }}*/}
+        {/*  >*/}
+        {/*    Add TA*/}
+        {/*  </Button>*/}
+        {/*</Box>*/}
+      {/*</Box>*/}
       
-      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center" }}>
+      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
         <Button 
           variant="contained" 
           onClick={() => navigate("/profile")}
@@ -577,6 +577,22 @@ const AdminSettings = () => {
         >
           Go To Account Settings
         </Button>
+
+          <Button
+              variant="contained"
+              onClick={() => navigate("/managestudents")}
+              sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+              Manage Students
+          </Button>
+
+          <Button
+              variant="contained"
+              onClick={() => navigate("/manageTAs")}
+              sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+              Manage TAs
+          </Button>
       </Box>
       </Box>
     </Box>
