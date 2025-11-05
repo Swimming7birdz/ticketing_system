@@ -124,7 +124,11 @@ const ShareTicket = ({handleOpen, handleClose, ticketID, oldTAID, idNameMap, upd
                 </DialogContentText>
                 <DialogContentText> 
                     {Object.entries(idNameMap).map(([user_id, name]) => (allTAs.includes(Number(user_id)) &&
+<<<<<<< HEAD
                         <option key={user_id} value={user_id}>• {name}</option>
+=======
+                        <option key={user_id} value={user_id}>• {name}</option> //TA name is displayed but actual value for 'selectedTA' is user_id
+>>>>>>> 5efed311c2e5679a26322544bda45fc688708f5c
                         ))}
                 </DialogContentText>
                 <DialogContentText> 
