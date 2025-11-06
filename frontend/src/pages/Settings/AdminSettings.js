@@ -593,6 +593,14 @@ const AdminSettings = () => {
           >
               Manage TAs
           </Button>
+
+          <Button
+              variant="contained"
+              onClick={() => navigate("/manageadmins")}
+              sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+              Manage Admins
+          </Button>
       </Box>
       </Box>
     </Box>
