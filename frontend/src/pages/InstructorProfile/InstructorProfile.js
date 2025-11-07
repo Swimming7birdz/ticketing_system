@@ -317,7 +317,6 @@ const InstructorProfile = () => {
     const endIndex = startIndex + itemsPerPage;
     const paginatedFiltered = filtered.slice(startIndex, endIndex);
 
-    // Update pagination metadata
     setPagination({
       totalItems: totalItems,
       totalPages: totalPages,
@@ -340,14 +339,13 @@ const InstructorProfile = () => {
     setActiveFilters({ sort: null, status: null, search: "", teamNameSearch: "" });
   };
 
-  // Pagination handlers
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1); 
   };
 
   const fetchNameFromId = async (student_id) => {
@@ -442,7 +440,7 @@ const InstructorProfile = () => {
       if (latestUserIdRef.current !== requestedUserId) {
         return;
       }
-      setAllTickets(ticketsWithNames); // Store all tickets for filtering/pagination
+      setAllTickets(ticketsWithNames);
       setTotalTickets(uniqueTickets.length);
     
     //  Add ticket statistics

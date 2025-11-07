@@ -1,90 +1,196 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, Typography, Avatar, Button, CircularProgress } from "@mui/material";
+import { Box, Typography, Avatar, Button, CircularProgress, TextField, Menu, MenuItem } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import ArticleIcon from "@mui/icons-material/Article";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
+import Pagination from "../../components/Pagination/Pagination";
+import { fetchTicketsByUserId } from "../../services/ticketServices";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-// Decode a JWT to get user_id (no secret needed; we only read payload)
-function getUserIdFromToken() {
-  try {
-    const token = Cookies.get("token");
-    if (!token) return null;
-    const payload = JSON.parse(atob(token.split(".")[1] || ""));
-    return payload?.user_id || payload?.id || null;
-  } catch {
-    return null;
-  }
-}
-
 export default function MyTickets() {
+  const theme = useTheme();
   const navigate = useNavigate();
-  const userId = useMemo(getUserIdFromToken, []);
-  const [tickets, setTickets] = useState([]);
+  const [allTickets, setAllTickets] = useState([]);
+  const [tickets, setTickets] = useState([]); 
+  const [filteredTickets, setFilteredTickets] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
 
-  const fetchNameFromId = async (student_id) => {
+  const [activeFilters, setActiveFilters] = useState({
+    sort: null,
+    status: null,
+    search: "",
+    teamNameSearch: "",
+  });
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const [hideResolved, setHideResolved] = useState(false);
+
+  const fetchTeamNameFromId = async (team_id) => {
+    if (!team_id) return "No Team";
     try {
       const token = Cookies.get("token");
-      const res = await fetch(`${baseURL}/api/users/${student_id}`, {
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      const res = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
-      if (!res.ok) return "Unknown";
+
+      if (!res.ok) {
+        console.warn(`Failed to fetch team name for team_id=${team_id}`);
+        return "Unknown Team";
+      }
+
       const data = await res.json();
-      return data.name || "Unknown";
-    } catch {
-      return "Unknown";
+      return data?.team_name || "Unknown Team";
+    } catch (error) {
+      console.error(`Error fetching team name for team_id=${team_id}:`, error);
+      return "Unknown Team";
+    }
+  };
+
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await fetchTicketsByUserId();
+      
+      
+      // Handle both old format (array) and new format (object with pagination)
+      const ticketsData = response.tickets || response;
+
+      const enriched = await Promise.all(
+        ticketsData.map(async (t) => {
+          const teamName = await fetchTeamNameFromId(t.team_id);
+          return {
+            ...t,
+            userName: t.student_name || t.userName || "Unknown", 
+            teamName: teamName,
+          };
+        })
+      );
+
+      setAllTickets(enriched);
+      setCount(enriched.length);
+    } catch (e) {
+      console.error("Error fetching tickets:", e);
+      setAllTickets([]);
+      setCount(0);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
+    fetchTickets();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [allTickets, activeFilters, hideResolved, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilters, hideResolved]);
+
+  const applyFilters = () => {
+    let filtered = [...allTickets];
+
+    if (activeFilters.sort === "newest") {
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (activeFilters.sort === "oldest") {
+      filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (activeFilters.sort === "id-asc") {
+      filtered.sort((a, b) => a.ticket_id - b.ticket_id);
+    } else if (activeFilters.sort === "id-desc") {
+      filtered.sort((a, b) => b.ticket_id - a.ticket_id);
     }
 
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        const token = Cookies.get("token");
-        // Uses backend controller getTicketsByUserId
-        const res = await fetch(`${baseURL}/api/tickets/user/${userId}`, {
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch my tickets");
-        const data = await res.json();
-        const enriched = await Promise.all(
-          data.map(async (t) => ({
-            ...t,
-            userName: await fetchNameFromId(t.student_id),
-          }))
+    if (activeFilters.status) {
+      if (activeFilters.status.toLowerCase() === "escalated") {
+        filtered = filtered.filter((ticket) => ticket.escalated === true);
+      } else {
+        filtered = filtered.filter(
+          (ticket) =>
+            ticket.status?.toLowerCase() === activeFilters.status.toLowerCase()
         );
-        if (!cancelled) {
-          setTickets(enriched);
-          setCount(enriched.length);
-        }
-      } catch (e) {
-        console.error(e);
-        if (!cancelled) {
-          setTickets([]);
-          setCount(0);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
-    })();
+    }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+    if (activeFilters.search) {
+      filtered = filtered.filter((ticket) =>
+        ticket.userName
+          ?.toLowerCase()
+          .includes(activeFilters.search.toLowerCase())
+      );
+    }
+
+    if (activeFilters.teamNameSearch) {
+      filtered = filtered.filter((ticket) =>
+        ticket.teamName
+          ?.toLowerCase()
+          .includes(activeFilters.teamNameSearch.toLowerCase())
+      );
+    }
+
+    if (hideResolved) {
+      filtered = filtered.filter(
+        (ticket) => ticket.status?.toLowerCase() !== "resolved"
+      );
+    }
+
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedFiltered = filtered.slice(startIndex, endIndex);
+
+    setPagination({
+      totalItems: totalItems,
+      totalPages: totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1
+    });
+
+    setFilteredTickets(paginatedFiltered);
+    setTickets(paginatedFiltered);
+  };
+
+  const handleFilterClick = (event) => {
+    setFilterAnchor(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchor(null);
+  };
+
+  const handleClearFilters = () => {
+    setActiveFilters({ sort: null, status: null, search: "", teamNameSearch: "" });
+  };
 
   const openTicket = (t) => navigate(`/ticketinfo?ticket=${t.ticket_id}`);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); 
+  };
 
   if (loading) {
     return (
@@ -115,11 +221,94 @@ export default function MyTickets() {
           <Box>
             <Typography variant="h6">My Tickets</Typography>
             <Typography variant="body2" color="text.secondary">
-              {count} total
+              {count} total • Showing {pagination.totalItems} filtered • Page {currentPage} of {pagination.totalPages || 1}
             </Typography>
           </Box>
         </Box>
         <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
+      </Box>
+
+      {/* Search and Filter Controls */}
+      <Box
+        sx={{
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          p: 2,
+          borderRadius: 2,
+        }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2.5 }}>
+          <TextField
+            label="Search by Name"
+            variant="outlined"
+            value={activeFilters.search}
+            onChange={(e) =>
+              setActiveFilters({ ...activeFilters, search: e.target.value })
+            }
+            sx={{ flex: 1 }}
+          />
+          <TextField
+            label="Search by Team Name"
+            variant="outlined"
+            value={activeFilters.teamNameSearch}
+            onChange={(e) =>
+              setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
+            }
+            sx={{ flex: 1 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleFilterClick}
+            sx={{ backgroundColor: theme.palette.primary.main, color: "white" }}
+          >
+            {activeFilters.sort || activeFilters.status
+              ? `Filters Active`
+              : "Add Filter"}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={handleClearFilters}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
+          >
+            Clear Filters
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setHideResolved(prev => !prev)}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
+          >
+            {hideResolved ? "Include Resolved" : "Hide Resolved"}
+          </Button>
+        </Box>
+
+        {/* Filter Menu */}
+        <Menu anchorEl={filterAnchor} open={Boolean(filterAnchor)} onClose={handleFilterClose}>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: activeFilters.sort === "newest" ? null : "newest" }); handleFilterClose(); }}>
+            {activeFilters.sort === "newest" && (<span style={{ marginRight: 8 }}>✔</span>)} Newest
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: activeFilters.sort === "oldest" ? null : "oldest" }); handleFilterClose(); }}>
+            {activeFilters.sort === "oldest" && (<span style={{ marginRight: 8 }}>✔</span>)} Oldest
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: activeFilters.sort === "id-asc" ? null : "id-asc" }); handleFilterClose(); }}>
+            {activeFilters.sort === "id-asc" && (<span style={{ marginRight: 8 }}>✔</span>)} ID Ascending
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: activeFilters.sort === "id-desc" ? null : "id-desc" }); handleFilterClose(); }}>
+            {activeFilters.sort === "id-desc" && (<span style={{ marginRight: 8 }}>✔</span>)} ID Descending
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: activeFilters.status === "New" ? null : "New" }); handleFilterClose(); }}>
+            {activeFilters.status === "New" && (<span style={{ marginRight: 8 }}>✔</span>)} Status: New
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: activeFilters.status === "Ongoing" ? null : "Ongoing" }); handleFilterClose(); }}>
+            {activeFilters.status === "Ongoing" && (<span style={{ marginRight: 8 }}>✔</span>)} Status: Ongoing
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: activeFilters.status === "Resolved" ? null : "Resolved" }); handleFilterClose(); }}>
+            {activeFilters.status === "Resolved" && (<span style={{ marginRight: 8 }}>✔</span>)} Status: Resolved
+          </MenuItem>
+          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: activeFilters.status === "Escalated" ? null : "Escalated" }); handleFilterClose(); }}>
+            {activeFilters.status === "Escalated" && (<span style={{ marginRight: 8 }}>✔</span>)} Status: Escalated
+          </MenuItem>
+        </Menu>
       </Box>
 
       {/* Tickets */}
@@ -136,8 +325,49 @@ export default function MyTickets() {
           tickets={tickets}
           defaultView="list"
           onOpenTicket={openTicket}
-          header={<Typography variant="subtitle2">Tickets</Typography>}
+          header={<Typography variant="subtitle2">
+            {pagination.totalPages > 1 
+              ? `My Tickets (Page ${currentPage} of ${pagination.totalPages})` 
+              : "My Tickets"}
+          </Typography>}
         />
+        
+        {/* Pagination Component */}
+        {pagination.totalPages > 1 && (
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={pagination.totalItems}
+              itemsPerPage={itemsPerPage}
+              totalPages={pagination.totalPages}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </Box>
+        )}
+
+        {/* No tickets message */}
+        {tickets.length === 0 && !loading && (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              {allTickets.length === 0 
+                ? "You haven't submitted any tickets yet." 
+                : "No tickets match the current filters."}
+            </Typography>
+            {allTickets.length === 0 && (
+              <Button
+                variant="contained"
+                sx={{ mt: 2 }}
+                onClick={() => navigate("/createticket")}
+              >
+                Create Your First Ticket
+              </Button>
+            )}
+          </Box>
+        )}
       </Box>
     </Box>
   );
