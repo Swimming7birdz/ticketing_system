@@ -46,7 +46,7 @@ const AllTickets = () => {
   const [hideResolved, setHideResolved] = useState(true);
 
   const [studentCurrentPage, setStudentCurrentPage] = useState(1);
-  const [studentItemsPerPage, setStudentItemsPerPage] = useState(25);
+  const [studentItemsPerPage, setStudentItemsPerPage] = useState(10);
   const [studentPagination, setStudentPagination] = useState({
     totalItems: 0,
     totalPages: 0,
@@ -55,7 +55,7 @@ const AllTickets = () => {
   });
 
   const [taCurrentPage, setTaCurrentPage] = useState(1);
-  const [taItemsPerPage, setTaItemsPerPage] = useState(25);
+  const [taItemsPerPage, setTaItemsPerPage] = useState(10);
   const [taPagination, setTaPagination] = useState({
     totalItems: 0,
     totalPages: 0,
@@ -397,7 +397,7 @@ const AllTickets = () => {
   };
 
   const handleStudentItemsPerPageChange = (newItemsPerPage) => {
-    setStudentCurrentPage(1); // Reset to first page when changing items per page
+    setStudentCurrentPage(1); 
     setStudentItemsPerPage(newItemsPerPage);
   };
 

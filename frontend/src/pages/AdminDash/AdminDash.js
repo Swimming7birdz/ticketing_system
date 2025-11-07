@@ -27,10 +27,18 @@ const AdminDash = () => {
   const [statusCounts, setStatusCounts] = useState({});
   const [assignees, setAssignees] = useState([]);
   
-  // Pagination state for regular tickets
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
+
+  const [escalatedCurrentPage, setEscalatedCurrentPage] = useState(1);
+  const [escalatedItemsPerPage, setEscalatedItemsPerPage] = useState(10);
+  const [escalatedPagination, setEscalatedPagination] = useState({
     totalItems: 0,
     totalPages: 0,
     hasNextPage: false,
@@ -42,7 +50,18 @@ const AdminDash = () => {
   useEffect(() => {
     fetchTickets();
     fetchTACounts();
+    const token = Cookies.get("token");
+    if (token) {
+      fetchEscalatedTickets(token);
+    }
   }, [currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      fetchEscalatedTickets(token);
+    }
+  }, [escalatedCurrentPage, escalatedItemsPerPage]);
 
   const fetchTACounts = async () => {
     try {
@@ -175,8 +194,13 @@ const AdminDash = () => {
 
   const fetchEscalatedTickets = async (token) => {
     try {
-      // Fetch ALL tickets (without pagination) to get all escalated tickets
-      const response = await fetch(`${baseURL}/api/tickets?limit=1000`, {
+      const params = new URLSearchParams({
+        page: escalatedCurrentPage,
+        limit: escalatedItemsPerPage,
+        status: 'escalated' 
+      });
+
+      const response = await fetch(`${baseURL}/api/tickets?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -189,24 +213,33 @@ const AdminDash = () => {
       }
 
       const responseData = await response.json();
-      const allTickets = responseData.tickets || responseData;
-      
-      // Filter for escalated tickets only
-      const escalatedOnly = allTickets.filter(ticket => ticket.escalated === true);
       
       // Add usernames to escalated tickets
       const escalatedWithNames = await Promise.all(
-        escalatedOnly.map(async (ticket) => {
+        responseData.tickets.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id);
           return { ...ticket, userName };
         })
       );
 
       setEscalatedTickets(escalatedWithNames);
+      const paginationData = {
+        currentPage: responseData.currentPage,
+        totalPages: responseData.totalPages,
+        totalItems: responseData.totalTickets,
+        itemsPerPage: responseData.limit
+      };
+      setEscalatedPagination(paginationData);
       
     } catch (error) {
       console.error("Error fetching escalated tickets:", error);
       setEscalatedTickets([]);
+      setEscalatedPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        itemsPerPage: escalatedItemsPerPage
+      });
     }
   };
 
@@ -215,7 +248,6 @@ const AdminDash = () => {
       // Get the token from cookies
       const token = Cookies.get("token");
 
-      // Build query parameters for pagination
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString()
@@ -246,7 +278,6 @@ const AdminDash = () => {
         setClosedTickets(responseData.summary.closedTickets);
         setTotalEscalatedTickets(responseData.summary.escalatedTickets);
       } else {
-        // Fallback for old format - calculate from paginated data (less accurate)
         const escalatedCount = ticketsData.filter(ticket => ticket.escalated === true).length;
         const openCount = ticketsData.filter(ticket => 
           ticket.status === 'new' || ticket.status === 'ongoing'
@@ -269,13 +300,8 @@ const AdminDash = () => {
         })
       );
 
-      // Set display tickets (paginated)
       setTickets(ticketsWithNames);
       
-      // Fetch ALL escalated tickets separately (not just from current page)
-      await fetchEscalatedTickets(token);
-      
-      // Set pagination data
       setPagination(responseData.pagination || {
         totalItems: ticketsData.length,
         totalPages: 1,
@@ -321,7 +347,16 @@ const AdminDash = () => {
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1); 
+  };
+
+  const handleEscalatedPageChange = (pageNumber) => {
+    setEscalatedCurrentPage(pageNumber);
+  };
+
+  const handleEscalatedItemsPerPageChange = (newItemsPerPage) => {
+    setEscalatedItemsPerPage(newItemsPerPage);
+    setEscalatedCurrentPage(1); 
   };
 
   return (
@@ -491,6 +526,19 @@ const AdminDash = () => {
           onOpenTicket={openTicket}
           header={<Typography variant="subtitle2">Escalated Tickets</Typography>}
         />
+        
+        {/* ESCALATED TICKETS PAGINATION */}
+        {escalatedTickets.length > 0 && (
+          <Pagination
+            currentPage={escalatedPagination.currentPage || escalatedCurrentPage}
+            totalPages={escalatedPagination.totalPages || Math.ceil(escalatedTickets.length / escalatedItemsPerPage)}
+            itemsPerPage={escalatedPagination.itemsPerPage || escalatedItemsPerPage}
+            totalItems={escalatedPagination.totalItems || escalatedTickets.length}
+            onPageChange={handleEscalatedPageChange}
+            onItemsPerPageChange={handleEscalatedItemsPerPageChange}
+            itemsPerPageOptions={[5, 10, 25, 50]}
+          />
+        )}
       </Box>
 
       {/* TA SECTION CONTAINER */}
