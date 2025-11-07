@@ -18,12 +18,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
 import { jwtDecode } from "jwt-decode";
 import TicketsViewController from "../../components/TicketsViewController";
+import Pagination from "../../components/Pagination/Pagination";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 //const token = Cookies.get("token");
 const InstructorProfile = () => {
   const theme = useTheme();
-  const [tickets, setTickets] = useState([]);
+  const [allTickets, setAllTickets] = useState([]); 
+  const [tickets, setTickets] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [filterAnchor, setFilterAnchor] = useState(null); // For dropdown
@@ -31,6 +33,15 @@ const InstructorProfile = () => {
   const [openTickets, setOpenTickets] = useState(0);
   const [closedTickets, setClosedTickets] = useState(0);
   const [filteredTickets, setFilteredTickets] = useState([]);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
   const [TA, setTA] = useState(null);
   const [TATickets, setTATickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState({
@@ -74,12 +85,20 @@ const InstructorProfile = () => {
     if (userId) {
       // Reset state when userId changes to prevent showing stale data
       setLoading(true);
+      setAllTickets([]);
       setTickets([]);
       setFilteredTickets([]);
       setTA(null);
       setTotalTickets(0);
       setTATickets([]);
       setIsUser(false);
+      setCurrentPage(1);
+      setPagination({
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+      });
 
       // Fetch fresh data for the new TA
       fetchTicketsAssigned();
@@ -90,7 +109,11 @@ const InstructorProfile = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [tickets, activeFilters]);
+  }, [allTickets, activeFilters, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilters]);
 
   const fetchOfficeHours = async () => {
     const requestedUserId = userId;
@@ -251,7 +274,7 @@ const InstructorProfile = () => {
 
 
   const applyFilters = () => {
-    let filtered = [...tickets];
+    let filtered = [...allTickets];
 
     // Apply sort filters
     if (activeFilters.sort === "newest") {
@@ -288,7 +311,21 @@ const InstructorProfile = () => {
       );
     }
 
-    setFilteredTickets(filtered);
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedFiltered = filtered.slice(startIndex, endIndex);
+
+    // Update pagination metadata
+    setPagination({
+      totalItems: totalItems,
+      totalPages: totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1
+    });
+
+    setFilteredTickets(paginatedFiltered);
   };
 
   const handleFilterClick = (event) => {
@@ -301,6 +338,16 @@ const InstructorProfile = () => {
 
   const handleClearFilters = () => {
     setActiveFilters({ sort: null, status: null, search: "", teamNameSearch: "" });
+  };
+
+  // Pagination handlers
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
   const fetchNameFromId = async (student_id) => {
@@ -395,7 +442,7 @@ const InstructorProfile = () => {
       if (latestUserIdRef.current !== requestedUserId) {
         return;
       }
-      setTickets(ticketsWithNames);
+      setAllTickets(ticketsWithNames); // Store all tickets for filtering/pagination
       setTotalTickets(uniqueTickets.length);
     
     //  Add ticket statistics
@@ -603,9 +650,24 @@ const InstructorProfile = () => {
           defaultView="grid"
           onOpenTicket={(ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`)}
           header={<Typography variant="subtitle2">
-            {currentUserRole === "student" ? "Your Tickets with this TA" : "Assigned Tickets"}
+            {currentUserRole === "student" ? "Your Tickets with this TA" : `Assigned Tickets (Page ${currentPage} of ${pagination.totalPages})`}
           </Typography>}
         />
+        
+        {/* PAGINATION */}
+        {pagination.totalPages > 1 && (
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              currentPage={pagination.currentPage || currentPage}
+              totalPages={pagination.totalPages}
+              itemsPerPage={pagination.itemsPerPage || itemsPerPage}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </Box>
+        )}
       </Box>
       )}
 
@@ -641,8 +703,25 @@ const InstructorProfile = () => {
           tickets={filteredTickets}
           defaultView="grid"
           onOpenTicket={(ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`)}
-          header={<Typography variant="subtitle2">Click on a ticket to view details</Typography>}
+          header={<Typography variant="subtitle2">
+            {pagination.totalPages > 1 ? `Click on a ticket to view details (Page ${currentPage} of ${pagination.totalPages})` : "Click on a ticket to view details"}
+          </Typography>}
         />
+        
+        {/* PAGINATION FOR STUDENTS */}
+        {pagination.totalPages > 1 && (
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              currentPage={pagination.currentPage || currentPage}
+              totalPages={pagination.totalPages}
+              itemsPerPage={pagination.itemsPerPage || itemsPerPage}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </Box>
+        )}
       </Box>
       )}
 

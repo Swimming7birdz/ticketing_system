@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
+import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketAssignmentsByUserId, fetchTicketById } from "../../services/ticketServices";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -36,14 +37,33 @@ const InstructorDash = () => {
     search: "",
   });
   const [filterAnchor, setFilterAnchor] = useState(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
+  
   let navigate = useNavigate();
 
   const openTicket = (ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`);
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); 
+  };
+
   useEffect(() => {
     fetchTickets();
     fetchTACounts();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const fetchTACounts = async () => {
     try {
@@ -103,7 +123,10 @@ const InstructorDash = () => {
         );
       }
 
-      const tickets = await ticketsResponse.json();
+      const ticketsResponseData = await ticketsResponse.json();
+      
+      // Handle both old format (array) and new format (object with pagination)
+      const tickets = ticketsResponseData.tickets || ticketsResponseData;
 
       // Step 4: Map tickets and increment counts for each TA
       const ticketCounts = {}; // Store ticket counts for each TA
@@ -166,46 +189,67 @@ const InstructorDash = () => {
 
   const fetchTickets = async () => {
     try {
-      const instructorTickets = await fetchTicketAssignmentsByUserId();
-      console.log(instructorTickets);
-      const sortedTickets = sortTicketsById(instructorTickets);
+      const token = Cookies.get("token");
+      
+      const allInstructorTickets = await fetchTicketAssignmentsByUserId();
+      //console.log('All instructor tickets:', allInstructorTickets);
+      
+      const sortedTickets = sortTicketsById(allInstructorTickets);
       const uniqueTickets = filterUniqueTickets(sortedTickets);
-     
+      const totalItems = uniqueTickets.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      
+      const paginatedTicketAssignments = uniqueTickets.slice(startIndex, endIndex);
+      
+      // Fetch detailed ticket data for paginated subset only
       const ticketList = await Promise.all(
-        uniqueTickets.map(async (ticket_) => {
+        paginatedTicketAssignments.map(async (ticket_) => {
           const ticketData = await fetchTicketById(ticket_.ticket_id);
-          //return { ...ticket_, ticketData };
-          // Format data for TicketsViewController - flatten the structure
           return {
             ...ticketData,
             userName: ticketData.student?.name || "Unknown",
-            // Keep original nested structure for backward compatibility
             ticketData: ticketData
           };
         })
       );
       
-      // Count different ticket types
-      const escalatedCount = ticketList.filter(ticket => 
+      // Count different ticket types from ALL tickets (not just paginated)
+      const allTicketDetails = await Promise.all(
+        uniqueTickets.map(async (ticket_) => {
+          const ticketData = await fetchTicketById(ticket_.ticket_id);
+          return ticketData;
+        })
+      );
+      
+      const escalatedCount = allTicketDetails.filter(ticket => 
         ticket.escalated === true
       ).length;
       
-      const openCount = ticketList.filter(ticket => 
+      const openCount = allTicketDetails.filter(ticket => 
         ticket.status === 'new' || ticket.status === 'ongoing'
       ).length;
       
-      const closedCount = ticketList.filter(ticket => 
+      const closedCount = allTicketDetails.filter(ticket => 
         ticket.status === 'resolved'
       ).length;
       
-      // Limit to 21 tickets for dashboard display
-      const limitedTickets = ticketList.slice(0, 21); 
-      
-      setTickets(limitedTickets);
-      setTotalTickets(ticketList.length);
+      // Set paginated tickets
+      setTickets(ticketList);
+      setTotalTickets(totalItems);
       setEscalatedTickets(escalatedCount);
       setOpenTickets(openCount);
       setClosedTickets(closedCount);
+      
+      // Set pagination metadata
+      setPagination({
+        totalItems: totalItems,
+        totalPages: totalPages,
+        hasNextPage: currentPage < totalPages,
+        hasPreviousPage: currentPage > 1
+      });
+      
       setLoading(false);
       
     } catch (error) {
@@ -319,8 +363,21 @@ const InstructorDash = () => {
             tickets={tickets}
             defaultView="grid"
             onOpenTicket={openTicket}
-            header={<Typography variant="subtitle2">Latest Tickets</Typography>}
+            header={<Typography variant="subtitle2">My Tickets</Typography>}
           />
+          
+          {/* PAGINATION */}
+          {pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={pagination.currentPage || currentPage}
+              totalPages={pagination.totalPages}
+              itemsPerPage={pagination.itemsPerPage || itemsPerPage}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          )}
         </div>
       </Box>
 
