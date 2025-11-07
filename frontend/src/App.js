@@ -33,6 +33,8 @@ import TaTicketInfo from "./pages/TicketInfo/TaTicketInfo";
 import BulkUpload from "./pages/BulkUpload/BulkUpload";
 import ManageStudents from "./pages/ManageUsers/ManageStudents";
 import ManageTAs from "./pages/ManageUsers/ManageTAs";
+import ManageStudents from "./pages/ManageStudents/ManageStudents";
+import BugReportPage from "./pages/bugReportPage/bugReportPage";
 
 function App() {
   return (
@@ -58,6 +60,7 @@ function App() {
         <Route path="/alltickets" element={<AllTickets />} />
         <Route path="/allassignees" element={<AllAssignees />} />
         <Route path="/adminsettings" element={<AdminSettings />} />
+        <Route path="/bug-report" element={<BugReportPage />} />
         <Route path="/managestudents" element={<ManageStudents />} />
         <Route path="/bulkupload" element={<BulkUpload />} />
         <Route path="/ManageTAs" element={<ManageTAs />} />
