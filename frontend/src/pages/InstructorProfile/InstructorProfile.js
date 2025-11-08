@@ -234,6 +234,31 @@ const InstructorProfile = () => {
     }));
   };
 
+  const fetchTeamNameFromId = async (team_id) => {
+    if (!team_id) return "No Team";
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.warn(`Failed to fetch team name for team_id=${team_id}`);
+        return "Unknown Team";
+      }
+
+      const data = await res.json();
+      return data?.team_name || "Unknown Team";
+    } catch (error) {
+      console.error(`Error fetching team name for team_id=${team_id}:`, error);
+      return "Unknown Team";
+    }
+  };
+
   const fetchTADetails = async () => {
     const requestedUserId = userId;
     try {
@@ -434,7 +459,8 @@ const InstructorProfile = () => {
     const ticketsWithNames = await Promise.all(
         uniqueTickets.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id);
-          return { ...ticket, userName };
+          const teamName = await fetchTeamNameFromId(ticket.team_id);
+          return { ...ticket, userName, teamName };
         })
       );
       if (latestUserIdRef.current !== requestedUserId) {
@@ -616,28 +642,76 @@ const InstructorProfile = () => {
           open={Boolean(filterAnchor)}
           onClose={handleFilterClose}
         >
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "newest" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "newest" ? null : "newest" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: Newest First
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "oldest" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "oldest" ? null : "oldest" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: Oldest First
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "id-asc" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "id-asc" ? null : "id-asc" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: ID Ascending
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "id-desc" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "id-desc" ? null : "id-desc" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: ID Descending
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "new" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "new" ? null : "new" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: New
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "ongoing" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "ongoing" ? null : "ongoing" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: Ongoing
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "resolved" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "resolved" ? null : "resolved" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: Resolved
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "escalated" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "escalated" ? null : "escalated" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: Escalated
           </MenuItem>
         </Menu>

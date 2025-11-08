@@ -88,78 +88,69 @@ const InstructorDash = () => {
       const tas = users.filter((user) => user.role === "TA"); // Filter TAs
       setTotalTAs(tas.length);
 
-      // Step 2: Fetch all ticket assignments
-      const assignmentsResponse = await fetch(
-        `${baseURL}/api/ticketassignments`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!assignmentsResponse.ok) {
-        throw new Error(
-          `Failed to fetch ticket assignments, status: ${assignmentsResponse.status}`
-        );
-      }
-
-      const assignments = await assignmentsResponse.json();
-
-      // Step 3: Fetch all tickets
-      const ticketsResponse = await fetch(`${baseURL}/api/tickets`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!ticketsResponse.ok) {
-        throw new Error(
-          `Failed to fetch tickets, status: ${ticketsResponse.status}`
-        );
-      }
-
-      const ticketsResponseData = await ticketsResponse.json();
-      
-      // Handle both old format (array) and new format (object with pagination)
-      const tickets = ticketsResponseData.tickets || ticketsResponseData;
-
-      // Step 4: Map tickets and increment counts for each TA
-      const ticketCounts = {}; // Store ticket counts for each TA
+      const ticketCounts = {};
 
       tas.forEach((ta) => {
-        // Initialize counts for this TA
         ticketCounts[ta.user_id] = {
-          name: ta.name, // Store the TA's name
+          name: ta.name,
           counts: { new: 0, ongoing: 0, resolved: 0 },
         };
+      });
 
-        // Filter assignments for this TA
-        const taAssignments = assignments.filter(
-          (assignment) => assignment.user_id === ta.user_id
-        );
-
-        // For each assignment, find the corresponding ticket and increment counts
-        taAssignments.forEach((assignment) => {
-          const ticket = tickets.find(
-            (t) => t.ticket_id === assignment.ticket_id
+      // Fetch assignments for each TA using the role-filtered endpoint
+      const countPromises = tas.map(async (ta) => {
+        try {
+          const assignmentsResponse = await fetch(
+            `${baseURL}/api/ticketassignments/users/${ta.user_id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
 
-          if (ticket) {
-            // Increment the status count
-            if (ticket.status === "new")
-              ticketCounts[ta.user_id].counts.new += 1;
-            else if (ticket.status === "ongoing")
-              ticketCounts[ta.user_id].counts.ongoing += 1;
-            else if (ticket.status === "resolved")
-              ticketCounts[ta.user_id].counts.resolved += 1;
+          if (assignmentsResponse.ok) {
+            const assignments = await assignmentsResponse.json();
+            
+            const ticketPromises = assignments.map(async (assignment) => {
+              try {
+                const ticketResponse = await fetch(`${baseURL}/api/tickets/${assignment.ticket_id}`, {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+                
+                if (ticketResponse.ok) {
+                  return await ticketResponse.json();
+                }
+              } catch (err) {
+                console.error(`Error fetching ticket ${assignment.ticket_id}:`, err);
+              }
+              return null;
+            });
+
+            const tickets = (await Promise.all(ticketPromises)).filter(Boolean);
+            
+            tickets.forEach((ticket) => {
+              if (ticket.status === "new") {
+                ticketCounts[ta.user_id].counts.new += 1;
+              } else if (ticket.status === "ongoing") {
+                ticketCounts[ta.user_id].counts.ongoing += 1;
+              } else if (ticket.status === "resolved") {
+                ticketCounts[ta.user_id].counts.resolved += 1;
+              }
+            });
           }
-        });
+        } catch (err) {
+          console.error(`Error fetching assignments for TA ${ta.user_id}:`, err);
+        }
       });
+
+      await Promise.all(countPromises);
 
 
 
@@ -169,8 +160,7 @@ const InstructorDash = () => {
       console.error("Error fetching TA ticket counts:", err);
     }
   };
-
-
+  
 
   const filterUniqueTickets = (tickets) => { //Avoid duplicate tickets
     const seen = new Set();
