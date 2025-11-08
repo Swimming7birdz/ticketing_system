@@ -43,3 +43,6 @@ export default function BugReportPage() {
     </Box>
   );
 }
+
+
+// INFO NEEDED: Should we have bug categories? Like UI issues or service issues?
