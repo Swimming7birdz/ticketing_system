@@ -44,7 +44,7 @@ module.exports = {
       // backfill: insert a row for every existing user with role = 'Student' (no duplicate due to NOT EXISTS)
       await queryInterface.sequelize.query(
         `
-        INSERT INTO studentdata (user_id, team_id, section)
+        INSERT INTO studentdata (user_id, team_id, section, acct_creation)
         SELECT 
           u.user_id,
           (SELECT team_id from teams ORDER BY ${randomFunc} LIMIT 1) AS team_id,
