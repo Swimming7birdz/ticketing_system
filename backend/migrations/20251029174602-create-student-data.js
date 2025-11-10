@@ -47,8 +47,9 @@ module.exports = {
         INSERT INTO studentdata (user_id, team_id, section, acct_creation)
         SELECT 
           u.user_id,
-          (SELECT team_id from teams ORDER BY RANDOM() LIMIT 1) AS team_id,
-          NULL AS section
+          (SELECT team_id from teams ORDER BY ${randomFunc} LIMIT 1) AS team_id,
+          NULL AS section,
+          NOW() AS acct_creation
         FROM users u
         WHERE u.role = 'student'
           AND NOT EXISTS (SELECT 1 FROM studentdata s WHERE s.user_id = u.user_id)
