@@ -30,6 +30,7 @@ import RequestReset from "./pages/RequestReset/RequestReset";
 import TaRequestTickets from "./pages/InstructorTickets/TaRequestTickets";
 import TaTicketView from "./components/TicketView/TaTicketView";
 import TaTicketInfo from "./pages/TicketInfo/TaTicketInfo";
+import BulkUpload from "./pages/BulkUpload/BulkUpload";
 import ManageStudents from "./pages/ManageUsers/ManageStudents";
 import ManageTAs from "./pages/ManageUsers/ManageTAs";
 
@@ -58,6 +59,7 @@ function App() {
         <Route path="/allassignees" element={<AllAssignees />} />
         <Route path="/adminsettings" element={<AdminSettings />} />
         <Route path="/managestudents" element={<ManageStudents />} />
+        <Route path="/bulkupload" element={<BulkUpload />} />
         <Route path="/ManageTAs" element={<ManageTAs />} />
         <Route path="/tasettings" element={<TASettings />} />
         <Route path="/studentsettings" element={<StudentSettings />} />
