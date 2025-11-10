@@ -5,7 +5,6 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-
 import {
   Button,
   List,
@@ -29,6 +28,7 @@ import {useNavigate} from "react-router-dom";
 import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
 import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
 
+
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
   const [tas, setTAs] = useState([]);
@@ -45,6 +45,8 @@ const AdminSettings = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { isDarkMode, themeMode, setTheme } = useCustomTheme();
+
+
   useEffect(() => {
     fetchTeams();
     fetchTAs();
@@ -271,31 +273,11 @@ const AdminSettings = () => {
     }
   };
 
-  // const deleteTA = async (taId) => {
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.REACT_APP_API_BASE_URL}/api/users/${taId}`,
-  //       {
-  //         method: "DELETE",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     if (!response.ok) throw new Error("Failed to delete TA.");
-  //     fetchTAs(); // Refresh the list of TAs
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
   const handleDelete = (ta) => {
     console.log("Delete TA Button Clicked");
     setSelectedTA(ta);
     setDeleteOpen(true);
-  }
+  };
 
   const deletePopupClose = () => {
     setDeleteOpen(false);
@@ -305,7 +287,8 @@ const AdminSettings = () => {
   const updateStatus = (status) => {
     console.log("This is the update status:", status)
     setDeleteStatus(status);
-  }
+  };
+
 
   return (
     <Box
@@ -382,6 +365,7 @@ const AdminSettings = () => {
       <Divider sx={{ margin: "20px 0" }} />
 
       {/* Teams Section */}
+      {/*
       <Box
         sx={{
           marginBottom: 5,
@@ -400,8 +384,9 @@ const AdminSettings = () => {
             color: theme.palette.text.primary
           }}
         >
-          Teams
+          Teams Under development
         </Typography>
+        
         <List 
           sx={{
             maxHeight: "300px",
@@ -447,8 +432,9 @@ const AdminSettings = () => {
             Add Team
           </Button>
         </Box>
-      </Box>
-
+      
+      </Box> */}
+      
       {/* Teaching Assistants Section */}
       {/*<Box*/}
       {/*  sx={{*/}
@@ -568,7 +554,81 @@ const AdminSettings = () => {
         {/*  </Button>*/}
         {/*</Box>*/}
       {/*</Box>*/}
-      
+
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
+          People Management
+        </Typography>
+
+          <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "left", gap: 2 }}>
+             <Button
+              variant="contained"
+              onClick={() => navigate("/managestudents")}
+              sx={{ backgroundColor: theme.palette.primary.main }}
+              >
+                  Manage Students
+              </Button>
+
+              <Button
+                  variant="contained"
+                  onClick={() => navigate("/manageTAs")}
+                  sx={{ backgroundColor: theme.palette.primary.main }}
+              >
+                  Manage TAs
+              </Button>
+          </Box>
+      </Box>
+
+      <Divider sx={{ margin: "20px 0" }} />
+
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
+          Data Management
+        </Typography>
+
+        <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "left", gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/bulkupload")}
+            sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+              Data Upload
+          </Button>
+        </Box>
+      </Box>
+
       <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
         <Button 
           variant="contained" 
@@ -578,24 +638,9 @@ const AdminSettings = () => {
           Go To Account Settings
         </Button>
 
-          <Button
-              variant="contained"
-              onClick={() => navigate("/managestudents")}
-              sx={{ backgroundColor: theme.palette.primary.main }}
-          >
-              Manage Students
-          </Button>
-
-          <Button
-              variant="contained"
-              onClick={() => navigate("/manageTAs")}
-              sx={{ backgroundColor: theme.palette.primary.main }}
-          >
-              Manage TAs
-          </Button>
-      </Box>
       </Box>
     </Box>
+  </Box>
   );
 };
 
