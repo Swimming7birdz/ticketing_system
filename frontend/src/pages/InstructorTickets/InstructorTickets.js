@@ -564,10 +564,12 @@ const InstructorTickets = () => {
                             {studentPagination.totalPages > 1 && (
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
                                     <Pagination
-                                        currentPage={studentPagination.currentPage || studentCurrentPage}
+                                        currentPage={studentCurrentPage}
                                         totalPages={studentPagination.totalPages}
-                                        itemsPerPage={studentPagination.itemsPerPage || studentItemsPerPage}
+                                        itemsPerPage={studentItemsPerPage}
                                         totalItems={studentPagination.totalItems}
+                                        hasNextPage={studentPagination.hasNextPage}
+                                        hasPreviousPage={studentPagination.hasPreviousPage}
                                         onPageChange={handleStudentPageChange}
                                         onItemsPerPageChange={handleStudentItemsPerPageChange}
                                         itemsPerPageOptions={[5, 10, 25, 50]}
@@ -595,10 +597,12 @@ const InstructorTickets = () => {
                             {taPagination.totalPages > 1 && (
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
                                     <Pagination
-                                        currentPage={taPagination.currentPage || taCurrentPage}
+                                        currentPage={taCurrentPage}
                                         totalPages={taPagination.totalPages}
-                                        itemsPerPage={taPagination.itemsPerPage || taItemsPerPage}
+                                        itemsPerPage={taItemsPerPage}
                                         totalItems={taPagination.totalItems}
+                                        hasNextPage={taPagination.hasNextPage}
+                                        hasPreviousPage={taPagination.hasPreviousPage}
                                         onPageChange={handleTaPageChange}
                                         onItemsPerPageChange={handleTaItemsPerPageChange}
                                         itemsPerPageOptions={[5, 10, 25, 50]}
