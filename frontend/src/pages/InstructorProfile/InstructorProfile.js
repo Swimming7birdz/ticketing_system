@@ -732,7 +732,6 @@ const InstructorProfile = () => {
         {pagination.totalPages > 1 && (
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
             <Pagination
-              //currentPage={pagination.currentPage || currentPage}
               currentPage={currentPage}
               totalPages={pagination.totalPages}
               itemsPerPage={itemsPerPage}
