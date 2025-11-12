@@ -127,7 +127,15 @@ export default function StudentTickets() {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Failed to fetch student tickets");
-        const data = await res.json();
+        const response = await res.json();
+
+        // Handle both old format (array) and new format (object with pagination)
+        const data = response.tickets || response;
+        
+        if (!Array.isArray(data)) {
+          console.error("API response is not an array:", data);
+          throw new Error("Invalid API response format");
+        }
 
         const enriched = await Promise.all(
           data.map(async (t) => ({
