@@ -5,14 +5,19 @@ module.exports = {
     await queryInterface.createTable('bugreports', {
       id: { allowNull: false, autoIncrement: true, primaryKey: true, type: Sequelize.INTEGER },
 
-      subject:      { type: Sequelize.STRING(200), allowNull: false },
-      description:  { type: Sequelize.TEXT,        allowNull: false },
-      reporterRole: { type: Sequelize.STRING(30),  allowNull: true },
+      subject:     { type: Sequelize.STRING(200), allowNull: false },
+      description: { type: Sequelize.TEXT,        allowNull: false },
 
-      user_id: {
+      // keep it simple (string) so we don’t need a custom ENUM type lifecycle
+      severity:    { type: Sequelize.STRING(16),  allowNull: false, defaultValue: 'low' },
+      status:      { type: Sequelize.STRING(16),  allowNull: false, defaultValue: 'open' },
+
+      // who reported it — allow null if you want anonymous curl tests to work;
+      // set allowNull: false + onDelete: 'RESTRICT' if you want to enforce auth
+      reporter_id: {
         type: Sequelize.INTEGER,
-        allowNull: false,               //Dont let anyone submit a bug without a user_id
-        references: { model: 'users', key: 'user_id' }, 
+        allowNull: true,
+        references: { model: 'users', key: 'user_id' },   // change key to 'user_id' if that’s your PK
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
@@ -21,11 +26,17 @@ module.exports = {
       updatedAt: { allowNull: false, type: Sequelize.DATE, defaultValue: Sequelize.fn('NOW') },
     });
 
-    await queryInterface.addIndex('bugreports', ['user_id']);
+    await queryInterface.addIndex('bugreports', ['reporter_id']);
+    await queryInterface.addIndex('bugreports', ['createdAt']);
+    await queryInterface.addIndex('bugreports', ['severity']);
+    await queryInterface.addIndex('bugreports', ['status']);
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.removeIndex('bugreports', ['user_id']);
+  async down(queryInterface) {
+    await queryInterface.removeIndex('bugreports', ['status']);
+    await queryInterface.removeIndex('bugreports', ['severity']);
+    await queryInterface.removeIndex('bugreports', ['createdAt']);
+    await queryInterface.removeIndex('bugreports', ['reporter_id']);
     await queryInterface.dropTable('bugreports');
   }
 };

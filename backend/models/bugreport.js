@@ -1,29 +1,27 @@
-'use strict';
-const { Model } = require('sequelize');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db.js");
 
-module.exports = (sequelize, DataTypes) => {
-  class BugReport extends Model {
-    static associate(models) {
-      // If users primary key is 'user_id', set targetKey so Sequelize knows how to join
-      BugReport.belongsTo(models.User, {
-        foreignKey: 'user_id',
-        targetKey: 'user_id',
-        as: 'user',
-      });
-    }
-  }
-
-  BugReport.init(
-    {
-      subject:      { type: DataTypes.STRING(200), allowNull: false },
-      description:  { type: DataTypes.TEXT,        allowNull: false },
-      reporterRole: { type: DataTypes.STRING(30) },
-      user_id:      { type: DataTypes.INTEGER }, // FK to Users.user_id
+const BugReport = sequelize.define(
+  "BugReport",
+  {
+    subject: { type: DataTypes.STRING(255), allowNull: false },
+    description: { type: DataTypes.TEXT, allowNull: false },
+    severity: {
+      type: DataTypes.ENUM("low", "medium", "high", "critical"),
+      allowNull: false,
+      defaultValue: "low",
     },
-    { sequelize, modelName: 'BugReport',
-                tableName: 'bugreports'
-    }
-  );
+    status: {
+      type: DataTypes.ENUM("open", "triaged", "in_progress", "resolved", "closed"),
+      allowNull: false,
+      defaultValue: "open",
+    },
+    reporter_id: { type: DataTypes.INTEGER, allowNull: true },
+  },
+  {
+    tableName: "bugreports", // match your migration’s table name
+    timestamps: true,
+  }
+);
 
-  return BugReport;
-};
+module.exports = BugReport;

@@ -1,22 +1,12 @@
-router.post('/', /* requireAuth, */ async (req, res) => {
-  try {
-    const { value, error } = createBugReportSchema.validate(req.body, { abortEarly:false });
-    if (error) return res.status(400).json({ ok:false, errors: error.details.map(d=>d.message) });
+const express = require("express");
+const router = express.Router();
 
-    
-    const user_id = req.user.user_id ;
-    const reporterRole = req.user.role ;
+const bugReportController = require("../controllers/bugReportController"); // adjust path/name if needed
 
-    const saved = await BugReport.create({
-      subject: value.subject,
-      description: value.description,
-      user_id,
-      reporterRole,
-    });
+router.post("/", /* requireAuth, */ bugReportController.create);
+router.get("/", /* requireAuth, */ bugReportController.list);
+router.get("/:id", /* requireAuth, */ bugReportController.getOne);
+router.patch("/:id", /* requireAuth, */ bugReportController.update);
+router.delete("/:id", /* requireAuth, */ bugReportController.remove);
 
-    return res.status(201).json({ ok:true, id: saved.id });
-  } catch (e) {
-    console.error('[bugReports POST]', e);
-    return res.status(500).json({ ok:false, error:'Failed to submit bug' });
-  }
-});
+module.exports = router;
