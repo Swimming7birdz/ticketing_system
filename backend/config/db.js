@@ -1,8 +1,8 @@
 // //For Production
-
+//
 // const { Sequelize } = require("sequelize");
 // require("dotenv").config();
-
+//
 // const sequelize = new Sequelize(
 //   process.env.DATABASE_NAME,
 //   process.env.DATABASE_USER,
@@ -15,9 +15,9 @@
 //   }
 // );
 
-// module.exports = sequelize;
+ //module.exports = sequelize;
 
-// For Developing
+//For Developing
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
 

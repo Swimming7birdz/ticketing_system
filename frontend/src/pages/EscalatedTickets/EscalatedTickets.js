@@ -440,6 +440,8 @@ export default function EscalatedTickets() {
                         totalPages={studentPagination.totalPages}
                         onPageChange={handleStudentPageChange}
                         itemsPerPage={studentItemsPerPage}
+                        hasNextPage={studentPagination.hasNextPage}
+                        hasPreviousPage={studentPagination.hasPreviousPage}
                         onItemsPerPageChange={handleStudentItemsPerPageChange}
                         totalItems={studentPagination.totalItems}
                       />
@@ -478,6 +480,8 @@ export default function EscalatedTickets() {
                         totalPages={taPagination.totalPages}
                         onPageChange={handleTaPageChange}
                         itemsPerPage={taItemsPerPage}
+                        hasNextPage={taPagination.hasNextPage}
+                        hasPreviousPage={taPagination.hasPreviousPage}
                         onItemsPerPageChange={handleTaItemsPerPageChange}
                         totalItems={taPagination.totalItems}
                       />

@@ -203,10 +203,12 @@ const TaRequestTickets = () => {
                 {pagination.totalPages > 1 && (
                     <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
                         <Pagination
-                            currentPage={pagination.currentPage || currentPage}
+                            currentPage={currentPage}
                             totalPages={pagination.totalPages}
-                            itemsPerPage={pagination.itemsPerPage || itemsPerPage}
+                            itemsPerPage={itemsPerPage}
                             totalItems={pagination.totalItems}
+                            hasNextPage={pagination.hasNextPage}
+                            hasPreviousPage={pagination.hasPreviousPage}
                             onPageChange={handlePageChange}
                             onItemsPerPageChange={handleItemsPerPageChange}
                             itemsPerPageOptions={[5, 10, 25, 50]}

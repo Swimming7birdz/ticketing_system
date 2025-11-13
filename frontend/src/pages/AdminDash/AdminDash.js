@@ -185,10 +185,11 @@ const AdminDash = () => {
 
   const fetchEscalatedTickets = async (token) => {
     try {
+      // Try fetching escalated tickets - use status parameter first
       const params = new URLSearchParams({
         page: escalatedCurrentPage,
         limit: escalatedItemsPerPage,
-        status: 'escalated' 
+        status: 'escalated'  // Try status parameter first
       });
 
       const response = await fetch(`${baseURL}/api/tickets?${params}`, {
@@ -205,20 +206,36 @@ const AdminDash = () => {
 
       const responseData = await response.json();
       
-      // Add usernames to escalated tickets
+      // Debug: Log the API response to see what we're getting
+      console.log('Escalated tickets API response:', responseData);
+      console.log('Total escalated tickets from API:', responseData.pagination?.totalItems);
+      console.log('Current page:', responseData.pagination?.currentPage);
+      console.log('Total pages:', responseData.pagination?.totalPages);
+      
+      // Filter to get only escalated tickets and add usernames
+      const actualEscalatedTickets = responseData.tickets.filter(ticket => ticket.escalated === true);
+      
       const escalatedWithNames = await Promise.all(
-        responseData.tickets.map(async (ticket) => {
+        actualEscalatedTickets.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id);
           return { ...ticket, userName };
         })
       );
 
       setEscalatedTickets(escalatedWithNames);
+      
+      // Calculate pagination based on actual escalated tickets count
+      const actualEscalatedCount = actualEscalatedTickets.length;
+      const totalEscalatedFromSummary = responseData.summary?.escalatedTickets || actualEscalatedCount;
+      const calculatedTotalPages = Math.ceil(totalEscalatedFromSummary / escalatedItemsPerPage);
+      
       const paginationData = {
-        currentPage: responseData.currentPage,
-        totalPages: responseData.totalPages,
-        totalItems: responseData.totalTickets,
-        itemsPerPage: responseData.limit
+        currentPage: escalatedCurrentPage,
+        totalPages: calculatedTotalPages,
+        totalItems: totalEscalatedFromSummary,
+        itemsPerPage: escalatedItemsPerPage,
+        hasNextPage: escalatedCurrentPage < calculatedTotalPages,
+        hasPreviousPage: escalatedCurrentPage > 1
       };
       setEscalatedPagination(paginationData);
       
@@ -229,7 +246,9 @@ const AdminDash = () => {
         currentPage: 1,
         totalPages: 1,
         totalItems: 0,
-        itemsPerPage: escalatedItemsPerPage
+        itemsPerPage: escalatedItemsPerPage,
+        hasNextPage: false,
+        hasPreviousPage: false
       });
     }
   };
@@ -524,6 +543,8 @@ const AdminDash = () => {
             totalPages={escalatedPagination.totalPages || Math.ceil(escalatedTickets.length / escalatedItemsPerPage)}
             itemsPerPage={escalatedPagination.itemsPerPage || escalatedItemsPerPage}
             totalItems={escalatedPagination.totalItems || escalatedTickets.length}
+            hasNextPage={escalatedPagination.hasNextPage || false}
+            hasPreviousPage={escalatedPagination.hasPreviousPage || false}
             onPageChange={handleEscalatedPageChange}
             onItemsPerPageChange={handleEscalatedItemsPerPageChange}
             itemsPerPageOptions={[5, 10, 25, 50]}
