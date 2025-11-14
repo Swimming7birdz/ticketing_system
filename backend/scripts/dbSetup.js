@@ -25,9 +25,6 @@ async function insertUsers() {
   const hashedPassword = await hashPassword(defaultPassword);
 
   const userPromises = Array.from({ length: 20 }).map(async (_, i) => {
-
-    // const asu_id = faker.random.alphaNumeric(10);
-
     const firstName =  faker.person.firstName();
     const lastName = faker.person.lastName();
     const name = firstName + " " + lastName; // Corrected name generation
@@ -75,7 +72,7 @@ async function insertStudentData() {
 
   const studentDataPromises = students.rows.map((student) => {
     const team = teams.rows[Math.floor(Math.random() * teams.rows.length)];
-    const section = faker.string.alphaNumeric(5);
+    const section = faker.string.numeric(5);
     
     return pool.query(
       "INSERT INTO studentdata (user_id, team_id, section, acct_creation) VALUES ($1, $2, $3, NOW())",
@@ -250,14 +247,14 @@ async function generateData() {
     await insertTeamMembers();
     await insertTickets();
     await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
-    await insertTickets();
-    await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
+    // await insertTickets();
+    // await insertTicketAssignments();
     await insertTicketCommunications();
 
     console.log("Fake data inserted successfully!");
