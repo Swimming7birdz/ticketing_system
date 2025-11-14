@@ -6,6 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
 import TicketsViewController from "../../components/TicketsViewController";
 import TaTicketsViewController from "../../components/TaTicketsViewController";
+import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketAssignmentsByUserId, fetchTicketById, fetchTaTicketAssignmentsByUserId, fetchTaTicketById } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +31,25 @@ const InstructorTickets = () => {
         teamNameSearch: "",
     });
     const [hideResolved, setHideResolved] = useState(true);
+    
+    const [studentCurrentPage, setStudentCurrentPage] = useState(1);
+    const [studentItemsPerPage, setStudentItemsPerPage] = useState(10);
+    const [studentPagination, setStudentPagination] = useState({
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+    });
+    
+    const [taCurrentPage, setTaCurrentPage] = useState(1);
+    const [taItemsPerPage, setTaItemsPerPage] = useState(10);
+    const [taPagination, setTaPagination] = useState({
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+    });
+    
     let navigate = useNavigate();
 
     const openTicket = (ticket) => {
@@ -46,7 +66,13 @@ const InstructorTickets = () => {
 
     useEffect(() => {
         applyFilters();
-    }, [tickets, activeFilters, hideResolved]);
+    }, [tickets, activeFilters, hideResolved, studentCurrentPage, studentItemsPerPage, taCurrentPage, taItemsPerPage]);
+    
+    // Reset pagination when filters change
+    useEffect(() => {
+        setStudentCurrentPage(1);
+        setTaCurrentPage(1);
+    }, [activeFilters, hideResolved]);
 
     useEffect(() => {
         if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
@@ -119,7 +145,36 @@ const InstructorTickets = () => {
             );
         }
 
-        setFilteredTickets(filtered);
+        const allStudentTickets = filtered.filter((ticket) => ticket.type === "student");
+        const allTaTickets = filtered.filter((ticket) => ticket.type === "ta");
+
+        const studentTotalPages = Math.ceil(allStudentTickets.length / studentItemsPerPage);
+        const studentStartIndex = (studentCurrentPage - 1) * studentItemsPerPage;
+        const studentEndIndex = studentStartIndex + studentItemsPerPage;
+        const paginatedStudentTickets = allStudentTickets.slice(studentStartIndex, studentEndIndex);
+
+        const taTotalPages = Math.ceil(allTaTickets.length / taItemsPerPage);
+        const taStartIndex = (taCurrentPage - 1) * taItemsPerPage;
+        const taEndIndex = taStartIndex + taItemsPerPage;
+        const paginatedTaTickets = allTaTickets.slice(taStartIndex, taEndIndex);
+
+        const paginatedFiltered = [...paginatedStudentTickets, ...paginatedTaTickets];
+
+        setStudentPagination({
+            totalItems: allStudentTickets.length,
+            totalPages: studentTotalPages,
+            hasNextPage: studentCurrentPage < studentTotalPages,
+            hasPreviousPage: studentCurrentPage > 1
+        });
+
+        setTaPagination({
+            totalItems: allTaTickets.length,
+            totalPages: taTotalPages,
+            hasNextPage: taCurrentPage < taTotalPages,
+            hasPreviousPage: taCurrentPage > 1
+        });
+
+        setFilteredTickets(paginatedFiltered);
     };
 
     const handleFilterClick = (event) => {
@@ -132,6 +187,24 @@ const InstructorTickets = () => {
 
     const handleClearFilters = () => {
         setActiveFilters({ sort: null, status: null, source: null, search: "", teamNameSearch: "" });
+    };
+
+    const handleStudentPageChange = (pageNumber) => {
+        setStudentCurrentPage(pageNumber);
+    };
+
+    const handleStudentItemsPerPageChange = (newItemsPerPage) => {
+        setStudentItemsPerPage(newItemsPerPage);
+        setStudentCurrentPage(1);
+    };
+
+    const handleTaPageChange = (pageNumber) => {
+        setTaCurrentPage(pageNumber);
+    };
+
+    const handleTaItemsPerPageChange = (newItemsPerPage) => {
+        setTaItemsPerPage(newItemsPerPage);
+        setTaCurrentPage(1);
     };
 
     // Fetch a user's name from their ID.
@@ -476,36 +549,70 @@ const InstructorTickets = () => {
                 </Menu>
 
                 <Box>
-                    {studentTickets.length > 0 && (
+                    {(studentTickets.length > 0 || studentPagination.totalItems > 0) && (
                         <Box>
                             <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>
-                                Student Tickets
+                                Student Tickets ({studentPagination.totalItems} total)
                             </Typography>
                             <TicketsViewController
                                 tickets={studentTickets}
                                 defaultView="grid"
                                 onOpenTicket={openTicket}
                             />
+                            
+                            {/* Student Tickets Pagination */}
+                            {studentPagination.totalPages > 1 && (
+                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                                    <Pagination
+                                        currentPage={studentCurrentPage}
+                                        totalPages={studentPagination.totalPages}
+                                        itemsPerPage={studentItemsPerPage}
+                                        totalItems={studentPagination.totalItems}
+                                        hasNextPage={studentPagination.hasNextPage}
+                                        hasPreviousPage={studentPagination.hasPreviousPage}
+                                        onPageChange={handleStudentPageChange}
+                                        onItemsPerPageChange={handleStudentItemsPerPageChange}
+                                        itemsPerPageOptions={[5, 10, 25, 50]}
+                                    />
+                                </Box>
+                            )}
                         </Box>
                     )}
 
-                    {taTickets.length > 0 && (
+                    {(taTickets.length > 0 || taPagination.totalItems > 0) && (
                         <Box>
                             <Typography
                                 variant="h6"
-                                sx={{ mb: 2, mt: studentTickets.length > 0 ? 4 : 2 }}
+                                sx={{ mb: 2, mt: (studentTickets.length > 0 || studentPagination.totalItems > 0) ? 4 : 2 }}
                             >
-                                TA Tickets
+                                TA Tickets ({taPagination.totalItems} total)
                             </Typography>
                             <TaTicketsViewController
                                 tickets={taTickets}
                                 defaultView="grid"
                                 onOpenTicket={openTicket}
                             />
+                            
+                            {/* TA Tickets Pagination */}
+                            {taPagination.totalPages > 1 && (
+                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                                    <Pagination
+                                        currentPage={taCurrentPage}
+                                        totalPages={taPagination.totalPages}
+                                        itemsPerPage={taItemsPerPage}
+                                        totalItems={taPagination.totalItems}
+                                        hasNextPage={taPagination.hasNextPage}
+                                        hasPreviousPage={taPagination.hasPreviousPage}
+                                        onPageChange={handleTaPageChange}
+                                        onItemsPerPageChange={handleTaItemsPerPageChange}
+                                        itemsPerPageOptions={[5, 10, 25, 50]}
+                                    />
+                                </Box>
+                            )}
                         </Box>
                     )}
 
-                    {filteredTickets.length === 0 && (
+                    {filteredTickets.length === 0 && studentPagination.totalItems === 0 && taPagination.totalItems === 0 && (
                         <Typography sx={{ mt: 4, textAlign: 'center' }}>
                             No assigned tickets match the current filters.
                         </Typography>

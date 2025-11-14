@@ -9,6 +9,7 @@ import { fetchTaTicketsByUserId } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom";
 import TaTicketsViewController from "../../components/TaTicketsViewController";
 import TicketsViewController from "../../components/TicketsViewController";
+import Pagination from "../../components/Pagination/Pagination";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -27,9 +28,19 @@ function getUserIdFromToken() {
 const TaRequestTickets = () => {
     const navigate = useNavigate();
     const userId = useMemo(getUserIdFromToken, []);
-    const [tickets, setTickets] = useState([]);
+    const [allTickets, setAllTickets] = useState([]); 
+    const [tickets, setTickets] = useState([]); 
     const [count, setCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [pagination, setPagination] = useState({
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+    });
 
     const fetchNameFromId = async (student_id) => {
         try {
@@ -44,6 +55,38 @@ const TaRequestTickets = () => {
             return "Unknown";
         }
     };
+
+    const applyPagination = (ticketsList, page, itemsPerPage) => {
+        const totalItems = ticketsList.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        
+        const paginatedTickets = ticketsList.slice(startIndex, endIndex);
+        
+        setTickets(paginatedTickets);
+        setPagination({
+            totalItems: totalItems,
+            totalPages: totalPages,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1
+        });
+    };
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const handleItemsPerPageChange = (newItemsPerPage) => {
+        setItemsPerPage(newItemsPerPage);
+        setCurrentPage(1); 
+    };
+
+    useEffect(() => {
+        if (allTickets.length > 0) {
+            applyPagination(allTickets, currentPage, itemsPerPage);
+        }
+    }, [allTickets, currentPage, itemsPerPage]);
 
     useEffect(() => {
         if (!userId) {
@@ -73,14 +116,23 @@ const TaRequestTickets = () => {
                 );
 
                 if (!cancelled) {
-                    setTickets(enriched);
+                    setAllTickets(enriched);
                     setCount(enriched.length);
+                    
+                    applyPagination(enriched, currentPage, itemsPerPage);
                 }
             } catch (e) {
                 console.error(e);
                 if (!cancelled) {
+                    setAllTickets([]);
                     setTickets([]);
                     setCount(0);
+                    setPagination({
+                        totalItems: 0,
+                        totalPages: 1,
+                        hasNextPage: false,
+                        hasPreviousPage: false
+                    });
                 }
             } finally {
                 if (!cancelled) setLoading(false);
@@ -144,8 +196,34 @@ const TaRequestTickets = () => {
                     tickets={tickets}
                     defaultView="list"
                     onOpenTicket={openTicket}
-                    header={<Typography variant="subtitle2">Tickets</Typography>}
+                    header={<Typography variant="subtitle2">Tickets (Page {currentPage} of {pagination.totalPages})</Typography>}
                 />
+                
+                {/* Pagination */}
+                {pagination.totalPages > 1 && (
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={pagination.totalPages}
+                            itemsPerPage={itemsPerPage}
+                            totalItems={pagination.totalItems}
+                            hasNextPage={pagination.hasNextPage}
+                            hasPreviousPage={pagination.hasPreviousPage}
+                            onPageChange={handlePageChange}
+                            onItemsPerPageChange={handleItemsPerPageChange}
+                            itemsPerPageOptions={[5, 10, 25, 50]}
+                        />
+                    </Box>
+                )}
+                
+                {/* No tickets message */}
+                {tickets.length === 0 && !loading && (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <Typography variant="body1" color="text.secondary">
+                            No tickets found.
+                        </Typography>
+                    </Box>
+                )}
             </Box>
         </Box>
     );

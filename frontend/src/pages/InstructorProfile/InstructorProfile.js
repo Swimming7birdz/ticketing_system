@@ -18,12 +18,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
 import { jwtDecode } from "jwt-decode";
 import TicketsViewController from "../../components/TicketsViewController";
+import Pagination from "../../components/Pagination/Pagination";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 //const token = Cookies.get("token");
 const InstructorProfile = () => {
   const theme = useTheme();
-  const [tickets, setTickets] = useState([]);
+  const [allTickets, setAllTickets] = useState([]); 
+  const [tickets, setTickets] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const [filterAnchor, setFilterAnchor] = useState(null); // For dropdown
@@ -31,6 +33,15 @@ const InstructorProfile = () => {
   const [openTickets, setOpenTickets] = useState(0);
   const [closedTickets, setClosedTickets] = useState(0);
   const [filteredTickets, setFilteredTickets] = useState([]);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
   const [TA, setTA] = useState(null);
   const [TATickets, setTATickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState({
@@ -74,12 +85,20 @@ const InstructorProfile = () => {
     if (userId) {
       // Reset state when userId changes to prevent showing stale data
       setLoading(true);
+      setAllTickets([]);
       setTickets([]);
       setFilteredTickets([]);
       setTA(null);
       setTotalTickets(0);
       setTATickets([]);
       setIsUser(false);
+      setCurrentPage(1);
+      setPagination({
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+      });
 
       // Fetch fresh data for the new TA
       fetchTicketsAssigned();
@@ -90,7 +109,11 @@ const InstructorProfile = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [tickets, activeFilters]);
+  }, [allTickets, activeFilters, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilters]);
 
   const fetchOfficeHours = async () => {
     const requestedUserId = userId;
@@ -211,6 +234,31 @@ const InstructorProfile = () => {
     }));
   };
 
+  const fetchTeamNameFromId = async (team_id) => {
+    if (!team_id) return "No Team";
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch(`${baseURL}/api/teams/${team_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.warn(`Failed to fetch team name for team_id=${team_id}`);
+        return "Unknown Team";
+      }
+
+      const data = await res.json();
+      return data?.team_name || "Unknown Team";
+    } catch (error) {
+      console.error(`Error fetching team name for team_id=${team_id}:`, error);
+      return "Unknown Team";
+    }
+  };
+
   const fetchTADetails = async () => {
     const requestedUserId = userId;
     try {
@@ -251,7 +299,7 @@ const InstructorProfile = () => {
 
 
   const applyFilters = () => {
-    let filtered = [...tickets];
+    let filtered = [...allTickets];
 
     // Apply sort filters
     if (activeFilters.sort === "newest") {
@@ -288,7 +336,22 @@ const InstructorProfile = () => {
       );
     }
 
-    setFilteredTickets(filtered);
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedFiltered = filtered.slice(startIndex, endIndex);
+
+    setPagination({
+      totalItems: totalItems,
+      totalPages: totalPages,
+      currentPage: currentPage,
+      itemsPerPage: itemsPerPage,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1
+    });
+
+    setFilteredTickets(paginatedFiltered);
   };
 
   const handleFilterClick = (event) => {
@@ -301,6 +364,15 @@ const InstructorProfile = () => {
 
   const handleClearFilters = () => {
     setActiveFilters({ sort: null, status: null, search: "", teamNameSearch: "" });
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); 
   };
 
   const fetchNameFromId = async (student_id) => {
@@ -389,13 +461,14 @@ const InstructorProfile = () => {
     const ticketsWithNames = await Promise.all(
         uniqueTickets.map(async (ticket) => {
           const userName = await fetchNameFromId(ticket.student_id);
-          return { ...ticket, userName };
+          const teamName = await fetchTeamNameFromId(ticket.team_id);
+          return { ...ticket, userName, teamName };
         })
       );
       if (latestUserIdRef.current !== requestedUserId) {
         return;
       }
-      setTickets(ticketsWithNames);
+      setAllTickets(ticketsWithNames);
       setTotalTickets(uniqueTickets.length);
     
     //  Add ticket statistics
@@ -571,28 +644,76 @@ const InstructorProfile = () => {
           open={Boolean(filterAnchor)}
           onClose={handleFilterClose}
         >
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "newest" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "newest" ? null : "newest" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: Newest First
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "oldest" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "oldest" ? null : "oldest" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: Oldest First
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "id-asc" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "id-asc" ? null : "id-asc" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: ID Ascending
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: "id-desc" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              sort: activeFilters.sort === "id-desc" ? null : "id-desc" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Sort: ID Descending
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "new" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "new" ? null : "new" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: New
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "ongoing" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "ongoing" ? null : "ongoing" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: Ongoing
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "resolved" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "resolved" ? null : "resolved" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: Resolved
           </MenuItem>
-          <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, status: "escalated" }); handleFilterClose(); }}>
+          <MenuItem onClick={() => { 
+            setActiveFilters({ 
+              ...activeFilters, 
+              status: activeFilters.status === "escalated" ? null : "escalated" 
+            }); 
+            handleFilterClose(); 
+          }}>
             Status: Escalated
           </MenuItem>
         </Menu>
@@ -603,9 +724,26 @@ const InstructorProfile = () => {
           defaultView="grid"
           onOpenTicket={(ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`)}
           header={<Typography variant="subtitle2">
-            {currentUserRole === "student" ? "Your Tickets with this TA" : "Assigned Tickets"}
+            {currentUserRole === "student" ? "Your Tickets with this TA" : `Assigned Tickets (Page ${currentPage} of ${pagination.totalPages})`}
           </Typography>}
         />
+        
+        {/* PAGINATION */}
+        {pagination.totalPages > 1 && (
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={pagination.totalItems}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </Box>
+        )}
       </Box>
       )}
 
@@ -641,8 +779,27 @@ const InstructorProfile = () => {
           tickets={filteredTickets}
           defaultView="grid"
           onOpenTicket={(ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`)}
-          header={<Typography variant="subtitle2">Click on a ticket to view details</Typography>}
+          header={<Typography variant="subtitle2">
+            {pagination.totalPages > 1 ? `Click on a ticket to view details (Page ${currentPage} of ${pagination.totalPages})` : "Click on a ticket to view details"}
+          </Typography>}
         />
+        
+        {/* PAGINATION FOR STUDENTS */}
+        {pagination.totalPages > 1 && (
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={pagination.totalItems}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </Box>
+        )}
       </Box>
       )}
 
