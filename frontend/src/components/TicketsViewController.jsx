@@ -57,6 +57,9 @@ export default function TicketsViewController({
                 status={t.status}
                 name={t.userName || t.name}
                 escalated={t.escalated}
+                teamName={t.teamName || t.team_name}
+                sponsorName={t.sponsor_name}
+                createdAt={t.created_at}
               />
             </Grid>
           ))}
