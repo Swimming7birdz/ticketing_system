@@ -78,7 +78,7 @@ function App() {
         {/* Testing Pages */}
 
         {/* Change user_id to the user's id */}
-        <Route path="/mytickets" element={<StudentTickets />} />
+        <Route path="/mytickets" element={<MyTickets />} />
         <Route path="/instructortickets" element={<InstructorTickets />} />
         <Route path="/TaRequestTickets" element={<TaRequestTickets />} />
         <Route path="/ta-info" element={<TAinfo />} />

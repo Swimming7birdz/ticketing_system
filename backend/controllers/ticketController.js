@@ -143,22 +143,64 @@ exports.getAllTickets = async (req, res) => {
 
 exports.getTicketsByUserId = async (req, res) => {
   try {
-    // Extract pagination parameters
-    const { page = 1, limit = 10, status, priority } = req.query;
+    // Extract pagination parameters and filters
+    const { 
+      page = 1, 
+      limit = 10, 
+      status, 
+      priority, 
+      sort,
+      escalated,
+      hideResolved
+    } = req.query;
+    
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const offset = (pageNum - 1) * limitNum;
 
     // Build where clause
     const whereClause = { student_id: req.params.user_id };
+    
+    // Handle status filtering
     if (status) whereClause.status = status;
     if (priority) whereClause.priority = priority;
+    
+    // Handle escalated filtering
+    if (escalated === 'true') {
+      whereClause.escalated = true;
+    }
+    
+    // Handle hideResolved filtering
+    if (hideResolved === 'true') {
+      whereClause.status = { [Op.ne]: 'resolved' };
+    }
+
+    // Build order clause for sorting
+    let orderClause = [['created_at', 'DESC']]; // Default
+    if (sort) {
+      switch (sort) {
+        case 'newest':
+          orderClause = [['created_at', 'DESC']];
+          break;
+        case 'oldest':
+          orderClause = [['created_at', 'ASC']];
+          break;
+        case 'id-asc':
+          orderClause = [['ticket_id', 'ASC']];
+          break;
+        case 'id-desc':
+          orderClause = [['ticket_id', 'DESC']];
+          break;
+        default:
+          orderClause = [['created_at', 'DESC']];
+      }
+    }
 
     const { count, rows } = await Ticket.findAndCountAll({
       where: whereClause,
       limit: limitNum,
       offset: offset,
-      order: [['created_at', 'DESC']],
+      order: orderClause,
       include: [{ model: User, as: "student", attributes: ["name"] }]
     });
 
