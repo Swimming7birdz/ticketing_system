@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
+import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketAssignmentsByUserId, fetchTicketById } from "../../services/ticketServices";
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -36,14 +37,33 @@ const InstructorDash = () => {
     search: "",
   });
   const [filterAnchor, setFilterAnchor] = useState(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
+  
   let navigate = useNavigate();
 
   const openTicket = (ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`);
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); 
+  };
+
   useEffect(() => {
     fetchTickets();
     fetchTACounts();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const fetchTACounts = async () => {
     try {
@@ -68,75 +88,69 @@ const InstructorDash = () => {
       const tas = users.filter((user) => user.role === "TA"); // Filter TAs
       setTotalTAs(tas.length);
 
-      // Step 2: Fetch all ticket assignments
-      const assignmentsResponse = await fetch(
-        `${baseURL}/api/ticketassignments`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!assignmentsResponse.ok) {
-        throw new Error(
-          `Failed to fetch ticket assignments, status: ${assignmentsResponse.status}`
-        );
-      }
-
-      const assignments = await assignmentsResponse.json();
-
-      // Step 3: Fetch all tickets
-      const ticketsResponse = await fetch(`${baseURL}/api/tickets`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!ticketsResponse.ok) {
-        throw new Error(
-          `Failed to fetch tickets, status: ${ticketsResponse.status}`
-        );
-      }
-
-      const tickets = await ticketsResponse.json();
-
-      // Step 4: Map tickets and increment counts for each TA
-      const ticketCounts = {}; // Store ticket counts for each TA
+      const ticketCounts = {};
 
       tas.forEach((ta) => {
-        // Initialize counts for this TA
         ticketCounts[ta.user_id] = {
-          name: ta.name, // Store the TA's name
+          name: ta.name,
           counts: { new: 0, ongoing: 0, resolved: 0 },
         };
+      });
 
-        // Filter assignments for this TA
-        const taAssignments = assignments.filter(
-          (assignment) => assignment.user_id === ta.user_id
-        );
-
-        // For each assignment, find the corresponding ticket and increment counts
-        taAssignments.forEach((assignment) => {
-          const ticket = tickets.find(
-            (t) => t.ticket_id === assignment.ticket_id
+      // Fetch assignments for each TA using the role-filtered endpoint
+      const countPromises = tas.map(async (ta) => {
+        try {
+          const assignmentsResponse = await fetch(
+            `${baseURL}/api/ticketassignments/users/${ta.user_id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
 
-          if (ticket) {
-            // Increment the status count
-            if (ticket.status === "new")
-              ticketCounts[ta.user_id].counts.new += 1;
-            else if (ticket.status === "ongoing")
-              ticketCounts[ta.user_id].counts.ongoing += 1;
-            else if (ticket.status === "resolved")
-              ticketCounts[ta.user_id].counts.resolved += 1;
+          if (assignmentsResponse.ok) {
+            const assignments = await assignmentsResponse.json();
+            
+            const ticketPromises = assignments.map(async (assignment) => {
+              try {
+                const ticketResponse = await fetch(`${baseURL}/api/tickets/${assignment.ticket_id}`, {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+                
+                if (ticketResponse.ok) {
+                  return await ticketResponse.json();
+                }
+              } catch (err) {
+                console.error(`Error fetching ticket ${assignment.ticket_id}:`, err);
+              }
+              return null;
+            });
+
+            const tickets = (await Promise.all(ticketPromises)).filter(Boolean);
+            
+            tickets.forEach((ticket) => {
+              if (ticket.status === "new") {
+                ticketCounts[ta.user_id].counts.new += 1;
+              } else if (ticket.status === "ongoing") {
+                ticketCounts[ta.user_id].counts.ongoing += 1;
+              } else if (ticket.status === "resolved") {
+                ticketCounts[ta.user_id].counts.resolved += 1;
+              }
+            });
           }
-        });
+        } catch (err) {
+          console.error(`Error fetching assignments for TA ${ta.user_id}:`, err);
+        }
       });
+
+      await Promise.all(countPromises);
 
 
 
@@ -146,8 +160,7 @@ const InstructorDash = () => {
       console.error("Error fetching TA ticket counts:", err);
     }
   };
-
-
+  
 
   const filterUniqueTickets = (tickets) => { //Avoid duplicate tickets
     const seen = new Set();
@@ -166,46 +179,67 @@ const InstructorDash = () => {
 
   const fetchTickets = async () => {
     try {
-      const instructorTickets = await fetchTicketAssignmentsByUserId();
-      console.log(instructorTickets);
-      const sortedTickets = sortTicketsById(instructorTickets);
+      const token = Cookies.get("token");
+      
+      const allInstructorTickets = await fetchTicketAssignmentsByUserId();
+      //console.log('All instructor tickets:', allInstructorTickets);
+      
+      const sortedTickets = sortTicketsById(allInstructorTickets);
       const uniqueTickets = filterUniqueTickets(sortedTickets);
-     
+      const totalItems = uniqueTickets.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      
+      const paginatedTicketAssignments = uniqueTickets.slice(startIndex, endIndex);
+      
+      // Fetch detailed ticket data for paginated subset only
       const ticketList = await Promise.all(
-        uniqueTickets.map(async (ticket_) => {
+        paginatedTicketAssignments.map(async (ticket_) => {
           const ticketData = await fetchTicketById(ticket_.ticket_id);
-          //return { ...ticket_, ticketData };
-          // Format data for TicketsViewController - flatten the structure
           return {
             ...ticketData,
             userName: ticketData.student?.name || "Unknown",
-            // Keep original nested structure for backward compatibility
             ticketData: ticketData
           };
         })
       );
       
-      // Count different ticket types
-      const escalatedCount = ticketList.filter(ticket => 
+      // Count different ticket types from ALL tickets (not just paginated)
+      const allTicketDetails = await Promise.all(
+        uniqueTickets.map(async (ticket_) => {
+          const ticketData = await fetchTicketById(ticket_.ticket_id);
+          return ticketData;
+        })
+      );
+      
+      const escalatedCount = allTicketDetails.filter(ticket => 
         ticket.escalated === true
       ).length;
       
-      const openCount = ticketList.filter(ticket => 
+      const openCount = allTicketDetails.filter(ticket => 
         ticket.status === 'new' || ticket.status === 'ongoing'
       ).length;
       
-      const closedCount = ticketList.filter(ticket => 
+      const closedCount = allTicketDetails.filter(ticket => 
         ticket.status === 'resolved'
       ).length;
       
-      // Limit to 21 tickets for dashboard display
-      const limitedTickets = ticketList.slice(0, 21); 
-      
-      setTickets(limitedTickets);
-      setTotalTickets(ticketList.length);
+      // Set paginated tickets
+      setTickets(ticketList);
+      setTotalTickets(totalItems);
       setEscalatedTickets(escalatedCount);
       setOpenTickets(openCount);
       setClosedTickets(closedCount);
+      
+      // Set pagination metadata
+      setPagination({
+        totalItems: totalItems,
+        totalPages: totalPages,
+        hasNextPage: currentPage < totalPages,
+        hasPreviousPage: currentPage > 1
+      });
+      
       setLoading(false);
       
     } catch (error) {
@@ -319,8 +353,23 @@ const InstructorDash = () => {
             tickets={tickets}
             defaultView="grid"
             onOpenTicket={openTicket}
-            header={<Typography variant="subtitle2">Latest Tickets</Typography>}
+            header={<Typography variant="subtitle2">My Tickets</Typography>}
           />
+          
+          {/* PAGINATION */}
+          {pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={pagination.totalItems}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          )}
         </div>
       </Box>
 

@@ -5,6 +5,7 @@ import ArticleIcon from "@mui/icons-material/Article";
 import CircularProgress from "@mui/material/CircularProgress";
 import Cookies from "js-cookie";
 import TicketsViewController from "../../components/TicketsViewController";
+import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketsByUserId } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom"; // ✅ Import navigation
 
@@ -12,62 +13,88 @@ const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const StudentDash = () => {
   const theme = useTheme();
-  const [tickets, setTickets] = useState([]);
+  const [allTickets, setAllTickets] = useState([]); // Store all tickets
+  const [tickets, setTickets] = useState([]); // Store current page tickets
   const [loading, setLoading] = useState(true);
   const [totalTickets, setTotalTickets] = useState(0);
   const navigate = useNavigate(); // ✅ Initialize navigation function
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
 
   const openTicket = (ticket) => navigate(`/ticketinfo?ticket=${ticket.ticket_id}`);
+
+  const applyPagination = (ticketsList, page, itemsPerPage) => {
+    const totalItems = ticketsList.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    const paginatedTickets = ticketsList.slice(startIndex, endIndex);
+    
+    setTickets(paginatedTickets);
+    setPagination({
+      totalItems: totalItems,
+      totalPages: totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1
+    });
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     loadTickets();
   }, []);
 
-  const fetchTeamNameFromId = async (team_id) => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`${baseURL}/api/teams/${team_id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        console.warn(`Failed to fetch team name for team_id=${team_id}`);
-        return "No Team";
-      }
-
-      const data = await response.json();
-      return data.team_name || "No Team";
-    } catch (error) {
-      console.error(`Error fetching team name for team_id=${team_id}:`, error);
-      return "No Team";
+  useEffect(() => {
+    if (allTickets.length > 0) {
+      applyPagination(allTickets, currentPage, itemsPerPage);
     }
-  };
+  }, [allTickets, currentPage, itemsPerPage]);
 
   const loadTickets = async () => {
     try {
-      const studentTickets = await fetchTicketsByUserId();
+      const response = await fetchTicketsByUserId();
       
-      // Add userName and teamName properties for TicketsViewController consistency
-      const ticketsWithNames = await Promise.all(
-        studentTickets.map(async (ticket) => {
-          const teamName = await fetchTeamNameFromId(ticket.team_id);
-          return {
-            ...ticket,
-            userName: ticket.student_name || "Unknown",
-            teamName: teamName
-          };
-        })
-      );
+      // Handle both old format (array) and new format (object with pagination)
+      const studentTickets = response.tickets || response;
       
-      setTickets(ticketsWithNames);
-      setTotalTickets(ticketsWithNames.length);
+      // Add userName property for TicketsViewController consistency
+      const ticketsWithUserName = studentTickets.map(ticket => ({
+        ...ticket,
+        userName: ticket.student_name || "Unknown"
+      }));
+      
+      setAllTickets(ticketsWithUserName); // Store all tickets
+      setTotalTickets(response.pagination ? response.pagination.totalItems : ticketsWithUserName.length);
+      
+      applyPagination(ticketsWithUserName, currentPage, itemsPerPage);
+      
       setLoading(false);
     } catch (error) {
       console.error("Error fetching student tickets:", error);
+      setAllTickets([]);
+      setTickets([]);
+      setPagination({
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false
+      });
       setLoading(false);
     }
   };
@@ -169,7 +196,43 @@ const StudentDash = () => {
           tickets={tickets}
           defaultView="grid"
           onOpenTicket={openTicket}
+          header={<Typography variant="subtitle2">
+            {pagination.totalPages > 1 ? `My Tickets (Page ${currentPage} of ${pagination.totalPages})` : "My Tickets"}
+          </Typography>}
         />
+        
+        {/* PAGINATION */}
+        {pagination.totalPages > 1 && (
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={pagination.totalItems}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </Box>
+        )}
+        
+        {/* NO TICKETS MESSAGE */}
+        {tickets.length === 0 && !loading && (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              You haven't submitted any tickets yet.
+            </Typography>
+            <Button
+              variant="contained"
+              sx={{ mt: 2 }}
+              onClick={() => navigate("/createticket")}
+            >
+              Create Your First Ticket
+            </Button>
+          </Box>
+        )}
       </Box>
     </Box>
   );

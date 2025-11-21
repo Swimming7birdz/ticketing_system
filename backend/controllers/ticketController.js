@@ -4,12 +4,138 @@ const Team = require("../models/Team");
 const Communication = require("../models/Communication"); 
 const sendEmail = require('../services/emailService');
 const TicketAssignment = require("../models/TicketAssignment");
+const { Op } = require("sequelize");
 
 exports.getAllTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.findAll();
-	
-    res.json(tickets);
+    // Extract pagination parameters from query string
+    const { 
+      page = 1, 
+      limit = 10, 
+      status, 
+      priority, 
+      team_id,
+      assigned_to,
+      sort,
+      hideResolved
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build where clause for filtering
+    const whereClause = {};
+    // Normalize status to lowercase (DB uses lowercase enum values)
+    const normalizedStatus = status ? status.toLowerCase() : undefined;
+    if (normalizedStatus) {
+      if (normalizedStatus === 'escalated') {
+        whereClause.escalated = true;
+      } else {
+        whereClause.status = normalizedStatus;
+      }
+    }
+    if (priority) whereClause.priority = priority;
+    if (team_id) whereClause.team_id = team_id;
+    if (assigned_to) whereClause.assigned_to = assigned_to;
+    // Only apply hideResolved when there is no explicit status filter on the query
+    if (hideResolved === 'true' && typeof whereClause.status === 'undefined') {
+      whereClause.status = { [Op.ne]: 'resolved' };
+    }
+
+    // Build order clause for sorting
+    let orderClause = [['created_at', 'DESC']]; // Default: Most recent tickets first
+    
+    if (sort) {
+      switch (sort) {
+        case 'newest':
+          orderClause = [['created_at', 'DESC']];
+          break;
+        case 'oldest':
+          orderClause = [['created_at', 'ASC']];
+          break;
+        case 'id-asc':
+          orderClause = [['ticket_id', 'ASC']];
+          break;
+        case 'id-desc':
+          orderClause = [['ticket_id', 'DESC']];
+          break;
+        default:
+          orderClause = [['created_at', 'DESC']];
+      }
+    }
+
+    // Use findAndCountAll to get both tickets and total count
+    const { count, rows } = await Ticket.findAndCountAll({
+      where: whereClause,
+      limit: limitNum,
+      offset: offset,
+      order: orderClause,
+      include: [
+        { 
+          model: User, 
+          as: "student", 
+          attributes: ["name", "email"] 
+        }
+      ]
+    });
+
+    // Get summary counts (all tickets, ignoring pagination but respecting filters)
+    let totalTickets, openTickets, closedTickets, escalatedTickets;
+    
+    try {
+      totalTickets = await Ticket.count({ where: whereClause });
+      
+      openTickets = await Ticket.count({ 
+        where: { 
+          ...whereClause, 
+          status: { [Op.in]: ['new', 'ongoing'] } 
+        } 
+      });
+      
+      closedTickets = await Ticket.count({ 
+        where: { 
+          ...whereClause, 
+          status: 'resolved' 
+        } 
+      });
+      
+      escalatedTickets = await Ticket.count({ 
+        where: { 
+          ...whereClause, 
+          escalated: true 
+        } 
+      });
+      
+    } catch (summaryError) {
+      console.error('Error calculating summary counts:', summaryError);
+      // Fallback to basic counts
+      totalTickets = count;
+      openTickets = 0;
+      closedTickets = 0;
+      escalatedTickets = 0;
+    }
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(count / limitNum);
+
+    res.json({
+      tickets: rows,
+      pagination: {
+        currentPage: pageNum,
+        itemsPerPage: limitNum,
+        totalItems: count,
+        totalPages: totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPreviousPage: pageNum > 1
+      },
+      summary: {
+        totalTickets,
+        openTickets,
+        closedTickets,
+        escalatedTickets
+      }
+    });
   } catch (error) {
     res.status(507).json({ error: error.message });
   }
@@ -17,18 +143,45 @@ exports.getAllTickets = async (req, res) => {
 
 exports.getTicketsByUserId = async (req, res) => {
   try {
-    const tickets = await Ticket.findAll({
-      where: { student_id: req.params.user_id },
-      include: [{ model: User, as: "student", attributes: ["name"] }], //  Fetch student name
+    // Extract pagination parameters
+    const { page = 1, limit = 10, status, priority } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build where clause
+    const whereClause = { student_id: req.params.user_id };
+    if (status) whereClause.status = status;
+    if (priority) whereClause.priority = priority;
+
+    const { count, rows } = await Ticket.findAndCountAll({
+      where: whereClause,
+      limit: limitNum,
+      offset: offset,
+      order: [['created_at', 'DESC']],
+      include: [{ model: User, as: "student", attributes: ["name"] }]
     });
 
     // Add student_name manually if needed
-    const ticketsWithNames = tickets.map(ticket => ({
+    const ticketsWithNames = rows.map(ticket => ({
       ...ticket.dataValues,
       student_name: ticket.student ? ticket.student.name : "Unknown Student",
     }));
 
-    res.json(ticketsWithNames);
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(count / limitNum);
+
+    res.json({
+      tickets: ticketsWithNames,
+      pagination: {
+        currentPage: pageNum,
+        itemsPerPage: limitNum,
+        totalItems: count,
+        totalPages: totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPreviousPage: pageNum > 1
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

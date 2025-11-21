@@ -5,7 +5,6 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-
 import {
   Button,
   List,
@@ -29,6 +28,7 @@ import {useNavigate} from "react-router-dom";
 import ConfirmTADelete from "../../components/ConfirmTADelete/ConfirmTADelete";
 import { useTheme as useCustomTheme } from "../../contexts/ThemeContext";
 
+
 const AdminSettings = () => {
   const [teams, setTeams] = useState([]);
   const [tas, setTAs] = useState([]);
@@ -45,6 +45,8 @@ const AdminSettings = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { isDarkMode, themeMode, setTheme } = useCustomTheme();
+
+
   useEffect(() => {
     fetchTeams();
     fetchTAs();
@@ -271,31 +273,11 @@ const AdminSettings = () => {
     }
   };
 
-  // const deleteTA = async (taId) => {
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.REACT_APP_API_BASE_URL}/api/users/${taId}`,
-  //       {
-  //         method: "DELETE",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     if (!response.ok) throw new Error("Failed to delete TA.");
-  //     fetchTAs(); // Refresh the list of TAs
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
   const handleDelete = (ta) => {
     console.log("Delete TA Button Clicked");
     setSelectedTA(ta);
     setDeleteOpen(true);
-  }
+  };
 
   const deletePopupClose = () => {
     setDeleteOpen(false);
@@ -305,7 +287,8 @@ const AdminSettings = () => {
   const updateStatus = (status) => {
     console.log("This is the update status:", status)
     setDeleteStatus(status);
-  }
+  };
+
 
   return (
     <Box
@@ -382,6 +365,7 @@ const AdminSettings = () => {
       <Divider sx={{ margin: "20px 0" }} />
 
       {/* Teams Section */}
+      {/*
       <Box
         sx={{
           marginBottom: 5,
@@ -400,8 +384,9 @@ const AdminSettings = () => {
             color: theme.palette.text.primary
           }}
         >
-          Teams
+          Teams Under development
         </Typography>
+        
         <List 
           sx={{
             maxHeight: "300px",
@@ -447,80 +432,81 @@ const AdminSettings = () => {
             Add Team
           </Button>
         </Box>
-      </Box>
-
+      
+      </Box> */}
+      
       {/* Teaching Assistants Section */}
-      <Box
-        sx={{
-          marginBottom: 5,
-          backgroundColor: theme.palette.background.paper,
-          borderRadius: "10px",
-          border: `1px solid ${theme.palette.divider}`,
-          padding: 2.5,
-          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            marginBottom: 2.5, 
-            fontWeight: "bold",
-            color: theme.palette.text.primary
-          }}
-        >
-          Teaching Assistants (TAs)
-        </Typography>
-        <TableContainer 
-          component={Paper} 
-          sx={{
-            marginTop: 1.25,
-            maxHeight: "300px",
-            overflowY: "auto",
-            backgroundColor: isDarkMode ? "#2d2d2d" : theme.palette.background.default,
-          }}
-        >
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Name</TableCell>
-            <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Email</TableCell>
-            <TableCell align="right" sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Action</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {tas.map((ta) => (
-            <TableRow key={ta.user_id}>
-              <TableCell sx={{ color: theme.palette.text.primary }}>{ta.name}</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>{ta.email}</TableCell>
-              <TableCell align="right">
-              <Button 
-                  variant="outlined"
-                  onClick={() =>  { 
-                    handleDelete(ta);
-                    }
-                  }
-                  sx={{ 
-                    color: isDarkMode ? "white" : "black", 
-                    borderColor: isDarkMode ? "white" : "black" 
-                  }}
-                > 
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-    {deleteOpen && (
-      <ConfirmTADelete
-        handleOpen={deleteOpen}
-        handleClose={deletePopupClose}
-        ta={selectedTA}
-        idNameMap={idNameMap}
-        updateStatus={updateStatus}
-      />
-    )}
+      {/*<Box*/}
+      {/*  sx={{*/}
+      {/*    marginBottom: 5,*/}
+      {/*    backgroundColor: theme.palette.background.paper,*/}
+      {/*    borderRadius: "10px",*/}
+      {/*    border: `1px solid ${theme.palette.divider}`,*/}
+      {/*    padding: 2.5,*/}
+      {/*    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",*/}
+      {/*  }}*/}
+      {/*>*/}
+        {/*<Typography */}
+        {/*  variant="h5" */}
+        {/*  sx={{ */}
+        {/*    marginBottom: 2.5, */}
+        {/*    fontWeight: "bold",*/}
+        {/*    color: theme.palette.text.primary*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  Teaching Assistants (TAs)*/}
+        {/*</Typography>*/}
+    {/*    <TableContainer */}
+    {/*      component={Paper} */}
+    {/*      sx={{*/}
+    {/*        marginTop: 1.25,*/}
+    {/*        maxHeight: "300px",*/}
+    {/*        overflowY: "auto",*/}
+    {/*        backgroundColor: isDarkMode ? "#2d2d2d" : theme.palette.background.default,*/}
+    {/*      }}*/}
+    {/*    >*/}
+    {/*  <Table>*/}
+    {/*    <TableHead>*/}
+    {/*      <TableRow>*/}
+    {/*        <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Name</TableCell>*/}
+    {/*        <TableCell sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Email</TableCell>*/}
+    {/*        <TableCell align="right" sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary }}>Action</TableCell>*/}
+    {/*      </TableRow>*/}
+    {/*    </TableHead>*/}
+    {/*    <TableBody>*/}
+    {/*      {tas.map((ta) => (*/}
+    {/*        <TableRow key={ta.user_id}>*/}
+    {/*          <TableCell sx={{ color: theme.palette.text.primary }}>{ta.name}</TableCell>*/}
+    {/*          <TableCell sx={{ color: theme.palette.text.primary }}>{ta.email}</TableCell>*/}
+    {/*          <TableCell align="right">*/}
+    {/*          <Button */}
+    {/*              variant="outlined"*/}
+    {/*              onClick={() =>  { */}
+    {/*                handleDelete(ta);*/}
+    {/*                }*/}
+    {/*              }*/}
+    {/*              sx={{ */}
+    {/*                color: isDarkMode ? "white" : "black", */}
+    {/*                borderColor: isDarkMode ? "white" : "black" */}
+    {/*              }}*/}
+    {/*            > */}
+    {/*              Delete*/}
+    {/*            </Button>*/}
+    {/*          </TableCell>*/}
+    {/*        </TableRow>*/}
+    {/*      ))}*/}
+    {/*    </TableBody>*/}
+    {/*  </Table>*/}
+    {/*</TableContainer>*/}
+    {/*{deleteOpen && (*/}
+    {/*  <ConfirmTADelete*/}
+    {/*    handleOpen={deleteOpen}*/}
+    {/*    handleClose={deletePopupClose}*/}
+    {/*    ta={selectedTA}*/}
+    {/*    idNameMap={idNameMap}*/}
+    {/*    updateStatus={updateStatus}*/}
+    {/*  />*/}
+    {/*)}*/}
 
 
 
@@ -541,35 +527,109 @@ const AdminSettings = () => {
             </ListItem>
           ))}
         </List> */}
-        <Box sx={{ marginTop: 2.5, display: "flex", gap: 1.25 }}>
-          <TextField
-            fullWidth
-            value={newTAName}
-            placeholder="New TA Name"
-            onChange={(e) => setNewTAName(e.target.value)}
-            variant="outlined"
-            size="small"
-          />
-          <TextField
-            fullWidth
-            type="email"
-            value={newTAEmail}
-            placeholder="New TA Email"
-            onChange={(e) => setNewTAEmail(e.target.value)}
-            variant="outlined"
-            size="small"
-          />
-          <Button 
-            variant="contained" 
-            onClick={addTA}
+        {/*<Box sx={{ marginTop: 2.5, display: "flex", gap: 1.25 }}>*/}
+        {/*  <TextField*/}
+        {/*    fullWidth*/}
+        {/*    value={newTAName}*/}
+        {/*    placeholder="New TA Name"*/}
+        {/*    onChange={(e) => setNewTAName(e.target.value)}*/}
+        {/*    variant="outlined"*/}
+        {/*    size="small"*/}
+        {/*  />*/}
+        {/*  <TextField*/}
+        {/*    fullWidth*/}
+        {/*    type="email"*/}
+        {/*    value={newTAEmail}*/}
+        {/*    placeholder="New TA Email"*/}
+        {/*    onChange={(e) => setNewTAEmail(e.target.value)}*/}
+        {/*    variant="outlined"*/}
+        {/*    size="small"*/}
+        {/*  />*/}
+        {/*  <Button */}
+        {/*    variant="contained" */}
+        {/*    onClick={addTA}*/}
+        {/*    sx={{ backgroundColor: theme.palette.primary.main }}*/}
+        {/*  >*/}
+        {/*    Add TA*/}
+        {/*  </Button>*/}
+        {/*</Box>*/}
+      {/*</Box>*/}
+
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
+          People Management
+        </Typography>
+
+          <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "left", gap: 2 }}>
+             <Button
+              variant="contained"
+              onClick={() => navigate("/managestudents")}
+              sx={{ backgroundColor: theme.palette.primary.main }}
+              >
+                  Manage Students
+              </Button>
+
+              <Button
+                  variant="contained"
+                  onClick={() => navigate("/manageTAs")}
+                  sx={{ backgroundColor: theme.palette.primary.main }}
+              >
+                  Manage TAs
+              </Button>
+          </Box>
+      </Box>
+
+      <Divider sx={{ margin: "20px 0" }} />
+
+      <Box
+        sx={{
+          marginBottom: 5,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: "10px",
+          border: `1px solid ${theme.palette.divider}`,
+          padding: 2.5,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            marginBottom: 2.5, 
+            fontWeight: "bold",
+            color: theme.palette.text.primary
+          }}
+        >
+          Data Management
+        </Typography>
+
+        <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "left", gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/bulkupload")}
             sx={{ backgroundColor: theme.palette.primary.main }}
           >
-            Add TA
+              Data Upload
           </Button>
         </Box>
       </Box>
-      
-      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center" }}>
+
+      <Box sx={{ marginBottom: 1.25, display: "flex", justifyContent: "center", gap: 2 }}>
         <Button 
           variant="contained" 
           onClick={() => navigate("/profile")}
@@ -577,9 +637,10 @@ const AdminSettings = () => {
         >
           Go To Account Settings
         </Button>
-      </Box>
+
       </Box>
     </Box>
+  </Box>
   );
 };
 

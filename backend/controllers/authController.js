@@ -18,6 +18,10 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
+      if (!user.is_enabled) {
+          return res.status(403).json({ error: "Account is disabled" });
+      }
+
     const token = jwt.sign({ id: user.user_id, role: user.role, name: user.name }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
@@ -38,16 +42,32 @@ exports.register = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-      // asu_id,
+    const [user, created] = await User.findOrCreate({
+      where: { email },
+      defaults: { name, email, password: hashedPassword, role },
     });
 
-    res.status(201).json(user);
+    // const user = await User.create({
+    //   name,
+    //   email,
+    //   password: hashedPassword,
+    //   role,
+    //   // asu_id,
+    // });
+
+    if (created) return res.status(201).json({ created: true, user });
+    return res.status(200).json({ created: false, user });
+ 
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+      return res.status(409).json({ error: 'Unique constraint', details });
+    }
+    if (error.name === 'SequelizeValidationError') {
+      const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+      return res.status(400).json({ error: 'Validation error', details });
+    }
+
     res.status(500).json({ error: error.message });
   }
 };

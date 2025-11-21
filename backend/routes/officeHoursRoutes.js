@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
   "/users/:user_id",
   authMiddleware.verifyToken,
-  authMiddleware.isTAOrAdmin,
+  authMiddleware.isStudentOrTAOrAdmin,
   officeHoursController.getOfficeHoursByTAId
 );
 
