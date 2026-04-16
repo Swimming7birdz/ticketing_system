@@ -1,7 +1,6 @@
 import React, {useState } from "react";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useDropzone } from "react-dropzone";
-import Cookies from "js-cookie";
 import DownloadTemplate from "../../services/bulkUploadServices/downloadTemplate";
 import Stack from "@mui/material/Stack";
 import {
@@ -19,8 +18,6 @@ import { useTheme } from "@mui/material/styles";
 import {useNavigate} from "react-router-dom";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
-const baseURL = process.env.REACT_APP_API_BASE_URL;
-
 const BulkUpload = () => {
     const [studentFile, setStudentFile] = useState(null);
     const [projectFile, setProjectFile] = useState(null);
@@ -29,37 +26,6 @@ const BulkUpload = () => {
 
     const handleBack = () => {
         navigate(-1); 
-    };
-
-    const logBulkUploadStep = async ({
-        operationId,
-        step,
-        status,
-        reason = null,
-        details = null,
-        fileName = null,
-    }) => {
-        try {
-            const token = Cookies.get("token");
-            await fetch(`${baseURL}/api/logs/bulk-upload`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    operation: "bulk_upload",
-                    operationId,
-                    step,
-                    status,
-                    reason,
-                    details,
-                    fileName,
-                }),
-            });
-        } catch (error) {
-            console.error("Failed to write bulk upload log:", error);
-        }
     };
 
     const onDropStudent = React.useCallback((acceptedFiles) => {
@@ -91,355 +57,58 @@ const BulkUpload = () => {
     });
 
     const handleUploadFiles = async () => {
-        const operationId = `bulk-upload-${Date.now()}`;
-
         if (!studentFile || !projectFile) {
-            const missingFiles = [];
-            if (!projectFile) missingFiles.push("projectFile");
-            if (!studentFile) missingFiles.push("studentFile");
-
-            await logBulkUploadStep({
-                operationId,
-                step: "bulk_upload_validation",
-                status: "failed",
-                reason: "Missing required file",
-                details: { missingFiles },
-            });
-            await logBulkUploadStep({
-                operationId,
-                step: "verify_project_file",
-                status: "pending",
-                reason: "Bulk upload validation failed",
-            });
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_tas",
-                status: "pending",
-                reason: "Bulk upload validation failed",
-            });
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_teams",
-                status: "pending",
-                reason: "Bulk upload validation failed",
-            });
-            await logBulkUploadStep({
-                operationId,
-                step: "verify_student_file",
-                status: "pending",
-                reason: "Bulk upload validation failed",
-            });
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_students",
-                status: "pending",
-                reason: "Bulk upload validation failed",
-            });
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_graders",
-                status: "pending",
-                reason: "Bulk upload validation failed",
-            });
             alert("Please select both files to upload.");
             return;
         }
         
         try {
-            await logBulkUploadStep({
-                operationId,
-                step: "bulk_upload",
-                status: "started",
-                details: {
-                    projectFile: projectFile.name,
-                    studentFile: studentFile.name,
-                },
-            });
-
-            await logBulkUploadStep({
-                operationId,
-                step: "verify_project_file",
-                status: "started",
-                fileName: projectFile.name,
-            });
             const verifyProjectResult = await verifyFileService(projectFile, "project");
             if (!verifyProjectResult.valid) {
-                await logBulkUploadStep({
-                    operationId,
-                    step: "verify_project_file",
-                    status: "failed",
-                    reason: "Project file validation failed",
-                    details: verifyProjectResult.errors,
-                    fileName: projectFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_tas",
-                    status: "skipped",
-                    reason: "Project file validation failed",
-                    fileName: projectFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_teams",
-                    status: "pending",
-                    reason: "Project file validation failed",
-                    fileName: projectFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "verify_student_file",
-                    status: "pending",
-                    reason: "Project file validation failed",
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_students",
-                    status: "pending",
-                    reason: "Project file validation failed",
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_graders",
-                    status: "pending",
-                    reason: "Project file validation failed",
-                    fileName: projectFile.name,
-                });
                 console.error("Project file verification failed:", verifyProjectResult.errors);
                 alert("Project file validation errors:\n" + verifyProjectResult.errors.join("\n"));
                 return;
             }
-            await logBulkUploadStep({
-                operationId,
-                step: "verify_project_file",
-                status: "success",
-                fileName: projectFile.name,
-            });
 
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_tas",
-                status: "started",
-                fileName: projectFile.name,
-            });
             const genTaResult = await generateTAs(projectFile);
             if (!genTaResult.valid) {
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_tas",
-                    status: "failed",
-                    reason: "TA creation failed",
-                    details: genTaResult.errors,
-                    fileName: projectFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_teams",
-                    status: "pending",
-                    reason: "TA creation failed",
-                    fileName: projectFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "verify_student_file",
-                    status: "pending",
-                    reason: "TA creation failed",
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_students",
-                    status: "pending",
-                    reason: "TA creation failed",
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_graders",
-                    status: "pending",
-                    reason: "TA creation failed",
-                    fileName: projectFile.name,
-                });
                 console.error("TA creation failed:", genTaResult.errors);
                 alert("TA creation errors:\n" + genTaResult.errors.join("\n"));
                 return;
             }
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_tas",
-                status: "success",
-                fileName: projectFile.name,
-            });
             
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_teams",
-                status: "started",
-                fileName: projectFile.name,
-            });
             const genTeamResult = await generateTeams(projectFile);
             if (!genTeamResult.valid) {
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_teams",
-                    status: "failed",
-                    reason: "Team creation failed",
-                    details: genTeamResult.errors,
-                    fileName: projectFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "verify_student_file",
-                    status: "pending",
-                    reason: "Team creation failed",
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_students",
-                    status: "pending",
-                    reason: "Team creation failed",
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_graders",
-                    status: "pending",
-                    reason: "Team creation failed",
-                    fileName: projectFile.name,
-                });
                 console.error("Team creation failed:", genTeamResult.errors);
                 alert("Team creation errors:\n" + genTeamResult.errors.join("\n"));
                 return;
             }
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_teams",
-                status: "success",
-                fileName: projectFile.name,
-            });
 
-            await logBulkUploadStep({
-                operationId,
-                step: "verify_student_file",
-                status: "started",
-                fileName: studentFile.name,
-            });
             const verifyStudentResult = await verifyFileService(studentFile, "student");
             if (!verifyStudentResult.valid) {
-                await logBulkUploadStep({
-                    operationId,
-                    step: "verify_student_file",
-                    status: "failed",
-                    reason: "Student file validation failed",
-                    details: verifyStudentResult.errors,
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_students",
-                    status: "pending",
-                    reason: "Student file validation failed",
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_graders",
-                    status: "pending",
-                    reason: "Student file validation failed",
-                    fileName: projectFile.name,
-                });
                 console.error("Student file verification failed:", verifyStudentResult.errors);
                 alert("Student file validation errors:\n" + verifyStudentResult.errors.join("\n"));
                 return;
             }
-            await logBulkUploadStep({
-                operationId,
-                step: "verify_student_file",
-                status: "success",
-                fileName: studentFile.name,
-            });
     
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_students",
-                status: "started",
-                fileName: studentFile.name,
-            });
             const genStudentResult = await generateStudentUsers(studentFile);
             if (!genStudentResult.valid) {
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_students",
-                    status: "failed",
-                    reason: "Student generation failed",
-                    details: genStudentResult.errors,
-                    fileName: studentFile.name,
-                });
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_graders",
-                    status: "pending",
-                    reason: "Student generation failed",
-                    fileName: projectFile.name,
-                });
                 console.error("User creation failed:", genStudentResult.errors);
                 alert("Student user creation errors:\n" + genStudentResult.errors.join("\n"));
                 return;
             }
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_students",
-                status: "success",
-                fileName: studentFile.name,
-            });
-
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_graders",
-                status: "started",
-                fileName: projectFile.name,
-            });
             const genGraderResult = await generateGraders(projectFile);
             if (!genGraderResult.valid) {
-                await logBulkUploadStep({
-                    operationId,
-                    step: "generate_graders",
-                    status: "failed",
-                    reason: "Grader creation failed",
-                    details: genGraderResult.errors,
-                    fileName: projectFile.name,
-                });
                 console.error("Grader creation failed:", genGraderResult.errors);
                 alert("Grader creation errors:\n" + genGraderResult.errors.join("\n"));
                 return;
             }
-            await logBulkUploadStep({
-                operationId,
-                step: "generate_graders",
-                status: "success",
-                fileName: projectFile.name,
-            });
-            await logBulkUploadStep({
-                operationId,
-                step: "bulk_upload",
-                status: "success",
-                details: "Files processed successfully",
-            });
             
             
             alert("Files processed successfully.");
             setStudentFile(null);
             setProjectFile(null);
         } catch (err) {
-            await logBulkUploadStep({
-                operationId,
-                step: "bulk_upload",
-                status: "failed",
-                reason: err.message,
-            });
             console.error("Upload failed:", err);
             alert("Upload failed: " + err.message);
         }
