@@ -16,6 +16,7 @@ const taticketAssignmentRoutes = require("./taticketAssignmentRoutes");
 const tacommunicationRoutes = require("./tacommunicationRoutes");
 const studentDataRoutes = require("./studentDataRoutes");
 const bugReportRoutes = require("./bugReports");
+const logRoutes = require("./logRoutes");
 
 
 // Array to simplify route setup
@@ -37,6 +38,7 @@ const routes = [
   { path: "/api/tacommunications", route: tacommunicationRoutes},
   { path: "/api/studentdata", route: studentDataRoutes },
   { path: "/api/bug-reports", route: bugReportRoutes },
+  { path: "/api/logs", route: logRoutes },
 
 ];
 
