@@ -50,7 +50,7 @@ const routes = [
     path: "/alltickets",
     element: <AllTickets />,
     isProtected: true,
-    roles: ["admin", "student", "TA"],
+    roles: ["admin"],
   },
   {
     path: "/allassignees",

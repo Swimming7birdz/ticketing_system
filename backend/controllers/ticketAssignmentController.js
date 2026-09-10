@@ -69,14 +69,56 @@ exports.getTicketAssignmentsByUserId = async (req, res) => {
 
 exports.assignTicket = async (req, res) => {
   try {
+    const ticketId = Number(req.params.ticket_id);
+    const assigneeId = Number(req.body.user_id);
+
+    if (!Number.isInteger(ticketId) || !Number.isInteger(assigneeId)) {
+      return res.status(400).json({ error: "A valid ticket_id and user_id are required" });
+    }
+
+    const ticket = await Ticket.findByPk(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // The assignment picker only exposes TAs. Enforce that server-side so a
+    // caller cannot use the sharing endpoint to assign an arbitrary account.
+    const assignee = await User.findByPk(assigneeId);
+    if (!assignee || assignee.role !== "TA") {
+      return res.status(400).json({ error: "Tickets can only be assigned to a TA" });
+    }
+
+    const requestingUserId = Number(req.user.id);
+    const { role } = req.user;
+
+    if (role === "TA") {
+      // A TA may share only tickets already assigned to that TA. This is the
+      // authorization boundary for group sharing from /instructortickets.
+      const requesterAssignment = await TicketAssignment.findOne({
+        where: { ticket_id: ticketId, user_id: requestingUserId },
+      });
+      if (!requesterAssignment) {
+        return res.status(403).json({ error: "You can only share tickets assigned to you" });
+      }
+    } else if (role === "student") {
+      // Preserve the existing ticket-submission flow: a student creates a
+      // ticket and immediately assigns its selected TA.
+      if (ticket.student_id !== requestingUserId) {
+        return res.status(403).json({ error: "You can only assign your own tickets" });
+      }
+    } else if (role !== "admin") {
+      // In particular, graders must never be able to initiate sharing.
+      return res.status(403).json({ error: "You are not allowed to share tickets" });
+    }
+
     const [ticketAssignment, created] = await TicketAssignment.findOrCreate({
       where: {
-        ticket_id: req.params.ticket_id,
-        user_id: req.body.user_id,
+        ticket_id: ticketId,
+        user_id: assigneeId,
       },
       defaults: {
-        ticket_id: req.params.ticket_id,
-        user_id: req.body.user_id,
+        ticket_id: ticketId,
+        user_id: assigneeId,
       },
     });
 
