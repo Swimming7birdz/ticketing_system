@@ -5,7 +5,6 @@ import Button from "@mui/material/Button";
 import ViewToggle from "./viewToggle";
 import TicketRow from "./TicketRow";
 import TicketCard from "./TicketCard";
-import TaTicketCard from "./TaTicketCard";
 import GroupShareTicket from "./GroupShareTicket/GroupShareTicket";
 
 export default function TicketsViewController({
@@ -14,7 +13,7 @@ export default function TicketsViewController({
   onOpenTicket,                   // function(ticket)
   header = "",
   gridBreakpoints = { xs:12, sm:6, md:4, lg:3 },
-  enableShare = false,            // show share controls (only used on AllTickets page)
+  enableShare = false,            // show sharing controls for authorized callers
 }) {
   const [view, setView] = React.useState(() => localStorage.getItem("tickets:view") || defaultView);
   const [sortColumn, setSortColumn] = React.useState(null);
@@ -24,10 +23,6 @@ export default function TicketsViewController({
   const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);
 
   const [shareOpen, setShareOpen] = useState(false);
-
-  const [idNameMap, setIdNameMap] = useState({});
-  const [allAssignedID, setAllAssignedID] = useState([]);
-  const [error, setError] = useState(false);
 
   React.useEffect(() => localStorage.setItem("tickets:view", view), [view]);
 
@@ -110,70 +105,6 @@ export default function TicketsViewController({
     );
   };
 
-  //TICKET ASSIGNMENTS: from ticket_id get user_id (database has multiple users assigned to same ticket?)
-  const fetchAssignedTaID = async () => {
-    try {
-      const token = Cookies.get("token");
-      
-      const getResponse = await fetch(
-        `${baseURL}/api/ticketassignments/ticket/${ticketId}`,
-        {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        //console.log("Assigned TA ID: ", getResponse);
-
-        if (!getResponse.ok) {
-          console.error(`Failed to get assigned TAs ID. Status: ${getResponse.status}`);
-          console.error(`${getResponse.reason}`);
-        }
-      
-        const list = await getResponse.json();
-        console.log("Assigned TA ID: ", list);
-        const TA_id = list.map(obj => obj.user_id)[0]; //if tickets have multiple TAs, only get the first one
-        const TA_id_list = list.map(obj => obj.user_id);
-        setAllAssignedID(TA_id_list);
-        setAssignedID(TA_id);
-
-      } catch (err) {
-        console.log("Error: ", err);
-        setError(true);
-      }
-  }
-
-  const fetchTaMap = async () => {
-  try {
-      
-      const getResponse = await fetch(
-      `${baseURL}/api/users/role/TA`,
-      {
-          method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-          },
-      });
-
-      if (!getResponse.ok) {
-          console.error(`Failed to get TAs. Status: ${getResponse.status}`);
-          console.error(`${getResponse.reason}`);
-      }
-      
-      const list = await getResponse.json();
-      console.log("all ID: ", list);
-      const idNameMap = convertToMap(list);
-      setIdNameMap(idNameMap);
-
-      } catch (err) {
-      console.log("Error: ", error);
-      setError(true);
-      }
-  }
-
   return (
     <Box sx={{ p: 0 }}>
       <Box sx={{ display:"flex", alignItems:"center", mb:1.5 }}>
@@ -182,11 +113,11 @@ export default function TicketsViewController({
           <Box>{header}</Box>
           {enableShare && (
             <>
-              <Button variant={showCheckboxes ? "outlined" : "contained"} 
+              <Button variant={showCheckboxes ? "outlined" : "contained"}
                 onClick={() => {
-                  setShowCheckboxes(!showCheckboxes)
-                  if(!showCheckboxes){
-                    //If canceling out of showing checkboxes, clear selected checkboxes
+                  const nextShowCheckboxes = !showCheckboxes;
+                  setShowCheckboxes(nextShowCheckboxes);
+                  if (!nextShowCheckboxes) {
                     setSelectedCheckboxes([]);
                   }
                 }}>
@@ -202,21 +133,22 @@ export default function TicketsViewController({
                       alert("Please select at least one ticket to share.");
                       return;
                     }
-                    console.log("selectedCheckboxes:", selectedCheckboxes);
                     setShareOpen(true);
-                    fetchAssignedTaID();
-                    fetchTaMap();
                   }
                 }>
                   Share
                 </Button>          
               )}
-              <GroupShareTicket handleOpen={shareOpen} handleClose={() => setShareOpen(false)} 
-                  ticketIDs={selectedCheckboxes} 
-                  // updateTA={(newTAID) => setSharedID(newTAID)}
-                  idNameMap={idNameMap}
-                  allTAs = {allAssignedID}
-                  />
+              <GroupShareTicket
+                handleOpen={shareOpen}
+                handleClose={() => setShareOpen(false)}
+                ticketIDs={selectedCheckboxes}
+                onComplete={() => {
+                  setShareOpen(false);
+                  setSelectedCheckboxes([]);
+                  setShowCheckboxes(false);
+                }}
+              />
             </>
           )}
         </Box>

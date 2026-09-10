@@ -1,216 +1,154 @@
-import React, { useEffect, useState } from "react";
-import Button from '@mui/material/Button';
+import React, { useEffect, useMemo, useState } from "react";
+import Button from "@mui/material/Button";
 import Cookies from "js-cookie";
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import './GroupShareTicket.css'
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import "./GroupShareTicket.css";
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
+const GroupShareTicket = ({
+  handleOpen,
+  handleClose,
+  ticketIDs = [],
+  onComplete,
+  assignmentPath = "ticketassignments",
+}) => {
+  const [selectedTA, setSelectedTA] = useState("");
+  const [tas, setTAs] = useState([]);
+  const [loadingTAs, setLoadingTAs] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resultMessage, setResultMessage] = useState("");
+  const token = Cookies.get("token");
 
-const GroupShareTicket = ({handleOpen, handleClose, ticketIDs, idNameMap: propIdNameMap = {}, allTAs, assignmentPath = "ticketassignments"}) => { 
-    const [selectedTA, setSelectedTA] = useState(''); //current TA
-    const [error, setError] = useState(false);
-    const [assignedTAs, setAssignedTAs] = useState([]);
-    // keep a local copy in case the parent doesn't supply one
-    const [idNameMap, setIdNameMap] = useState(propIdNameMap);
-    const token = Cookies.get("token");
+  const uniqueTicketIDs = useMemo(
+    () => [...new Set(ticketIDs.map(Number).filter(Number.isInteger))],
+    [ticketIDs]
+  );
 
-    const getDisplayName = (value, fallbackId) => {
-        if (typeof value === "string") return value;
-        if (value && typeof value === "object") return value.name || `User ${fallbackId}`;
-        return `User ${fallbackId}`;
-    };
-
-    // whenever the dialog closes we want to clear the selection
-    const handleDialogClose = () => {
-        setSelectedTA('');
-        handleClose();
-    };
-
-    // also clear if the open flag flips from true to false
-    useEffect(() => {
-        if (!handleOpen) {
-            setSelectedTA('');
-        }
-    }, [handleOpen]);
-
-    
-
-    const handleSelectChange = (event) => {
-        setSelectedTA(Number(event.target.value));
-    };
-
-    // fetch the current assignments for the first ticket in the group
-    useEffect(() => {
-        if (ticketIDs.length === 0) return;
-        const fetchAssignments = async () => {
-        try {
-            const res = await fetch(
-            `${baseURL}/api/${assignmentPath}/ticket/${ticketIDs[0]}`,    // call the GET route
-            {
-                method: "GET",
-                headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-                },
-            }
-            );
-
-            if (!res.ok) {
-            console.error("failed to load assignments", res.status);
-            return;
-            }
-
-            const list = await res.json();
-            setAssignedTAs(list);          // array of {ticket_id, user_id,…}
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const convertToMap = (list) => {
-        return list.reduce((acc, obj) => { //map ID to name
-        acc[obj.user_id] = obj.name;
-        return acc;
-        }, {});
-    };
-
-    const fetchTaMap = async () => {
-    try {
-        const getResponse = await fetch(
-            `${baseURL}/api/users/role/TA`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-
-        if (!getResponse.ok) {
-            console.error(`Failed to get TAs. Status: ${getResponse.status}`);
-            console.error(`${getResponse.reason}`);
-        }
-
-        const list = await getResponse.json();
-        console.log("all ID: ", list);
-        const map = convertToMap(list);
-        setIdNameMap(map);
-    } catch (err) {
-        console.log("Error: ", err);
-        setError(true);
+  useEffect(() => {
+    if (!handleOpen) {
+      setSelectedTA("");
+      setResultMessage("");
+      return;
     }
+
+    let cancelled = false;
+    const loadTAs = async () => {
+      setLoadingTAs(true);
+      try {
+        const response = await fetch(`${baseURL}/api/users/role/TA`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error("Unable to load TA accounts.");
+
+        const users = await response.json();
+        if (!cancelled) setTAs(users.filter((user) => user.is_enabled !== false));
+      } catch (error) {
+        if (!cancelled) {
+          setTAs([]);
+          setResultMessage(error.message || "Unable to load TA accounts.");
+        }
+      } finally {
+        if (!cancelled) setLoadingTAs(false);
+      }
+    };
+
+    loadTAs();
+    return () => {
+      cancelled = true;
+    };
+  }, [handleOpen, token]);
+
+  const closeDialog = () => {
+    if (!isSubmitting) handleClose();
+  };
+
+  const shareTicket = async (ticketId) => {
+    const response = await fetch(`${baseURL}/api/${assignmentPath}/ticket/${ticketId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ user_id: Number(selectedTA) }),
+    });
+
+    if (response.ok) return { ticketId, status: "shared" };
+    if (response.status === 409) return { ticketId, status: "duplicate" };
+
+    const body = await response.json().catch(() => ({}));
+    return { ticketId, status: "failed", message: body.error || `Request failed (${response.status})` };
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedTA || uniqueTicketIDs.length === 0) return;
+
+    setIsSubmitting(true);
+    setResultMessage("");
+    const settled = await Promise.allSettled(uniqueTicketIDs.map(shareTicket));
+    const results = settled.map((result, index) => (
+      result.status === "fulfilled"
+        ? result.value
+        : { ticketId: uniqueTicketIDs[index], status: "failed", message: "Network error" }
+    ));
+    const shared = results.filter((result) => result.status === "shared");
+    const duplicates = results.filter((result) => result.status === "duplicate");
+    const failures = results.filter((result) => result.status === "failed");
+    setIsSubmitting(false);
+
+    if (failures.length === 0) {
+      onComplete?.({ shared: shared.length, duplicates: duplicates.length });
+      handleClose();
+      return;
+    }
+
+    const succeeded = shared.length + duplicates.length;
+    const failureDetails = failures.map((result) => `#${result.ticketId}: ${result.message}`).join("; ");
+    setResultMessage(`${succeeded} of ${results.length} tickets were shared or already shared. Failed: ${failureDetails}`);
+  };
+
+  return (
+    <Dialog open={handleOpen} onClose={closeDialog}>
+      <DialogContent>
+        <DialogContentText variant="body1" sx={{ fontWeight: 500, color: "black" }}>
+          Share {uniqueTicketIDs.length} selected ticket{uniqueTicketIDs.length === 1 ? "" : "s"}
+        </DialogContentText>
+        <DialogContentText sx={{ mt: 1 }}>
+          Pick a TA account to add to every selected ticket. Existing assignments are kept.
+        </DialogContentText>
+        {resultMessage && (
+          <DialogContentText color="error" sx={{ mt: 1 }}>
+            {resultMessage}
+          </DialogContentText>
+        )}
+        <DialogActions className="dropdown">
+          <select
+            value={selectedTA}
+            disabled={loadingTAs || isSubmitting}
+            onChange={(event) => setSelectedTA(event.target.value)}
+          >
+            <option value="" disabled>{loadingTAs ? "Loading TAs…" : "Select a TA"}</option>
+            {tas.map((ta) => (
+              <option key={ta.user_id} value={ta.user_id}>{ta.name}</option>
+            ))}
+          </select>
+        </DialogActions>
+        <DialogActions className="buttons">
+          <Button onClick={closeDialog} disabled={isSubmitting}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={!selectedTA || loadingTAs || isSubmitting || uniqueTicketIDs.length === 0}
+          >
+            {isSubmitting ? "Sharing…" : "Confirm"}
+          </Button>
+        </DialogActions>
+      </DialogContent>
+    </Dialog>
+  );
 };
-
-    fetchAssignments();
-    // ensure we have TA names available when the dialog opens
-    fetchTaMap();
-    }, [ticketIDs, baseURL, token]);
-
-    const handleUpdate = async (event) => {
-        //Check to see if number of ticketID is > 0 is handled in  the initial share button 
-        // so there should always be at least 1 ticketID here
-
-        //Adds shared TA to ticketassignments
-        for (const ticketID of ticketIDs) {
-            try{
-                // selectedTA = assignedTAs.length ? assignedTAs[0].user_id : null;
-                const shareResponse = await fetch(
-                    `${baseURL}/api/${assignmentPath}/ticket/${ticketID}`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            ticket_id : ticketID,
-                            user_id: selectedTA
-                        }),
-                    }
-                );
-            
-                if (!shareResponse.ok) {
-                    //Check if Error is due to duplicate assignment (status 409) or other reason
-                    if(shareResponse.status !== 409) {
-                        //If it's due to duplicate assignment, we can ignore since the ticket is already shared to that TA
-                        alert("Failed to updated TA assignment");
-                        console.error(`Failed to updated TA assignment. Status: ${shareResponse.status}`);
-                        console.error(`${shareResponse.reason}`);
-                    }
-                }
-
-            } catch(error) {
-                alert("ERROR");
-                console.log("Error: ", error);
-                setError(true);
-            }
-        }
-        alert("Finished sharing tickets");
-    }
-
-    const handleSubmit = () => {
-        if (!selectedTA) {
-            alert("Please select a valid TA before confirming.");
-            return;
-        }
-        handleUpdate();
-        // close and reset
-        handleDialogClose();
-    }
-
-    return(
-        <Dialog
-        open={handleOpen}
-        onClose={handleDialogClose}
-        PaperProps={{
-            component: 'form',
-            onSubmit: (event) => {
-            event.preventDefault();
-            },
-        }}
-        >
-            <DialogContent>
-                <DialogContentText variant="body1" sx={{ fontWeight: '500', color: "black" }}>
-                    Assigned TAs
-                </DialogContentText>
-                <DialogContentText> 
-                    {Object.entries(idNameMap).map(([user_id, info]) => (allTAs.includes(Number(user_id)) &&
-                        <option key={user_id} value={user_id}>• {getDisplayName(info, user_id)}</option> //TA name is displayed but actual value for 'selectedTA' is user_id
-                        ))}
-                </DialogContentText>
-                <DialogContentText> 
-                Pick a new TA to share the tickets to.
-                </DialogContentText>
-                <DialogActions classname="dropdown">
-                    <select value={selectedTA} onChange={handleSelectChange}>
-                        <option value="" disabled>Select a TA</option>
-                        {Object.entries(idNameMap).map(([user_id, info]) => (
-                        <option key={user_id} value={user_id}>{getDisplayName(info, user_id)}</option> //TA name is displayed but actual value for 'selectedTA' is user_id
-                        ))}
-                    </select>
-                    
-                </DialogActions>
-                <DialogActions classname="buttons">
-                    <Button onClick={handleDialogClose}>Cancel</Button>
-                    <Button 
-                        variant="contained" 
-                        type="submit"
-                        onClick={() => {
-                                handleSubmit();
-                            }
-                        } 
-                    >
-                        Confirm
-                    </Button>
-                </DialogActions>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
 
 export default GroupShareTicket;
