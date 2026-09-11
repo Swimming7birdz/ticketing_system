@@ -56,5 +56,22 @@ router.get(
   authMiddleware.verifyToken,
   userController.getUsersByRole
 );
-
+router.post(
+  "/email-notification",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  userController.emailNotification
+);
+router.post(
+  "/email-notification-2",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  userController.emailNotification2
+);
+router.post(
+  "/email-notification-3",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  userController.emailNotification3
+);
 module.exports = router;

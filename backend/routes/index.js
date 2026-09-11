@@ -10,12 +10,13 @@ const encryptionRoutes = require("./encryptionRoutes");
 const pingRoutes = require("./pingRoutes");
 const emailRoutes = require('./emailRoutes');
 const passwordResetTokenRoutes = require('./passwordResetTokenRoutes');
-
+const bulkUploadRoutes = require("./bulkUploadRoutes");
 const taticketRoutes = require("./taticketRoutes");
 const taticketAssignmentRoutes = require("./taticketAssignmentRoutes");
 const tacommunicationRoutes = require("./tacommunicationRoutes");
 const studentDataRoutes = require("./studentDataRoutes");
 const bugReportRoutes = require("./bugReports");
+const teamSponsorHistoryRoutes = require("./teamSponsorHistoryRoutes");
 
 
 // Array to simplify route setup
@@ -37,6 +38,8 @@ const routes = [
   { path: "/api/tacommunications", route: tacommunicationRoutes},
   { path: "/api/studentdata", route: studentDataRoutes },
   { path: "/api/bug-reports", route: bugReportRoutes },
+  { path: "/api/teams", route: teamSponsorHistoryRoutes },
+  { path: "/api/bulk-upload", route: bulkUploadRoutes },
 
 ];
 

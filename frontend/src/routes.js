@@ -15,6 +15,9 @@ import TAinfo from "./pages/TAInfo/TAinfo";
 import TicketInfo from "./pages/TicketInfo/TicketInfo";
 import TicketQueue from "./pages/TicketQueue/TicketQueue";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
+import BugReportPage from "./pages/bugReportPage/bugReportPage";
+import BugReportsList from "./pages/BugReportsList";
+import TeamSponsorHistory from "./pages/ManageUsers/TeamSponsorHistory";
 
 const routes = [
   { path: "/login", element: <Login />, isProtected: false },
@@ -47,7 +50,7 @@ const routes = [
     path: "/alltickets",
     element: <AllTickets />,
     isProtected: true,
-    roles: ["admin", "student", "TA"],
+    roles: ["admin"],
   },
   {
     path: "/allassignees",
@@ -98,7 +101,7 @@ const routes = [
     roles: ["admin", "student", "TA"],
   },
   {
-    path: '/requestreset',
+    path: "/requestreset",
     element: <RequestReset />,
     isProtected: false,
     roles: [],
@@ -108,7 +111,25 @@ const routes = [
     element: <ResetPassword />,
     isProtected: false,
     roles: [],
-  }
+  },
+  {
+    path: "/bugReportPage",
+    element: <BugReportPage />,
+    isProtected: true,
+    roles: ["admin", "student", "TA"],
+  },
+  {
+    path: "/bug-reports-list",
+    element: <BugReportsList />,
+    isProtected: true,
+    roles: ["admin", "student", "TA"],
+  },
+  {
+    path: "/team-sponsor-history",
+    element: <TeamSponsorHistory />,
+    isProtected: true,
+    roles: ["admin", "TA", "grader"],
+  },
 ];
 
 export default routes;

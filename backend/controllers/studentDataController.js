@@ -15,10 +15,10 @@ exports.getStudentDataByUserId = async (req, res) => {
 
 exports.createStudentData = async (req, res) => {
     try {
-        const {user_id, team_id, section} = req.body;
+       const { user_id, team_id, section, semester } = req.body;
         const [user, created] = await StudentData.findOrCreate({
             where: { user_id },
-            defaults: { user_id, team_id, section }
+            defaults: { user_id, team_id, section, semester }
         });
         
         if (created) return res.status(201).json({ created: true, user });
@@ -77,6 +77,26 @@ exports.getStudentsByTeam = async (req, res) => {
         res.json(formattedStudents);
     } catch (error) {
         console.error("Error fetching students by team:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.getTeamForStudent = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+
+        const studentData = await StudentData.findOne({
+            where: { user_id },
+            attributes: ['team_id'] // We only need the team_id for this
+        });
+
+        if (studentData && studentData.team_id) {
+            res.json({ team_id: studentData.team_id });
+        } else {
+            res.status(404).json({ error: "No team assigned to this student" });
+        }
+    } catch (error) {
+        console.error("Error fetching student's team:", error);
         res.status(500).json({ error: error.message });
     }
 };
