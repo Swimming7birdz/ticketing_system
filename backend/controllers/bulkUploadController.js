@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Team = require("../models/Team");
 const StudentData = require("../models/StudentData");
 const TeamMember = require("../models/TeamMember");
+const BulkUploadChangeHistory = require("../models/BulkUploadChangeHistory");
 
 const normalizeTeamName = (value) =>
   String(value ?? "")
@@ -15,6 +16,42 @@ const trimValue = (value) => String(value ?? "").trim();
 
 const getUserId = (u) => u?.user_id ?? u?.id;
 const getTeamId = (t) => t?.team_id ?? t?.id;
+
+const valuesDiffer = (oldValue, newValue) =>
+  String(oldValue ?? "") !== String(newValue ?? "");
+
+const serializeHistoryValue = (value) => {
+  if (value === undefined || value === null) return null;
+  return String(value);
+};
+
+const recordBulkUploadChange = async ({
+  uploadBatchId,
+  entityType,
+  entityId,
+  entityName,
+  changeType,
+  fieldName,
+  oldValue,
+  newValue,
+  changedBy,
+  transaction,
+}) => {
+  await BulkUploadChangeHistory.create(
+    {
+      upload_batch_id: uploadBatchId,
+      entity_type: entityType,
+      entity_id: entityId,
+      entity_name: entityName,
+      change_type: changeType,
+      field_name: fieldName,
+      old_value: serializeHistoryValue(oldValue),
+      new_value: serializeHistoryValue(newValue),
+      changed_by: changedBy,
+    },
+    { transaction }
+  );
+};
 
 const createTempPasswordHash = async () => {
   const temp = `Temp#${Math.random().toString(36).slice(2, 10)}A1`;
@@ -48,6 +85,9 @@ const findOrCreateUserByEmail = async ({ name, email, role, transaction }) => {
 
 exports.importBulk = async (req, res) => {
   const { projectRows, studentRows } = req.body || {};
+  const uploadBatchId = `bulk-upload-${Date.now()}`;
+  const changedBy = req.user?.id || req.user?.user_id || null;
+  let changesTracked = 0;
 
   if (!Array.isArray(projectRows) || !Array.isArray(studentRows)) {
     return res.status(400).json({
@@ -104,6 +144,61 @@ exports.importBulk = async (req, res) => {
             },
             { transaction }
           );
+          changesTracked += 1;
+          await recordBulkUploadChange({
+            uploadBatchId,
+            entityType: "team",
+            entityId: getTeamId(team),
+            entityName: team.team_name,
+            changeType: "created",
+            fieldName: "team",
+            oldValue: null,
+            newValue: team.team_name,
+            changedBy,
+            transaction,
+          });
+        } else {
+          const nextSponsorName = trimValue(row.sponsor);
+          const nextSponsorEmail = trimValue(row.sponsor_email);
+          const teamUpdates = {};
+
+          if (valuesDiffer(team.sponsor_name, nextSponsorName)) {
+            changesTracked += 1;
+            await recordBulkUploadChange({
+              uploadBatchId,
+              entityType: "team",
+              entityId: getTeamId(team),
+              entityName: team.team_name,
+              changeType: "updated",
+              fieldName: "sponsor_name",
+              oldValue: team.sponsor_name,
+              newValue: nextSponsorName,
+              changedBy,
+              transaction,
+            });
+            teamUpdates.sponsor_name = nextSponsorName;
+          }
+
+          if (valuesDiffer(team.sponsor_email, nextSponsorEmail)) {
+            changesTracked += 1;
+            await recordBulkUploadChange({
+              uploadBatchId,
+              entityType: "team",
+              entityId: getTeamId(team),
+              entityName: team.team_name,
+              changeType: "updated",
+              fieldName: "sponsor_email",
+              oldValue: team.sponsor_email,
+              newValue: nextSponsorEmail,
+              changedBy,
+              transaction,
+            });
+            teamUpdates.sponsor_email = nextSponsorEmail;
+          }
+
+          if (Object.keys(teamUpdates).length > 0) {
+            await team.update(teamUpdates, { transaction });
+          }
         }
 
         teamByName.set(teamName.toLowerCase(), team);
@@ -147,9 +242,35 @@ exports.importBulk = async (req, res) => {
             },
             { transaction }
           );
+          changesTracked += 1;
+          await recordBulkUploadChange({
+            uploadBatchId,
+            entityType: "student",
+            entityId: getUserId(student),
+            entityName: student.name,
+            changeType: "created",
+            fieldName: "student",
+            oldValue: null,
+            newValue: studentEmail,
+            changedBy,
+            transaction,
+          });
         } else {
           const nextName = name || studentEmail;
           if (trimValue(student.name) !== trimValue(nextName)) {
+            changesTracked += 1;
+            await recordBulkUploadChange({
+              uploadBatchId,
+              entityType: "student",
+              entityId: getUserId(student),
+              entityName: nextName,
+              changeType: "updated",
+              fieldName: "name",
+              oldValue: student.name,
+              newValue: nextName,
+              changedBy,
+              transaction,
+            });
             await student.update({ name: nextName }, { transaction });
           }
         }
@@ -161,6 +282,7 @@ exports.importBulk = async (req, res) => {
           where: { user_id: studentId },
           transaction,
         });
+        let membershipMoveHandled = false;
 
         if (!studentData) {
           await StudentData.create(
@@ -171,12 +293,86 @@ exports.importBulk = async (req, res) => {
             },
             { transaction }
           );
+          changesTracked += 1;
+          await recordBulkUploadChange({
+            uploadBatchId,
+            entityType: "student",
+            entityId: studentId,
+            entityName: student.name,
+            changeType: "created",
+            fieldName: "student_data",
+            oldValue: null,
+            newValue: JSON.stringify({ team: team.team_name, section }),
+            changedBy,
+            transaction,
+          });
         } else {
-          const needsUpdate =
-            String(studentData.section ?? "") !== String(section ?? "") ||
-            Number(studentData.team_id) !== Number(teamId);
+          const oldTeamId = studentData.team_id;
+          const oldSection = studentData.section;
+          const teamChanged = Number(oldTeamId) !== Number(teamId);
+          const sectionChanged = valuesDiffer(oldSection, section);
+          const needsUpdate = sectionChanged || teamChanged;
 
           if (needsUpdate) {
+            if (sectionChanged) {
+              changesTracked += 1;
+              await recordBulkUploadChange({
+                uploadBatchId,
+                entityType: "student",
+                entityId: studentId,
+                entityName: student.name,
+                changeType: "updated",
+                fieldName: "section",
+                oldValue: oldSection,
+                newValue: section,
+                changedBy,
+                transaction,
+              });
+            }
+
+            if (teamChanged) {
+              const oldTeam = oldTeamId
+                ? await Team.findByPk(oldTeamId, { transaction })
+                : null;
+              changesTracked += 1;
+              await recordBulkUploadChange({
+                uploadBatchId,
+                entityType: "student",
+                entityId: studentId,
+                entityName: student.name,
+                changeType: "moved",
+                fieldName: "team_id",
+                oldValue: oldTeam?.team_name || oldTeamId,
+                newValue: team.team_name,
+                changedBy,
+                transaction,
+              });
+
+              await TeamMember.destroy({
+                where: { team_id: oldTeamId, user_id: studentId },
+                transaction,
+              });
+              await TeamMember.create(
+                { team_id: teamId, user_id: studentId },
+                { transaction }
+              );
+              membershipMoveHandled = true;
+
+              changesTracked += 1;
+              await recordBulkUploadChange({
+                uploadBatchId,
+                entityType: "team_member",
+                entityId: studentId,
+                entityName: student.name,
+                changeType: "moved",
+                fieldName: "team_membership",
+                oldValue: oldTeam?.team_name || oldTeamId,
+                newValue: team.team_name,
+                changedBy,
+                transaction,
+              });
+            }
+
             await studentData.update(
               {
                 section,
@@ -193,11 +389,24 @@ exports.importBulk = async (req, res) => {
           transaction,
         });
 
-        if (!existingMember) {
+        if (!existingMember && !membershipMoveHandled) {
           await TeamMember.create(
             { team_id: teamId, user_id: studentId },
             { transaction }
           );
+          changesTracked += 1;
+          await recordBulkUploadChange({
+            uploadBatchId,
+            entityType: "team_member",
+            entityId: studentId,
+            entityName: student.name,
+            changeType: "added",
+            fieldName: "team_membership",
+            oldValue: null,
+            newValue: team.team_name,
+            changedBy,
+            transaction,
+          });
         }
       }
 
@@ -214,11 +423,59 @@ exports.importBulk = async (req, res) => {
 
     return res.status(200).json({
       message: "Bulk import completed successfully",
+      uploadBatchId,
+      changesTracked,
     });
   } catch (error) {
     return res.status(400).json({
       message: "Bulk import failed. No data was saved.",
       error: error.message,
     });
+  }
+};
+
+exports.getChangeHistory = async (req, res) => {
+  try {
+    const {
+      uploadBatchId,
+      entityType,
+      entityId,
+      limit = 100,
+    } = req.query;
+
+    const where = {};
+    if (uploadBatchId) where.upload_batch_id = uploadBatchId;
+    if (entityType) where.entity_type = entityType;
+    if (entityId) where.entity_id = entityId;
+
+    const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
+    const history = await BulkUploadChangeHistory.findAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: "changedBy",
+          attributes: ["user_id", "name", "email"],
+          required: false,
+        },
+      ],
+      order: [["changed_at", "DESC"], ["id", "DESC"]],
+      limit: safeLimit,
+    });
+
+    const batchRows = await BulkUploadChangeHistory.findAll({
+      attributes: ["upload_batch_id"],
+      where: uploadBatchId ? { upload_batch_id: uploadBatchId } : {},
+      group: ["upload_batch_id"],
+      order: [[sequelize.fn("MAX", sequelize.col("changed_at")), "DESC"]],
+      limit: 25,
+    });
+
+    return res.json({
+      history,
+      batches: batchRows.map((row) => row.upload_batch_id),
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };

@@ -6,11 +6,13 @@ import {
     Snackbar, Alert
 } from '@mui/material';
 import { useTheme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const CreateTicket = ({ onClose }) => {
     const theme = useTheme();
+    const navigate = useNavigate();
 
     // Auth Data
     const token = Cookies.get("token");
@@ -28,6 +30,15 @@ const CreateTicket = ({ onClose }) => {
 
     // Pop-up (Snackbar) State
     const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
+
+    const closeTicketForm = () => {
+        if (onClose) {
+            onClose();
+            return;
+        }
+
+        navigate(-1);
+    };
 
     // Function to close the pop-up
     const handleCloseToast = (event, reason) => {
@@ -176,7 +187,7 @@ const CreateTicket = ({ onClose }) => {
 
             // Delay the close and reload so the user can read the pop-up
             setTimeout(() => {
-                onClose();
+                closeTicketForm();
                 window.location.reload();
             }, 1500);
         } catch (error) {
@@ -204,7 +215,7 @@ const CreateTicket = ({ onClose }) => {
                 bgcolor: theme.palette.background.paper, p: 4, borderRadius: 2,
                 width: '95%', maxWidth: 600, position: 'relative', boxShadow: 24
             }}>
-                <Button onClick={onClose} sx={{ position: "absolute", top: 10, right: 10, minWidth: "30px", color: "#8C1D40", fontSize: '20px' }}>&times;</Button>
+                <Button onClick={closeTicketForm} sx={{ position: "absolute", top: 10, right: 10, minWidth: "30px", color: "#8C1D40", fontSize: '20px' }}>&times;</Button>
 
                 <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, textAlign: 'center', color: '#8C1D40' }}>
                     {isStudent ? "New Student Ticket" : "New Staff/TA Ticket"}
