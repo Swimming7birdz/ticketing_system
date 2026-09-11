@@ -5,7 +5,10 @@ const TeamMember = require("./TeamMember");
 const TicketAssignment = require("./TicketAssignment");
 const PasswordResetToken = require("./PasswordResetToken");
 const StudentData = require("./StudentData");
-const BugReport = require("./bugreport"); 
+const BugReport = require("./bugreport");
+const EmailLog = require("./EmailLog");
+const TeamSponsorHistory = require("./TeamSponsorHistory");
+const BulkUploadChangeHistory = require("./BulkUploadChangeHistory");
 
 // Associations
 User.hasMany(TeamMember, { foreignKey: "user_id" });
@@ -27,6 +30,11 @@ BugReport.belongsTo(User, { foreignKey: "reporter_id", as: "reporter" });
 StudentData.belongsTo(User, { foreignKey: "user_id" });
 User.hasOne(StudentData, { foreignKey: "user_id" });
 
+Team.hasMany(TeamSponsorHistory, { foreignKey: "team_id" });
+TeamSponsorHistory.belongsTo(Team, { foreignKey: "team_id" });
+TeamSponsorHistory.belongsTo(User, { foreignKey: "changed_by", as: "changedBy" });
+
+BulkUploadChangeHistory.belongsTo(User, { foreignKey: "changed_by", as: "changedBy" });
 
 module.exports = {
   User,
@@ -36,5 +44,8 @@ module.exports = {
   TicketAssignment,
   PasswordResetToken,
   StudentData,
-  BugReport, 
+  BugReport,
+  EmailLog,
+  TeamSponsorHistory,
+  BulkUploadChangeHistory,
 };

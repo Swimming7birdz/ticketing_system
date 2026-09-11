@@ -43,6 +43,8 @@ import GraderTickets from "./pages/GraderTickets/GraderTickets";
 import GraderSettings from "./pages/Settings/GraderSettings";
 import DeveloperDash from "./pages/DeveloperDash/DeveloperDash";
 import EscalatedTicketsTA from "./pages/EscalatedTickets/EscalatedTicketsTA";
+import CreateTicket from "./components/CreateTicket/CreateTicket";
+import BulkUploadHistory from "./pages/BulkUploadHistory/BulkUploadHistory";
 
 
 function App() {
@@ -99,6 +101,10 @@ function App() {
               <Route path="/help/faq" element={<FAQ />} />
           </Route>
 
+          <Route element={<ProtectedRoute authorizedRoles={["student", "TA"]} />}>
+              <Route path="/createticket" element={<CreateTicket />} />
+          </Route>
+
           <Route element={<ProtectedRoute authorizedRoles={["admin", "TA", "grader"]} />}>
               <Route path="/ticketsubmit" element={<TicketSubmit />} />
               <Route path="/ticketqueue" element={<TicketQueue />} />
@@ -116,6 +122,7 @@ function App() {
               <Route path="/manageTeams" element={<ManageTeams />} />
               <Route path="/manageGraders" element={<ManageGraders />} />
               <Route path="/bulkupload" element={<BulkUpload />} />
+              <Route path="/bulk-upload-history" element={<BulkUploadHistory />} />
               <Route path="/escalatedtickets" element={<EscalatedTickets />} />
               <Route path="/alltickets" element={<AllTickets />} />
 

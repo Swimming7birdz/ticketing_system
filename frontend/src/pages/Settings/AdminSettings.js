@@ -261,6 +261,13 @@ const AdminSettings = () => {
           >
               Data Upload
           </Button>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/bulk-upload-history")}
+            sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+              Upload History
+          </Button>
         </Box>
       </Box>
 
